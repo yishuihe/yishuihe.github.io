@@ -1,10 +1,5 @@
-#一点点说明
+#本站声明
 
-这是[BeiYuu.com](http://beiyuu.com)的示例代码，如果你看了[使用Github Pages建独立博客](http://beiyuu.com/github-pages/)，希望看下去哦：
+这是Zhixin Liu的个人blog站点，主要用于记录一下工作心得，技术文章。
 
-* 马上动手，很赞
-* 感谢认可
-* 推荐阅读：[我为什么写博客？](http://beiyuu.com/why-blog/)
-* 想复用我的设计，没问题，标个出处就好啦
-* 转载也没问题，标个出处呗少年
-* 恩，认真的童鞋最可爱啦~
+整个站点参考的BeiYuu的文章：[使用Github Pages建独立博客](http://beiyuu.com/github-pages/)，并完全照搬了他的模板。由于本人没有任何的前端经验，所以甚至现在都不能在页面上注明此类信息。等稍微学习一些相关知识后，再补上。

@@ -4,6 +4,7 @@ layout: home
 
 <div class="index-content blog">
     <div class="section">
+<!--
         <ul class="artical-cate">
             <li class="on"><a href="/"><span>Tech</span></a></li>
             <li style="text-align:center"><a href="/think"><span>Think</span></a></li>
@@ -11,6 +12,7 @@ layout: home
         </ul>
 
         <div class="cate-bar"><span id="cateBar"></span></div>
+-->
 
         <ul class="artical-list">
         {% for post in site.categories.blog %}

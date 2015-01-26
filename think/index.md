@@ -5,7 +5,7 @@ layout: home
 <div class="index-content think">
     <div class="section">
         <ul class="artical-cate">
-            <li><a href="/"><span>Blog</span></a></li>
+            <li><a href="/"><span>Think</span></a></li>
             <li class="on" style="text-align:center"><a href="/think"><span>Think</span></a></li>
             <li style="text-align:right"><a href="/project"><span>Project</span></a></li>
         </ul>

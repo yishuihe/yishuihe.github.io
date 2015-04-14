@@ -1,0 +1,1041 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.2"/>
+
+
+
+
+  <meta name="keywords" content="android , storage," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.2" />
+
+
+
+
+  <title> The Evolution of Android Storage // Zhixin Liu </title>
+</head>
+
+<body>
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <div id="header" class="header">
+      <div class="header-inner">
+        <h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand">
+      <span class="logo">
+        <i class="icon-logo"></i>
+      </span>
+      <span class="site-title">Zhixin Liu</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+
+  <ul id="menu" class="menu">
+     
+    
+      
+      <li class="menu-item menu-item-home">
+        <a href="/">
+          <i class="menu-item-icon icon-home"></i> <br />
+          Home
+        </a>
+      </li>
+    
+      
+      <li class="menu-item menu-item-archives">
+        <a href="/archives">
+          <i class="menu-item-icon icon-archives"></i> <br />
+          Archives
+        </a>
+      </li>
+    
+      
+      <li class="menu-item menu-item-tags">
+        <a href="/tags">
+          <i class="menu-item-icon icon-tags"></i> <br />
+          Tags
+        </a>
+      </li>
+    
+      
+      <li class="menu-item menu-item-about">
+        <a href="/about">
+          <i class="menu-item-icon icon-about"></i> <br />
+          About
+        </a>
+      </li>
+    
+  </ul>
+
+
+      </div>
+    </div>
+
+    <div id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content">
+          
+
+  <div id="posts" class="posts-expand">
+    
+
+  <div class="post post-type-normal ">
+    <div class="post-header">
+
+      
+      
+        <h1 class="post-title">
+          
+          
+            
+              The Evolution of Android Storage
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          Posted on 2015-01-28
+        </span>
+
+        
+          <span class="post-category">
+            &nbsp; | &nbsp; In
+            
+              <a href="/categories/Android/">Android</a>
+
+              
+              
+
+            
+          </span>
+        
+
+        
+          
+            <span class="post-comments-count">
+            &nbsp; | &nbsp;
+            <a href="/2015/01/28/2015-01-28-android-storage-story/#comments" >
+              <span class="post-comments-count ds-thread-count" data-thread-key="2015/01/28/2015-01-28-android-storage-story/"></span>
+            </a>
+          </span>
+          
+        
+      </div>
+    </div>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <h2 id="引子">引子</h2><p>长久以来，开发者对Android平台的存储系统一直都很困惑。什么是内部存储？什么是外部存储？二者有何区别，又各自如何使用？在StackOverflow上，你会发现有不计其数的相关问题。更要命的是，Android 4.4(Kitkat, API level 19)发布以后，很多开发者和用户都注意到了一个很重大的改动: 外置存储卡貌似不能用了！根据最新的Android变动，非系统应用已经不能再自由的向外置存储卡写入数据。这一改动使得本就令人困惑的的Android storage系统变得更加的凌乱不堪。本文将和你一起对android的存储做一番梳理，希望在读过这篇文章后，能让你对Android的存储有一个清晰的认识。</p>
+<a id="more"></a>
+<h2 id="基本概念">基本概念</h2><p>所有的android设备都有两个存储区域：internal 和external。这种分类方法源自于android的早期设计：早期的大多数的设备提供一个built-in的non-volatile的存储空间(称之为internal storage) 以及一个可以卸载的存储介质例如sdcard(称之为external storage)。而有些设备干脆将它的永久存储介质分成了internal和external，所以即便没有可删除的存储介质，android总是提供internal和external storage，而且不管external存储介质是否是可以删除的，访问external storage的api都是完全一致的。<br>接下来我们分别看看究竟什么是internal，什么是external，先彻底搞清这两个概念。</p>
+<h3 id="internal并非internal">internal并非internal</h3><p>首先我们从internal开始。什么是internal storage呢？看张图：</p>
+<p><img src="/images/android-storage/2015-1-28-storage-situation-internal-storage-1.png" alt=" "></p>
+<p>这就是用户所看到的internal storage，很明显这是设备(手机或平板)机身上的存储空间(一般是flash)。看到这里似乎我们可以很容易理解什么是’internal storage’了（恭喜你开始踏进Android为我们挖的的坑了）但是且慢，让我们来看看<a href="https://developer.android.com/guide/topics/data/data-storage.html#filesInternal" target="_blank" rel="external">Android是怎么定义’internal’</a>的吧：</p>
+<blockquote>
+<p>You can save files directly on the device’s internal storage. By default, files saved to the internal storage are private to your application and other applications cannot access them (nor can the user). When the user uninstalls your application, these files are removed.</p>
+</blockquote>
+<p>看起来真实的internal和我们看到的完全说的就不是一回事啊！事实上，Android所定义的internal storage是针对应用的特定的目录，用于存放该应用的数据，internal storage对应的位置一般是：/data/data/your.application.package.name。这些数据默认是对该应用可读写的，但是对其他的应用是不可以见的。所以我们在使用internal storage的时候是不需要申请任何权限的。</p>
+<h3 id="external也亦非_sdcard">external也亦非 sdcard</h3><p>接下来我们来看看什么是external storage。大多数人对external storage没有明确的概念，因为在android系统的UI中，我们不能找到’external storage’的字眼。唯一看到不同于’internal’的地方是我们插入sd card的时候，查看android系统的storage setting：</p>
+<p><img src="/images/android-storage/2015-1-28-storage-situation-external-storage-1.png" alt=" "></p>
+<p>所以我们会很想当然的认为sdcard等可插拔存储设备就是external storage。 很不幸我们的理解还是有误。 还是来看看<a href="https://developer.android.com/guide/topics/data/data-storage.html#filesExternal" target="_blank" rel="external">Andoir对external storage的定义</a>吧：</p>
+<blockquote>
+<p>Every Android-compatible device supports a shared “external storage” that you can use to save files. This can be a removable storage media (such as an SD card) or an internal (non-removable) storage. Files saved to the external storage are world-readable and can be modified by the user when they enable USB mass storage to transfer files on a computer.</p>
+</blockquote>
+<p>更加不幸的是，即便是这个定义也不是很准确，因为包括它在内，目前绝大多数的关于external的文章都是针对Android Kitkat(4.4, API level 19)以前的系统，在4.4之前，android<strong>仅仅有一个</strong>设备称为‘external storage’，这个设备可能是一个SD card，也可能直接在设备机身的flash上面。但是从Kitkat起，可能会有多个外部存储设备，而且不同的设备会有不同的访问控制。其中一个外部存储是’primary’ external storage, 而其他的一个或者多个称为’secondary’ external storage.<br>这个primary外部存储本质上就是4.4以前的external storage，4.4以前的所有操作外部存储的API在4.4/5.0上仍然有效，而且这些API是作用在primary外部存储上的。</p>
+<p>而在4.4的变化中，影响最大的应该是secondary external storage(可以认为对应sd card)的‘写’权限了，从4.4起只有系统应用才会拥有对secondary外部存储的写权限，而普通应用将不再可以对其进行进行写操作，即使在manifest中加入permission也不行，普通应用唯一可以往secondary外部存储写的地方是app-specific folder，也就是对应/android/data/your.package.name/.</p>
+<p>接下来让我们仔细研究一番。</p>
+<h4 id="external_storage的访问权限">external storage的访问权限</h4><p>从1.0起， 访问外部存储就需要申请权限WRITE_EXTERNAL_STORAGE, 另外从4.1开始如果想读外部存储也要再额外申请权限READ_EXTERNAL_STORAGE.<br>从4.4开始，应用如果想管理它的package-specific的路径的时候，不需要再申请任何权限，例如：一个应用的包名为a.b.c, 那么该应用可以自由的访问Android/data/a.b.c/ 而不需要申请任何读写权限。<br>tip: 外部存储保护力度不高，所有安全敏感性数据要放在interl storage。</p>
+<p><img src="/images/android-storage/2015-1-28-storage-situation-external-storage-2.png" alt=" "></p>
+<p>why？ Google表示， 这样做的目的是，通过这种方式进行限制，系统可以在应用程序被卸载后清除遗留文件。</p>
+<p>另外，从Honeycomb 起引入了WRITE_MEDIA_STORAGE权限，用来控制对secodary external storage的写操作。不过由于种种原因各大OEM厂商并没有很好的去实施这一变化（他们的做法是当有应用申请到WRITE_EXTERNAL_STORAGE权限的时候，系统会自动赋予WRITE_MEDIA_STORAGE权限），所以我们仍然可以通过申请WRITE_EXTERNAL_STORAGE来获取secondary storage的写权限。但是从Kitkat起，以三星为首的各大厂商均加入了这一策略（不清楚具体原因，或许是来自于Google的要求，比如通过CTS来控制），使得在Kitkat设备上，第三方应用已经几乎不能再去更改secondary storage。针对这一改动，Google收到了来自开发者以及用户的大量抱怨，终于在Lollipop上做出了修改：第三方应用可以通过SAF(storage Access Framework)来申请secondary storage的写权限，一旦用户同意后，应用程序将永远可以对这些目录进行读写、删除等操作。稍后我将写一篇SAF的文章来详细介绍。</p>
+<h4 id="Internal_Vs-_external_storage">Internal Vs. external storage</h4><p><strong>internal</strong>：</p>
+<ul>
+<li>总是available的</li>
+<li>只有应用程序本身可以访问存放在这里的数据。</li>
+<li>当应用被卸载的时候，internal里面存放的数据也会被删除。</li>
+</ul>
+<p><strong>external</strong>：</p>
+<ul>
+<li>用户可能会卸载</li>
+<li>world-readable</li>
+<li>除非你将数据存储到了getExternalFilesDir() 指向的区域，否则卸载应用时不会删除这里的数据。</li>
+</ul>
+<h2 id="Kitkat变化归纳">Kitkat变化归纳</h2><p>因为Kitkat对存储部分的设计做了很大的改动，所以我们专门对其变化做个总结：</p>
+<ul>
+<li>外部存储分为了primary和secondary</li>
+<li>对sd card终于有了正式的API支持，详情看<a href="https://groups.google.com/forum/#!msg/android-platform/14VUiIgwUjY/2rZvrNV64QsJ" target="_blank" rel="external">这里</a></li>
+<li>WRITE_EXTERNAL_STORAGE权限已经给了primary external storage，也就是向primary storage写入的时候不需要申请权限</li>
+<li>应用如果想管理它的package-specific的路径的时候，不需要再申请任何权限，例如：一个应用的包名为a.b.c, 那么该应用可以自由的访问Android/data/a.b.c/ 而不需要申请任何读写权限。</li>
+<li>引入了<a href="https://developer.android.com/guide/topics/providers/document-provider.html" target="_blank" rel="external">Storage Access Framework</a></li>
+<li>如果需要访问secondary external storage的话，需要申请WRITE_MEDIA_STORAGE权限，但是这个权限是不对第三方应用开放的，也就是只有google的或者OEM的应用才能申请到这个权限，所以，第三方应用变得不能再去对SD card等secondary storage设备进行写操作。</li>
+</ul>
+<h2 id="开发细节">开发细节</h2><p>Talk is less? Okay, Lets walk into the code！接下来让我们会从开发的角度来探讨如何对internal以及external的读写。</p>
+<h3 id="访问internal_storage">访问internal storage</h3><p>Android通过Context类提供了一系列的的方法来操纵internal storage,一些基本函数如下:</p>
+<ul>
+<li>getCacheDir();</li>
+<li>getDir();</li>
+<li>getDatabasePath()</li>
+<li>getFilesDir()</li>
+<li>openFileInput()</li>
+<li>openFileOutput()</li>
+</ul>
+<p>这些函数用来读写位于internal存储区域的文件或者目录。另外借助于这些函数，Android还提供了一些其他读写internal存储的函数，比如openOrCreateDatabase().另外有些类也是借助于这些函数实现的，比如 SQLiteOpenHelper以及SharedPreferences.</p>
+<p>这里我想给开发者的一个建议是：永远不要去hardcode你的internal文件/目录，例如当我们想存储文件到internal storage的时候，我们不能这样：</p>
+<blockquote>
+<p>File f=new File(“/data/data/their.app.package.name/files/foo.txt”);</p>
+</blockquote>
+<p>此类的代码是千万不能写的。 正确的做法是借助平台提供的API：</p>
+<blockquote>
+<p>File file = new File(context.getFilesDir(), filename);</p>
+</blockquote>
+<p>另外一种方法：通过调用openFileOutput来获取一个FileOutputStream来将文件写入到internal storage：<br>    String filename = “myfile”;&gt;</p>
+<pre><code><span class="built_in">String</span> string = <span class="string">"Hello world!"</span>;
+
+FileOutputStream outputStream;
+
+
+<span class="keyword">try</span> {
+
+  outputStream = openFileOutput(filename, Context.MODE_PRIVATE);
+
+  outputStream.write(string.getBytes());
+
+  outputStream.close();
+
+} <span class="keyword">catch</span> (<span class="built_in">Exception</span> <span class="literal">e</span>) {
+
+  <span class="literal">e</span>.printStackTrace();
+
+}
+</code></pre><h3 id="访问external_storage">访问external storage</h3><p>最初，也就是当Android只有一个external storage的时候，调用Environment.getExternalStorageDirectory(), 会得到整个外部存储的跟目录。进而我们可以读写整个外部存储的任何文件。</p>
+<p>后来，Google决定提供更多的应用特有的存储(其根本目的是为了在应用被卸载的时候，它存储在外部存储设备上的私有数据能够被自动删除)，通过Context类的getExternalFilesDir() and getExternalCacheDir()能够指向应用特有的目录(Android/data/your.package.name)，这样当你的应用被卸载的时候，android系统就能够很容易的将该目录下面的数据全部清除了。</p>
+<p>有些时候，即便应用被删除，但是我们也不想将其产生的文件删除掉(例如照相机应用拍摄的照片和视频)，那么对于这种情况，该如何处理呢？ Environment.getExternalStoragePublicDirectory(),就是为这种case设计的。通过这个API可以集中存放各种多媒体文件，比如照片，视频，音频等。具体的用法可以看看<a href="https://developer.android.com/reference/android/os/Environment.html#getExternalStoragePublicDirectory(java.lang.String" target="_blank" rel="external">这里</a>)</p>
+<p>从Kitkat起，由于Android开始支持多个外部存储，(getExternalFilesDirs() and getExternalCacheDirs())被引入进来，用来指向所有外部存储设备的应用特定目录(Android/data/your.package.name)。</p>
+<p>注意每个函数名最后面的S，表示可能会有多个路径(因为多个外部存储空间)。</p>
+<pre><code><span class="bullet">* </span>Context.getExternalCacheDirs()
+<span class="bullet">* </span>Context.getExternalFilesDirs()
+<span class="bullet">* </span>Context.getObbDirs()
+<span class="bullet">* </span>Environment.getStorageState()
+</code></pre><p>这些API在4.4之前，以上每一个API都有一个对应的api(新的API是复数形式，以前的API是单数形式)，不过返回的是指向应用特定数据的“单一路径”，而新api则是返回的所有的storage(primary/secondary external storage)的可用的”多个”路径。在返回的这些”多个”路径中，第一个总是来自于primary external storage(API文档未说，但是CTS要求这样了)。</p>
+<p>除了这些新api之外，已有的Environment提供的API仍然有效，不过返回的是Primary external storage的相关目录：</p>
+<pre><code><span class="bullet">* </span>getExternalStorageDirectory()
+<span class="bullet">* </span>getExternalStoragePublicDirectory()
+<span class="bullet">* </span>getExternalStorageState()
+</code></pre><p>需要注意的是在Kitkat上，仍然没有API能够直接访问secondary external storage上的非应用特定目录。</p>
+<p>下面是关于外部存储使用一些代码：</p>
+<ul>
+<li><p>访问external storage<br>从1.0起， 访问外部存储就需要申请权限WRITE_EXTERNAL_STORAGE, 另外从4.1开始如果想读外部存储也要再额外申请权限READ_EXTERNAL_STORAGE.<br>从4.4开始，应用如果想管理它的package-specific的路径的时候，不需要再申请任何权限，例如：一个应用的包名为a.b.c, 那么该应用可以自由的访问Android/data/a.b.c/ 而不需要申请任何读写权限。<br>tip: 外部存储保护力度不高，所有安全敏感性数据要放在interl storage。</p>
+</li>
+<li><p>multiple external storage devices<br>从4.4开始，应用程序可以通过以下接口来获取可以存储持久性文件的目录，Context.getExternalFilesDirs(), Context.getExternalCacheDirs(), and Context.getObbDirs().</p>
+</li>
+</ul>
+<p>tips：</p>
+<p>1）WRITE_EXTERNAL_STORAGE权限已经给了primary external storage，也就是向primary storage写入的时候不需要申请权限</p>
+<p>2）应用不允许向secondary external storage写入数据了，出发是package-specific 目录。</p>
+<p>下面是一些例子：</p>
+<ul>
+<li>判断external storage是否可读或者可写：</li>
+</ul>
+<pre><code>/* Checks if external storage is available <span class="keyword">to</span> at least read */
+public boolean isExternalStorageReadable() {
+
+    String <span class="keyword">state</span> = Environment.getExternalStorageState();
+
+    if (Environment.MEDIA_MOUNTED.equals(<span class="keyword">state</span>) ||
+
+        Environment.MEDIA_MOUNTED_READ_ONLY.equals(<span class="keyword">state</span>)) {
+
+        return true;
+    }
+    return false;
+}
+</code></pre><ul>
+<li>存储public file(其他应用可以访问，例如camera拍的照片) </li>
+</ul>
+<p>通过api:  getExternalStoragePublicDirectory()</p>
+<pre><code><span class="keyword">public</span> <span class="keyword">File</span> getAlbumStorageDir(String albumName) {
+    <span class="comment">// Get the directory for the user's public pictures directory. </span>
+    <span class="keyword">File</span> <span class="keyword">file</span> = <span class="keyword">new</span> <span class="keyword">File</span>(Environment.getExternalStoragePublicDirectory(
+        Environment.DIRECTORY_PICTURES), albumName);
+    <span class="keyword">if</span> (!<span class="keyword">file</span>.mkdirs()) {
+        Log.e(LOG_TAG, <span class="string">"Directory not created"</span>);
+    }
+    <span class="keyword">return</span> <span class="keyword">file</span>;
+}
+</code></pre><ul>
+<li>存储private file(仅本应用可以访问) 通过api: getExternalFilesDir() </li>
+</ul>
+<pre><code><span class="keyword">public</span> <span class="keyword">File</span> getAlbumStorageDir(Context context, String albumName) {
+    <span class="comment">// Get the directory for the app's private pictures directory. </span>
+    <span class="keyword">File</span> <span class="keyword">file</span> = <span class="keyword">new</span> <span class="keyword">File</span>(context.getExternalFilesDir(
+    Environment.DIRECTORY_PICTURES), albumName);
+    <span class="keyword">if</span> (!<span class="keyword">file</span>.mkdirs()) {
+        Log.e(LOG_TAG, <span class="string">"Directory not created"</span>);
+    }
+    <span class="keyword">return</span> <span class="keyword">file</span>;
+}
+</code></pre><ul>
+<li><p>检查SD Card是否mount上并且返回其路径</p>
+<pre><code><span class="keyword">public</span> <span class="keyword">String</span> getExternalSdCardPathEx() {
+    File[] externalFilesDirs = <span class="keyword">this</span>.getExternalFilesDirs(<span class="keyword">null</span>);
+
+    <span class="comment">// Array.ForEach(externalFilesDirs, efd =&gt; Log.Debug("ExternalSDStorageHelper", "Path: {0} - Mount State: {1}", efd.AbsolutePath, Android.OS.Environment.GetStorageState(efd)));</span>
+    <span class="comment">// Path: /storage/emulated/0/Android/data/TestExternalSSD.TestExternalSSD/files - Mount State: mounted</span>
+    <span class="comment">// Path: /storage/external_SD/Android/data/TestExternalSSD.TestExternalSSD/files - Mount State: mounted &lt;-- this is the one we want!</span>
+
+    <span class="keyword">if</span> (externalFilesDirs.length &gt;= <span class="number">1</span>){
+        <span class="keyword">String</span> externalSdPath = externalFilesDirs.length &gt; <span class="number">1</span> ? externalFilesDirs[<span class="number">1</span>].getAbsolutePath() : <span class="keyword">null</span>; <span class="comment">// we only want the external drive, otherwise nothing!</span>
+
+        <span class="comment">// note that in the case of an SD card, ONLY the path it returns is writeable. You can</span>
+        <span class="comment">// drop back to the "root" as we did with the internal one above, but that's readonly.</span>
+        <span class="keyword">return</span> externalSdPath;
+    }
+    <span class="keyword">return</span> <span class="keyword">null</span>;
+}
+</code></pre></li>
+</ul>
+<h2 id="总结">总结</h2><p>Android存储这一块给人的感觉一直都是乱糟糟的，究其原因，归纳起来有三点：</p>
+<ul>
+<li>平台的多变。</li>
+<li>android设计与其他系统以及大家已经习惯了的东西不是太相符。</li>
+<li>信息不对称：Google似乎不是太乐意和开发者分享相关的信息，在SDK文档中并没有详细说明相关细节。大部分的时候我们需要自己去寻找，比如Android platform Google group。</li>
+</ul>
+<h2 id="Reference">Reference</h2><ul>
+<li><a href="https://developer.android.com/guide/topics/data/data-storage.html#filesInternal" target="_blank" rel="external">Android developer</a></li>
+<li><a href="http://commonsware.com/blog/archive.html" target="_blank" rel="external">Commonsware</a></li>
+<li><a href="http://possiblemobile.com/2014/03/android-external-storage/" target="_blank" rel="external">possiblemobile</a></li>
+</ul>
+
+      
+    </div>
+
+    <div class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/android-storage/"> #android , storage </a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/02/17/2015-02-17-chinese-new-year/">过年了</a>
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/01/23/2015-01-23-hello-md/">Hello 2015</a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </div>
+  </div>
+
+
+
+    
+      <div class="comments" id="comments">
+        
+          <div class="ds-thread" data-thread-key="2015/01/28/2015-01-28-android-storage-story/"
+               data-title="The Evolution of Android Storage" data-url="http://yishuihe.github.io/2015/01/28/2015-01-28-android-storage-story/">
+          </div>
+        
+      </div>
+    
+  </div>
+
+
+        </div>
+      </div>
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table Of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Overview
+          </li>
+        </ul>
+      
+
+      <div class="site-overview">
+        <div class="site-author motion-element">
+          <img class="site-author-image" src="/images/default_avatar.jpg" alt="Zhixin Liu" />
+          <p class="site-author-name">Zhixin Liu</p>
+        </div>
+        <p class="site-description motion-element"></p>
+        <div class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">7</span>
+              <span class="site-state-item-name">posts</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            
+              <span class="site-state-item-count">2</span>
+              <span class="site-state-item-name">categories</span>
+              
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">7</span>
+              <span class="site-state-item-name">tags</span>
+              </a>
+          </div>
+
+        </div>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+      </div>
+
+      
+        <div class="post-toc-wrap sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#引子"><span class="nav-text">引子</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#基本概念"><span class="nav-text">基本概念</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#internal并非internal"><span class="nav-text">internal并非internal</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#external也亦非_sdcard"><span class="nav-text">external也亦非 sdcard</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#external_storage的访问权限"><span class="nav-text">external storage的访问权限</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Internal_Vs-_external_storage"><span class="nav-text">Internal Vs. external storage</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Kitkat变化归纳"><span class="nav-text">Kitkat变化归纳</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#开发细节"><span class="nav-text">开发细节</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#访问internal_storage"><span class="nav-text">访问internal storage</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#访问external_storage"><span class="nav-text">访问external storage</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-text">总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference"><span class="nav-text">Reference</span></a></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </div>
+      
+
+    </div>
+  </div>
+
+
+    </div>
+
+    <div id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy; &nbsp; 
+  2015
+  <span class="with-love">
+    <i class="icon-heart"></i>
+  </span>
+  <span class="author">Zhixin Liu</span>
+</div>
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="http://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+
+      </div>
+    </div>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript">
+    $(document).ready(function() {
+      $('.content img').each(function () {
+        var $image = $(this);
+        var $imageWrapLink = $image.parent('a');
+
+        if ($imageWrapLink.size() < 1) {
+          $imageWrapLink = $image.wrap('<a href="' + this.getAttribute('src') + '"></a>').parent('a');
+        }
+        $imageWrapLink.addClass('fancybox');
+      });
+    });
+    $('.fancybox').fancybox({
+      helpers: {
+        overlay: {
+          locked: false
+        }
+      }
+    });
+  </script>
+
+
+  <script type="text/javascript">
+  function hasMobileUA () {
+    var nav = window.navigator;
+    var ua = nav.userAgent;
+    var pa = /iPad|iPhone|Android|Opera Mini|BlackBerry|webOS|UCWEB|Blazer|PSP|IEMobile|Symbian/g;
+
+    return pa.test(ua);
+  }
+
+  function isDesktop () {
+    return screen.width > 991 && !hasMobileUA();
+  }
+
+  function isTablet () {
+    return screen.width < 992 && screen.width > 767 && hasMobileUA();
+  }
+
+  function isMobile () {
+    return screen.width < 767 && hasMobileUA();
+  }
+
+  function escapeSelector (selector) {
+    return selector.replace(/[!"$%&'()*+,.\/:;<=>?@[\\\]^`{|}~]/g, "\\$&")
+  }
+</script>
+
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" id="motion.global">
+  $(document).ready(function () {
+    var body = $('body');
+    var isSidebarVisible = false;
+    var sidebarToggle = $('.sidebar-toggle');
+    var sidebarToggleLine1st = $('.sidebar-toggle-line-first')
+    var sidebarToggleLine2nd = $('.sidebar-toggle-line-middle');
+    var sidebarToggleLine3rd = $('.sidebar-toggle-line-last');
+    var sidebar = $('.sidebar');
+
+    var SIDEBAR_WIDTH = '320px';
+    var SIDEBAR_DISPLAY_DURATION = 300;
+
+    var sidebarToogleLineStatusInit = {width: '100%', opacity: 1, left: 0, rotateZ: 0, top: 0};
+
+    var sidebarToggleLine1stStatusInit = sidebarToogleLineStatusInit;
+    var sidebarToggleLine1stStatusArrow = {width: '50%', rotateZ: '-45deg', top: '2px'};
+    var sidebarToogleLine1stStatusClose = {width: '100%', rotateZ: '-45deg', top: '5px'};
+
+    var sidebarToggleLine2ndStatusInit = sidebarToogleLineStatusInit;
+    var sidebarToggleLine2ndStatusArrow = {width: '90%'};
+    var sidebarToogleLine2ndStatusClose = {opacity: 0};
+
+    var sidebarToggleLine3rdStatusInit = sidebarToogleLineStatusInit;
+    var sidebarToggleLine3rdStatusArrow = {width: '50%', rotateZ: '45deg', top: '-2px'};
+    var sidebarToogleLine3rdStatusClose = {width: '100%', rotateZ: '45deg', top: '-5px'};
+
+    LogoAndMenuMotion();
+    sidebatToggleMotion();
+    postsListMotion();
+    backToTopMotion();
+
+
+    $(document)
+      .on('sidebar.isShowing', function () {
+        isDesktop() && body.velocity(
+          {paddingRight: SIDEBAR_WIDTH},
+          SIDEBAR_DISPLAY_DURATION
+        );
+        sidebarContentMotion();
+      })
+      .on('sidebar.isHiding', function () {});
+
+    function LogoAndMenuMotion() {
+      $.Velocity.RunSequence([
+        { e: $('.brand'), p: { opacity: 1 }, o: { duration: 100 } },
+        { e: $('.logo'), p: { opacity: 1, top: 0 }, o: { duration: 50} },
+        
+        { e: $('.logo-line-before i'), p: { translateX: "100%" }, o: { duration: 500, sequenceQueue: false } },
+        { e: $('.logo-line-after i'), p: { translateX: "-100%" }, o: { duration: 500, sequenceQueue: false } },
+        
+        { e: $('.site-title'), p: { opacity: 1, top: 0 }, o: { duration: 200 } }
+      ]);
+      $('.menu-item').velocity('transition.slideDownIn', {display: null});
+    }
+
+
+    function backToTopMotion () {
+      var b2top = $('.back-to-top');
+      b2top.on('click', function () {
+        body.velocity('scroll');
+      });
+    }
+
+    function sidebarShowMotion () {
+
+      sidebarToggleLine1st.velocity(sidebarToogleLine1stStatusClose);
+      sidebarToggleLine2nd.velocity(sidebarToogleLine2ndStatusClose);
+      sidebarToggleLine3rd.velocity(sidebarToogleLine3rdStatusClose);
+
+      sidebar.velocity({width: SIDEBAR_WIDTH}, {
+        display: 'block',
+        duration: SIDEBAR_DISPLAY_DURATION,
+        complete: function () {
+          sidebar.addClass('sidebar-active');
+          sidebar.trigger('sidebar.didShow');
+        }
+      });
+      sidebar.trigger('sidebar.isShowing');
+    }
+
+    function sidebarHideMotion () {
+      isDesktop() && body.velocity({paddingRight: 0});
+      sidebar.velocity('reverse');
+
+      sidebarToggleLine1st.velocity(sidebarToggleLine1stStatusInit);
+      sidebarToggleLine2nd.velocity(sidebarToggleLine2ndStatusInit);
+      sidebarToggleLine3rd.velocity(sidebarToggleLine3rdStatusInit);
+
+      sidebar.removeClass('sidebar-active');
+      sidebar.trigger('sidebar.isHiding');
+    };
+
+    function sidebarContentMotion () {
+      $('.sidebar .motion-element').velocity(
+        'transition.slideRightIn',
+        {stagger: 50, drag: true}
+      );
+    }
+
+    function postsListMotion () {
+      var postMotionOptions = window.postMotionOptions || {stagger: 300, drag: true};
+      $('.post').velocity('transition.slideDownIn', postMotionOptions);
+    }
+
+    function sidebatToggleMotion () {
+      sidebarToggle.on('click', function () {
+        isSidebarVisible ? sidebarHideMotion() : sidebarShowMotion();
+        isSidebarVisible = !isSidebarVisible;
+      });
+
+      sidebarToggle.hover(function () {
+        if (isSidebarVisible) {return}
+        sidebarToggleLine1st.velocity('stop').velocity(sidebarToggleLine1stStatusArrow);
+        sidebarToggleLine2nd.velocity('stop').velocity(sidebarToggleLine2ndStatusArrow);
+        sidebarToggleLine3rd.velocity('stop').velocity(sidebarToggleLine3rdStatusArrow);
+      }, function () {
+        if (isSidebarVisible) {return}
+        sidebarToggleLine1st.velocity('stop').velocity(sidebarToggleLine1stStatusInit);
+        sidebarToggleLine2nd.velocity('stop').velocity(sidebarToggleLine2ndStatusInit);
+        sidebarToggleLine3rd.velocity('stop').velocity(sidebarToggleLine3rdStatusInit);
+      });
+    }
+  });
+
+</script>
+
+
+
+
+
+  
+  
+<script type="text/javascript" id="bootstrap.scrollspy.custom">
+  /* ========================================================================
+  * Bootstrap: scrollspy.js v3.3.2
+  * http://getbootstrap.com/javascript/#scrollspy
+  * ========================================================================
+  * Copyright 2011-2015 Twitter, Inc.
+  * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
+  * ======================================================================== */
+
+  /**
+   * Custom by iissnan
+   *
+   * - Add a `clear.bs.scrollspy` event.
+   * - Esacpe targets selector.
+   */
+
+
+  +function ($) {
+    'use strict';
+
+    // SCROLLSPY CLASS DEFINITION
+    // ==========================
+
+    function ScrollSpy(element, options) {
+      this.$body          = $(document.body)
+      this.$scrollElement = $(element).is(document.body) ? $(window) : $(element)
+      this.options        = $.extend({}, ScrollSpy.DEFAULTS, options)
+      this.selector       = (this.options.target || '') + ' .nav li > a'
+      this.offsets        = []
+      this.targets        = []
+      this.activeTarget   = null
+      this.scrollHeight   = 0
+
+      this.$scrollElement.on('scroll.bs.scrollspy', $.proxy(this.process, this))
+      this.refresh()
+      this.process()
+    }
+
+    ScrollSpy.VERSION  = '3.3.2'
+
+    ScrollSpy.DEFAULTS = {
+      offset: 10
+    }
+
+    ScrollSpy.prototype.getScrollHeight = function () {
+      return this.$scrollElement[0].scrollHeight || Math.max(this.$body[0].scrollHeight, document.documentElement.scrollHeight)
+    }
+
+    ScrollSpy.prototype.refresh = function () {
+      var that          = this
+      var offsetMethod  = 'offset'
+      var offsetBase    = 0
+
+      this.offsets      = []
+      this.targets      = []
+      this.scrollHeight = this.getScrollHeight()
+
+      if (!$.isWindow(this.$scrollElement[0])) {
+        offsetMethod = 'position'
+        offsetBase   = this.$scrollElement.scrollTop()
+      }
+
+      this.$body
+        .find(this.selector)
+        .map(function () {
+          var $el   = $(this)
+          var href  = $el.data('target') || $el.attr('href')
+          var $href = /^#./.test(href) && $(escapeSelector(href)) // Need to escape selector.
+
+          return ($href
+            && $href.length
+            && $href.is(':visible')
+            && [[$href[offsetMethod]().top + offsetBase, href]]) || null
+        })
+        .sort(function (a, b) { return a[0] - b[0] })
+        .each(function () {
+          that.offsets.push(this[0])
+          that.targets.push(this[1])
+        })
+
+
+    }
+
+    ScrollSpy.prototype.process = function () {
+      var scrollTop    = this.$scrollElement.scrollTop() + this.options.offset
+      var scrollHeight = this.getScrollHeight()
+      var maxScroll    = this.options.offset + scrollHeight - this.$scrollElement.height()
+      var offsets      = this.offsets
+      var targets      = this.targets
+      var activeTarget = this.activeTarget
+      var i
+
+      if (this.scrollHeight != scrollHeight) {
+        this.refresh()
+      }
+
+      if (scrollTop >= maxScroll) {
+        return activeTarget != (i = targets[targets.length - 1]) && this.activate(i)
+      }
+
+      if (activeTarget && scrollTop < offsets[0]) {
+        $(this.selector).trigger('clear.bs.scrollspy')  // Add a custom event.
+        this.activeTarget = null
+        return this.clear()
+      }
+
+      for (i = offsets.length; i--;) {
+        activeTarget != targets[i]
+          && scrollTop >= offsets[i]
+          && (!offsets[i + 1] || scrollTop <= offsets[i + 1])
+          && this.activate(targets[i])
+      }
+    }
+
+    ScrollSpy.prototype.activate = function (target) {
+      this.activeTarget = target
+
+      this.clear()
+
+      var selector = this.selector +
+        '[data-target="' + target + '"],' +
+        this.selector + '[href="' + target + '"]'
+
+      var active = $(selector)
+        .parents('li')
+        .addClass('active')
+
+      if (active.parent('.dropdown-menu').length) {
+        active = active
+          .closest('li.dropdown')
+          .addClass('active')
+      }
+
+      active.trigger('activate.bs.scrollspy')
+    }
+
+    ScrollSpy.prototype.clear = function () {
+      $(this.selector)
+        .parentsUntil(this.options.target, '.active')
+        .removeClass('active')
+    }
+
+
+    // SCROLLSPY PLUGIN DEFINITION
+    // ===========================
+
+    function Plugin(option) {
+      return this.each(function () {
+        var $this   = $(this)
+        var data    = $this.data('bs.scrollspy')
+        var options = typeof option == 'object' && option
+
+        if (!data) $this.data('bs.scrollspy', (data = new ScrollSpy(this, options)))
+        if (typeof option == 'string') data[option]()
+      })
+    }
+
+    var old = $.fn.scrollspy
+
+    $.fn.scrollspy             = Plugin
+    $.fn.scrollspy.Constructor = ScrollSpy
+
+
+    // SCROLLSPY NO CONFLICT
+    // =====================
+
+    $.fn.scrollspy.noConflict = function () {
+      $.fn.scrollspy = old
+      return this
+    }
+
+
+    // SCROLLSPY DATA-API
+    // ==================
+
+    $(window).on('load.bs.scrollspy.data-api', function () {
+      $('[data-spy="scroll"]').each(function () {
+        var $spy = $(this)
+        Plugin.call($spy, $spy.data())
+      })
+    })
+
+  }(jQuery);
+</script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var $sidebarInner = $('.sidebar-inner');
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.didShow', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+          var self = this;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      $(indicator).velocity('stop').velocity({
+        opacity: action === 'show' ? 0.4 : 0
+      }, { duration: 100 });
+    }
+
+  });
+</script>
+
+
+  <script type="text/javascript" id="sidebar.nav">
+    $(document).ready(function () {
+      var html = $('html');
+
+      $('.sidebar-nav li').on('click', function () {
+        var item = $(this);
+        var activeTabClassName = 'sidebar-nav-active';
+        var activePanelClassName = 'sidebar-panel-active';
+        if (item.hasClass(activeTabClassName)) {
+          return;
+        }
+
+        var currentTarget = $('.' + activePanelClassName);
+        var target = $('.' + item.data('target'));
+
+        currentTarget.velocity('transition.slideUpOut', 200, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', 200)
+            .addClass(activePanelClassName);
+        });
+
+        item.siblings().removeClass(activeTabClassName);
+        item.addClass(activeTabClassName);
+      });
+
+      $('.post-toc a').on('click', function (e) {
+        e.preventDefault();
+        var offset = $(escapeSelector(this.getAttribute('href'))).offset().top;
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        });
+      });
+
+      // Expand sidebar on post detail page by default, when post has a toc.
+      var $tocContent = $('.post-toc-content');
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0 && isDesktop()) {
+        setTimeout(function () {
+          $('.sidebar-toggle').trigger('click');
+        }, 800);
+      }
+    });
+  </script>
+
+
+
+
+  
+
+  
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"yishuihe"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+
+
+  
+</body>
+</html>

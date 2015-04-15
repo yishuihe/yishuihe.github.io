@@ -18,7 +18,7 @@
 
 
 
-  <meta name="keywords" content="Android , SAF ，SD Card , Storage Access Framework," />
+  <meta name="keywords" content="tech," />
 
 
 
@@ -39,7 +39,7 @@
   </script>
 
 
-  <title> Android SAF介绍以及SD Card的访问实例 // Zhixin Liu </title>
+  <title> Tech blogs and sites // Zhixin Liu </title>
 </head>
 
 <body>
@@ -118,7 +118,7 @@
           
           
             
-              Android SAF介绍以及SD Card的访问实例
+              Tech blogs and sites
             
           
         </h1>
@@ -126,14 +126,14 @@
 
       <div class="post-meta">
         <span class="post-time">
-          Posted on 2015-02-24
+          Posted on 2015-04-14
         </span>
 
         
           <span class="post-category">
             &nbsp; | &nbsp; In
             
-              <a href="/categories/Android/">Android</a>
+              <a href="/categories/think/">think</a>
 
               
               
@@ -146,8 +146,8 @@
           
             <span class="post-comments-count">
             &nbsp; | &nbsp;
-            <a href="/2015/02/24/2015-02-24-SAF-and-client-code/#comments" >
-              <span class="post-comments-count ds-thread-count" data-thread-key="2015/02/24/2015-02-24-SAF-and-client-code/"></span>
+            <a href="/2015/04/14/2015-04-14-tech-blog/#comments" >
+              <span class="post-comments-count ds-thread-count" data-thread-key="2015/04/14/2015-04-14-tech-blog/"></span>
             </a>
           </span>
           
@@ -161,243 +161,23 @@
       
 
       
-        <h2 id="背景">背景</h2><p>在<a href="http://yishuihe.github.io/android-storage-story/" target="_blank" rel="external">上一篇文章The Evolution of Android Storage</a>中提到了Android在Kitkat上剥夺了第三方应用程序对SD Card的写权限，使得一大批的应用程序不能够再使用外置的SD Card，此举招来了骂声一片，很快就有人给Android提了一个Bug，要求重新允许第三方应用获得SD Card的写权限，并且最终有1682个人关注了这一Bug。迫于压力，<a href="https://code.google.com/p/android/issues/detail?id=67570#c4444" target="_blank" rel="external">Google终于在Lollipop上Android又打开了一扇通往SD Card的大门:</a></p>
+        <p>在<a href="http://www.quora.com/What-are-some-blogs-and-sites-a-new-startup-should-send-press-releases-to" target="_blank" rel="external">Quora</a>上看到一个问答，有人让推荐一些关注创业公司的网站，将自己感觉不错的网站挑选出来做个mark。</p>
 <a id="more"></a>
-<blockquote>
-<p>Hey all, in KitKat we introduced APIs that let apps read/write file in app-specific directories on secondary storage devices, such as SD cards.</p>
-<p>We heard loud and clear that developers wanted richer access beyond these directories, so in Lollipop we added the new ACTION_OPEN_DOCUMENT_TREE intent.  Apps can launch this intent to pick and return a directory from any supported DocumentProvider, including any of the shared storage supported by the device.  Apps can then create, update, and delete files and directories anywhere under the picked tree without any additional user interaction.  Just like the other document intents, apps can persist this access across reboots.</p>
-<p>This gives apps broad, powerful access to manage files while still involving the user in the initial selection process.  Users may choose to give your app access to a narrow directory like “My Vacation Photos,” or they could pick the top-level of an entire SD card; the choice is theirs.</p>
-<p>If you’re an end user, please reach out to app developers to ask them to start using these new APIs.  With these new rich APIs in place, this issue is considered fixed.</p>
-</blockquote>
-<p>从中我们可以看到，Google给出的解决方案就是通过刚刚在Kitkat中引入的Storage Access Framework(SAF)来让第三方应用向用户申请外置SD Card的读写权限，这样一来既保持了对第三方应用访问SD Card的限制，又赋予了用户更大的自主选择权，不失为一种巧妙的补救方法。今天我就一起来看看SAF到底是怎样一种架构，并且在最后给出一个小例子来让应用申请对SD Card的读写权限。</p>
-<h2 id="SAF_介绍">SAF 介绍</h2><p>SAF是Android从Kitkat上引入的一种全新的访问存储设备(本地或者云端)上的文件的框架方案。应用程序可以借助SAF来浏览或者打开所有的文件。并且在Lollipop上还增加了选择目录并将其读写权限赋予应用的新功能。SAF的使用既简单又灵活：几句代码就可以实现文件的读取，而且你也可以实现自定义的privider。</p>
-<h3 id="架构">架构</h3><p>让我们先来看一下SAF的结构：</p>
-<p><img src="/images/android-saf/2015-2-24-storage_dataflow.png" alt=" "></p>
-<p>从上图可以看到SAF由三部分构成：</p>
+<p>第一个(TechCrunch)尤其值得关注，主要报道新兴互联网公司、评论互联网新产品、发布重大突发新闻。TechCrunch 目前已成为关注互联网和创业的重量级博客媒体，是美国互联网产业的风向标，里面的内容几乎成为VC和行业投资者的投资参考。<br>TechCrunch于2013年推出<a href="http://techcrunch.cn" target="_blank" rel="external">中文版网站</a>。</p>
 <ul>
-<li>客户端应用：也就是SAF中的调用者，一般来说是第三方应用程序。 </li>
-<li>Picker： 统一的界面来让用户选择文件或者目录。</li>
+<li><a href="http://techcrunch.com/" target="_blank" rel="external">TechCrunch</a></li>
+<li><a href="http://venturebeat.com/" target="_blank" rel="external">VentureBeat</a> </li>
+<li><a href="http://www.businessinsider.com/sai" target="_blank" rel="external">Tech-businessinsider</a> </li>
+<li><a href="https://www.yahoo.com/tech/" target="_blank" rel="external">Page on Yahoo</a> </li>
+<li><a href="http://mashable.com/category/startups/" target="_blank" rel="external">Mashable</a></li>
+<li><a href="http://killerstartups.com/" target="_blank" rel="external">KillerStartups</a></li>
+<li><a href="http://www.wired.com/" target="_blank" rel="external">wired</a></li>
+<li><a href="http://www.zdnet.com/" target="_blank" rel="external">ZDNet</a></li>
+<li><a href="http://www.cnet.com/news/" target="_blank" rel="external">CNET News</a></li>
+<li><a href="http://www.technologyreview.com/" target="_blank" rel="external">MIT Technology Review</a></li>
+<li><a href="http://www.siliconvalley.com/" target="_blank" rel="external">Silicon Valley tech news, reviews and insights</a></li>
 </ul>
-<p><img src="/images/android-saf/2015-2-24-storage_picker.png" alt=" "></p>
-<ul>
-<li>Document Provider: 文件/目录数据的提供者，本质是一个Content Provider。Android平台已经提供了几个Document Provider, 包括Downloads, Images以及Videos.</li>
-</ul>
-<h3 id="SAF的工作流程">SAF的工作流程</h3><p>客户端向SAF框架发送intent(ACTION_OPEN_DOCUMENT/ACTION_CREATE_DOCUMENT/ACTION_OPEN_DOCUMENT_TREE)，这样就会触发Picker接收到该消息，紧接着Picker会从所有注册的Provider中定位符合intent请求条件的数据源，并且通过统一的界面显示给用户。 当用户选择完文件/目录后，Picker会将数据以Uri的形式返回给客户端，这样客户端就拿到这些文件/目录的读写权限并进行想要的处理。</p>
-<h3 id="注意要点">注意要点</h3><p>关于SAF，更多的介绍请参看<a href="https://developer.android.com/guide/topics/providers/document-provider.html" target="_blank" rel="external">Android开发者网站</a>，就不在这里具体介绍了，但是有几个细节要注意：</p>
-<ul>
-<li><p>SAF提供的ACTION_OPEN_DOCUMENT尽管用起来很方便，但并不是用来完全替代之前的CTION_GET_CONTENT，二者有不同的适用场景：</p>
-<ul>
-<li>当你只是想获取文件数据的时候，请用ACTION_GET_CONTENT，这样就获得到了文件数据的一份拷贝。</li>
-<li>当你想获得文件的永久访问权限的时候，请用ACTION_OPEN_DOCUMENT。</li>
-</ul>
-</li>
-</ul>
-<ul>
-<li>应用可以通过给intent设置mimetyep来缩小文件的选择范围，例如：<code>intent.setType(&quot;image/*&quot;)</code></li>
-<li>SAF的客户端并不是直接和Provider通信的，Picker部分是Android的保留部分，并基于此来统一Android的文件/目录选择界面(即使你使用的是自定义的provider)。</li>
-</ul>
-<h2 id="申请SD_Card的读写权限">申请SD Card的读写权限</h2><p>介绍完SAF，回过头来再看应用如何获取外置SD Card的读写权限就非常简单了，在Lollipop上，Android专门引入了一个新的Intent：ACTION_OPEN_DOCUMENT_TREE，应用通过发送这个Intent来启动SAF中提供的Picker，从而来引导用户去选择想要让应用来读写的目录，下面的代码就是用来实现此目的：</p>
-<pre><code><span class="keyword">private</span> static final int DIRECTORY_CHOOSE_REQ_CODE <span class="subst">=</span> <span class="number">42</span>;
-<span class="keyword">private</span> <span class="literal">void</span> performDirectoryChoose() {
-    Intent intent <span class="subst">=</span> <span class="literal">new</span> Intent(Intent<span class="built_in">.</span>ACTION_OPEN_DOCUMENT_TREE);
-    <span class="comment">//intent.setFlags(Intent.EXTRA_ALLOW_MULTIPLE);</span>
-    startActivityForResult(intent, DIRECTORY_CHOOSE_REQ_CODE);
-
-}
-
-<span class="keyword">protected</span> <span class="literal">void</span> onActivityResult(int requestCode, int resultCode, Intent <span class="built_in">data</span>) {
-    super<span class="built_in">.</span>onActivityResult(requestCode, resultCode, <span class="built_in">data</span>);
-    <span class="keyword">if</span>(resultCode <span class="subst">==</span> RESULT_OK){
-        <span class="keyword">Log</span><span class="built_in">.</span>d(<span class="built_in">TAG</span>, <span class="string">"result back"</span>);
-        Uri treeUri <span class="subst">=</span> <span class="built_in">data</span><span class="built_in">.</span>getData();
-        <span class="keyword">Log</span><span class="built_in">.</span>d(<span class="built_in">TAG</span>, <span class="string">"Uri: "</span><span class="subst">+</span> treeUri<span class="built_in">.</span>toString());
-
-        <span class="comment">//for directory choose</span>
-        DocumentFile pickedDir <span class="subst">=</span> DocumentFile<span class="built_in">.</span>fromTreeUri(this, treeUri);
-
-        <span class="comment">// List all existing files inside picked directory</span>
-        for (DocumentFile file : pickedDir<span class="built_in">.</span>listFiles()) {
-            <span class="keyword">Log</span><span class="built_in">.</span>d(<span class="built_in">TAG</span>, <span class="string">"Found file "</span> <span class="subst">+</span> file<span class="built_in">.</span>getName() <span class="subst">+</span> <span class="string">" with size "</span> <span class="subst">+</span> file<span class="built_in">.</span>length());
-        }
-
-        <span class="comment">// Create a new file and write into it</span>
-        OutputStream out <span class="subst">=</span> <span class="built_in">null</span>;
-        try {
-            DocumentFile dcimFolder <span class="subst">=</span> pickedDir<span class="built_in">.</span>findFile(<span class="string">"DCIM"</span>);
-            <span class="keyword">if</span>(dcimFolder <span class="subst">!=</span> <span class="built_in">null</span> <span class="subst">&amp;&amp;</span> dcimFolder<span class="built_in">.</span>isDirectory()){
-                <span class="keyword">Log</span><span class="built_in">.</span>d(<span class="built_in">TAG</span>, <span class="string">"Found DCIM Directory"</span>);
-            } <span class="keyword">else</span> {
-                <span class="keyword">Log</span><span class="built_in">.</span>d(<span class="built_in">TAG</span>, <span class="string">"Not found DCIM Directory"</span>);
-            }
-
-            <span class="comment">//Create file</span>
-            DocumentFile newFile <span class="subst">=</span> pickedDir<span class="built_in">.</span>createFile(<span class="string">"text/plain"</span>, <span class="string">"new_file"</span>);
-
-    } <span class="keyword">else</span> {
-        <span class="keyword">Log</span><span class="built_in">.</span>d(<span class="built_in">TAG</span>, <span class="string">"result not back"</span>);
-    }
-}
-</code></pre><p>其中，在onActivityResult中，一旦拿到了目录的Uri后，你可以向操作普通的的目录文件一样进行任何你想要的操作，比如新建，删除，重命名等。具体可以参考<a href="http://developer.android.com/reference/android/support/v4/provider/DocumentFile.html" target="_blank" rel="external">DocumentFile</a>。 </p>
-<p>仍然有几点开发细节需要留意：</p>
-<ul>
-<li>如何检查是否对某个folder或者文件有访问权限？</li>
-</ul>
-<p>通过 <code>ContentResolver.getPersistedUriPermissions()</code></p>
-<ul>
-<li>如何释放已经获得到的目录读写权限？ </li>
-</ul>
-<p>通过<code>ContentResolver.releasePersistableUriPermission().</code></p>
-<ul>
-<li>如何检查哪些APP获得到了权限？ </li>
-</ul>
-<p>目前还没有API来查询，不过你可以借助adb命令： <code>adb shell dumpsys activity providers</code><br>然后检查”<code>Granted Uri Permissions</code>“那部分</p>
-<ul>
-<li>用户更换SD Card后，申请到的权限是否会丢失？</li>
-</ul>
-<p>是的，你需要重新申请。</p>
-<ul>
-<li>重启后是否依旧保持该权限？</li>
-</ul>
-<p>SAF并不会持久化APP申请到的权限，但是Android平台会帮我们来做这件事情，不过需要注意的是每次使用前你需要先要回权限：</p>
-<pre><code>getContentResolver().takePersistableUriPermission(treeUri,
-<span class="type">Intent</span>.FLAG_GRANT_READ_URI_PERMISSION |
-<span class="type">Intent</span>.FLAG_GRANT_WRITE_URI_PERMISSION);
-</code></pre><h2 id="获取用户选择文件的真实路径">获取用户选择文件的真实路径</h2><p>通过通过SAF应用只能获取到用户所选择文件的Uri，有时候我们需要的却是文件的绝对路径，那么如何将获取到的Uri转化为文件的绝对路径呢，这里给出一个参考<a href="http://stackoverflow.com/questions/20067508/get-real-path-from-uri-android-kitkat-new-storage-access-framework" target="_blank" rel="external">来自于Stackoverflow</a></p>
-<pre><code><span class="comment">/**
- * Get a file path from a Uri. This will get the the path for Storage Access
- * Framework Documents, as well as the _data field for the MediaStore and
- * other file-based ContentProviders.
- *
- * @param context The context.
- * @param uri The Uri to query.
- * @author paulburke
- */</span>
-<span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">String</span> getPath(<span class="keyword">final</span> Context context, <span class="keyword">final</span> Uri uri) {
-
-<span class="keyword">final</span> <span class="built_in">boolean</span> isKitKat = Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.KITKAT;
-
-<span class="comment">// DocumentProvider</span>
-<span class="keyword">if</span> (isKitKat &amp;&amp; DocumentsContract.isDocumentUri(context, uri)) {
-    <span class="comment">// ExternalStorageProvider</span>
-    <span class="keyword">if</span> (isExternalStorageDocument(uri)) {
-        <span class="keyword">final</span> <span class="keyword">String</span> docId = DocumentsContract.getDocumentId(uri);
-        <span class="keyword">final</span> <span class="keyword">String</span>[] <span class="built_in">split</span> = docId.<span class="built_in">split</span>(<span class="string">":"</span>);
-        <span class="keyword">final</span> <span class="keyword">String</span> type = <span class="built_in">split</span>[<span class="number">0</span>];
-
-        <span class="keyword">if</span> (<span class="string">"primary"</span>.equalsIgnoreCase(type)) {
-            <span class="keyword">return</span> Environment.getExternalStorageDirectory() + <span class="string">"/"</span> + <span class="built_in">split</span>[<span class="number">1</span>];
-        }
-
-        <span class="comment">// TODO handle non-primary volumes</span>
-    }
-    <span class="comment">// DownloadsProvider</span>
-    <span class="keyword">else</span> <span class="keyword">if</span> (isDownloadsDocument(uri)) {
-
-        <span class="keyword">final</span> <span class="keyword">String</span> id = DocumentsContract.getDocumentId(uri);
-        <span class="keyword">final</span> Uri contentUri = ContentUris.withAppendedId(
-                Uri.parse(<span class="string">"content://downloads/public_downloads"</span>), Long.valueOf(id));
-
-        <span class="keyword">return</span> getDataColumn(context, contentUri, <span class="keyword">null</span>, <span class="keyword">null</span>);
-    }
-    <span class="comment">// MediaProvider</span>
-    <span class="keyword">else</span> <span class="keyword">if</span> (isMediaDocument(uri)) {
-        <span class="keyword">final</span> <span class="keyword">String</span> docId = DocumentsContract.getDocumentId(uri);
-        <span class="keyword">final</span> <span class="keyword">String</span>[] <span class="built_in">split</span> = docId.<span class="built_in">split</span>(<span class="string">":"</span>);
-        <span class="keyword">final</span> <span class="keyword">String</span> type = <span class="built_in">split</span>[<span class="number">0</span>];
-
-        Uri contentUri = <span class="keyword">null</span>;
-        <span class="keyword">if</span> (<span class="string">"image"</span>.equals(type)) {
-            contentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-        } <span class="keyword">else</span> <span class="keyword">if</span> (<span class="string">"video"</span>.equals(type)) {
-            contentUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
-        } <span class="keyword">else</span> <span class="keyword">if</span> (<span class="string">"audio"</span>.equals(type)) {
-            contentUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
-        }
-
-        <span class="keyword">final</span> <span class="keyword">String</span> selection = <span class="string">"_id=?"</span>;
-        <span class="keyword">final</span> <span class="keyword">String</span>[] selectionArgs = <span class="keyword">new</span> <span class="keyword">String</span>[] {
-                <span class="built_in">split</span>[<span class="number">1</span>]
-        };
-
-        <span class="keyword">return</span> getDataColumn(context, contentUri, selection, selectionArgs);
-    }
-  }
-  <span class="comment">// MediaStore (and general)</span>
-  <span class="keyword">else</span> <span class="keyword">if</span> (<span class="string">"content"</span>.equalsIgnoreCase(uri.getScheme())) {
-     <span class="keyword">return</span> getDataColumn(context, uri, <span class="keyword">null</span>, <span class="keyword">null</span>);
-  }
-  <span class="comment">// File</span>
-  <span class="keyword">else</span> <span class="keyword">if</span> (<span class="string">"file"</span>.equalsIgnoreCase(uri.getScheme())) {
-      <span class="keyword">return</span> uri.getPath();
-  }
-
-  <span class="keyword">return</span> <span class="keyword">null</span>;
-}
-
-<span class="comment">/**
- * Get the value of the data column for this Uri. This is useful for
- * MediaStore Uris, and other file-based ContentProviders.
- *
- * @param context The context.
- * @param uri The Uri to query.
- * @param selection (Optional) Filter used in the query.
- * @param selectionArgs (Optional) Selection arguments used in the query.
- * @return The value of the _data column, which is typically a file path.
- */</span>
-<span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">String</span> getDataColumn(Context context, Uri uri, <span class="keyword">String</span> selection,
-    <span class="keyword">String</span>[] selectionArgs) {
-
-    Cursor <span class="built_in">cursor</span> = <span class="keyword">null</span>;
-    <span class="keyword">final</span> <span class="keyword">String</span> column = <span class="string">"_data"</span>;
-    <span class="keyword">final</span> <span class="keyword">String</span>[] projection = {
-        column
-    };
-
-    <span class="keyword">try</span> {
-        <span class="built_in">cursor</span> = context.getContentResolver().query(uri, projection, selection, selectionArgs,
-            <span class="keyword">null</span>);
-        <span class="keyword">if</span> (<span class="built_in">cursor</span> != <span class="keyword">null</span> &amp;&amp; <span class="built_in">cursor</span>.moveToFirst()) {
-            <span class="keyword">final</span> <span class="built_in">int</span> column_index = <span class="built_in">cursor</span>.getColumnIndexOrThrow(column);
-            <span class="keyword">return</span> <span class="built_in">cursor</span>.getString(column_index);
-        }
-    } <span class="keyword">finally</span> {
-        <span class="keyword">if</span> (<span class="built_in">cursor</span> != <span class="keyword">null</span>)
-            <span class="built_in">cursor</span>.close();
-    }
-    <span class="keyword">return</span> <span class="keyword">null</span>;
-}
-
-<span class="comment">/**
- * @param uri The Uri to check.
- * @return Whether the Uri authority is ExternalStorageProvider.
- */</span>
-<span class="keyword">public</span> <span class="keyword">static</span> <span class="built_in">boolean</span> isExternalStorageDocument(Uri uri) {
-    <span class="keyword">return</span> <span class="string">"com.android.externalstorage.documents"</span>.equals(uri.getAuthority());
-}
-
-<span class="comment">/**
- * @param uri The Uri to check.
- * @return Whether the Uri authority is DownloadsProvider.
- */</span>
-<span class="keyword">public</span> <span class="keyword">static</span> <span class="built_in">boolean</span> isDownloadsDocument(Uri uri) {
-    <span class="keyword">return</span> <span class="string">"com.android.providers.downloads.documents"</span>.equals(uri.getAuthority());
-}
-
-<span class="comment">/**
- * @param uri The Uri to check.
- * @return Whether the Uri authority is MediaProvider.
- */</span>
-<span class="keyword">public</span> <span class="keyword">static</span> <span class="built_in">boolean</span> isMediaDocument(Uri uri) {
-    <span class="keyword">return</span> <span class="string">"com.android.providers.media.documents"</span>.equals(uri.getAuthority());
-}
-</code></pre><h2 id="总结">总结</h2><p>SAF的确是一个很强大灵活的框架结构，Android推出它的目的是为了减轻应用开发者选择文件(图片视频等)的开发负担，更重要的是统一所有数据源到一个界面，不论是本地的资源还是云端的数据，考虑到目前移动互联的大背景，相信Google会在后续的Android版本中继续强化SAF的地位，值得我们持续关注。</p>
-<p>最后附上一些SAF学习的链接：</p>
-<ul>
-<li><a href="https://www.youtube.com/watch?v=UFj9AEz0DHQ" target="_blank" rel="external">SAF Client开发视频</a></li>
-<li><a href="https://developer.android.com/samples/StorageProvider/index.html" target="_blank" rel="external">SAF Provider实例参考</a></li>
-<li><a href="https://github.com/googlesamples/android-StorageProvider" target="_blank" rel="external">Android MyCloud Sample by Google</a></li>
-<li><a href="https://developer.android.com/guide/topics/providers/document-provider.html" target="_blank" rel="external">SAF Android开发者参考文档</a></li>
-</ul>
+<p>这些只是那个问答中提到的众多网站的一小部分，除了这些之外还有很多没有列出来，感兴趣的话可以去<a href="http://www.quora.com/What-are-some-blogs-and-sites-a-new-startup-should-send-press-releases-to" target="_blank" rel="external">Quora原文处</a>看看。</p>
 
       
     </div>
@@ -406,7 +186,7 @@
       
         <div class="post-tags">
           
-            <a href="/tags/Android-SAF-，SD-Card-Storage-Access-Framework/"> #Android , SAF ，SD Card , Storage Access Framework </a>
+            <a href="/tags/tech/"> #tech </a>
           
         </div>
       
@@ -415,13 +195,11 @@
         <div class="post-nav">
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2015/03/09/2015-03-09-Android-Studio-live-template/">Android Studio Live Template</a>
-            
           </div>
 
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2015/02/17/2015-02-17-chinese-new-year/">过年了</a>
+              <a href="/2015/03/25/2015-03-25-gradle-wrapper/">Gradle wrapper的介绍与使用</a>
             
           </div>
         </div>
@@ -437,8 +215,8 @@
     
       <div class="comments" id="comments">
         
-          <div class="ds-thread" data-thread-key="2015/02/24/2015-02-24-SAF-and-client-code/"
-               data-title="Android SAF介绍以及SD Card的访问实例" data-url="http://yishuihe.github.io/2015/02/24/2015-02-24-SAF-and-client-code/">
+          <div class="ds-thread" data-thread-key="2015/04/14/2015-04-14-tech-blog/"
+               data-title="Tech blogs and sites" data-url="http://yishuihe.github.io/2015/04/14/2015-04-14-tech-blog/">
           </div>
         
       </div>
@@ -538,7 +316,7 @@
           <div class="post-toc">
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#背景"><span class="nav-text">背景</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SAF_介绍"><span class="nav-text">SAF 介绍</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#架构"><span class="nav-text">架构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SAF的工作流程"><span class="nav-text">SAF的工作流程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#注意要点"><span class="nav-text">注意要点</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#申请SD_Card的读写权限"><span class="nav-text">申请SD Card的读写权限</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#获取用户选择文件的真实路径"><span class="nav-text">获取用户选择文件的真实路径</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-text">总结</span></a></li></ol></div>
+              <p class="post-toc-empty">This post does not have a Table Of Contents</p>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator"></div>

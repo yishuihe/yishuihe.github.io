@@ -18,7 +18,7 @@
 
 
 
-  <meta name="keywords" content="android , APK ，expansion file ，扩展文件," />
+  <meta name="keywords" content="android , RecyclerView , CardView," />
 
 
 
@@ -39,7 +39,7 @@
   </script>
 
 
-  <title> Android APK扩展文件 // Zhixin Note </title>
+  <title> Android RecyclerView初探 // Zhixin Note </title>
 </head>
 
 <body>
@@ -118,7 +118,7 @@
           
           
             
-              Android APK扩展文件
+              Android RecyclerView初探
             
           
         </h1>
@@ -126,7 +126,7 @@
 
       <div class="post-meta">
         <span class="post-time">
-          Posted on 2015-03-13
+          Posted on 2015-04-21
         </span>
 
         
@@ -146,8 +146,8 @@
           
             <span class="post-comments-count">
             &nbsp; | &nbsp;
-            <a href="/2015/03/13/2015-03-13-Androir-expansion-file/#comments" >
-              <span class="post-comments-count ds-thread-count" data-thread-key="2015/03/13/2015-03-13-Androir-expansion-file/"></span>
+            <a href="/2015/04/21/2015-04-21-RecyclerView-into/#comments" >
+              <span class="post-comments-count ds-thread-count" data-thread-key="2015/04/21/2015-04-21-RecyclerView-into/"></span>
             </a>
           </span>
           
@@ -161,80 +161,224 @@
       
 
       
-        <blockquote>
-<p>Android APK扩展文件的上传与下载</p>
-</blockquote>
-<h2 id="扩展文件的由来">扩展文件的由来</h2><p>在上传Android APK到Google Play的时候，Google对APK的大小有限制-不能超过50M。但是对于一些应用或者游戏来说50M是远远不够的，比如应用需要附带很多多媒体文件，或者游戏中的地图资源文件等。那么，传统的解决方案是将这些大尺寸的资源文件放到自由的服务器上，当第一次启动应用的时候前往服务器下载这些资源。</p>
-<p>针对这一情况，Google提供了一种更为方便的解决方案-APK扩展文件。也就是除了APK之外，开发者还可以为你的应用上传最多两个扩展文件，每个文件最大为2G。有了这4G的空间，相信几乎所有的应用都不会再有大小限制的烦恼。</p>
+        <p>RecyclerView和CardView是Android L兼容包(support libarary)中最新增加的两个widget。而且二者都符合Android material design风格。 基本的信息请看<a href="https://developer.android.com/training/material/lists-cards.html#Dependencies" target="_blank" rel="external">官方文档和例子</a>.</p>
+<h1 id="RecyclerView">RecyclerView</h1><p>引用Android官方语：这是一种更加高级、灵活的ListView。那么相对于ListView，它究竟强在哪了呢？我们又该如何使用？</p>
+<h2 id="特点">特点</h2><ul>
+<li>不仅仅可以替代ListView，还可以用作GridView，甚至瀑布流都可以。</li>
+<li>提供了默认的添加或者删除ListView中某一项时的动画。当然你也可以实现自定义的动画。</li>
+<li>提供了layoutmanager来专门管理显示。从而更好的将显示与数据分离开。事实上，这一特性决定了特性1，也就是可以实现不同的view形式。</li>
+<li>在Adapter中强制使用ViewHolder pattern</li>
+</ul>
 <a id="more"></a>
-<h2 id="创建扩展文件">创建扩展文件</h2><p>两个扩展文件分别为主(main)扩展和补充(patch)扩展文件，其中主扩展文件用来存放扩展资源的主题，一般来说应用只需要这一个扩展文件。而补充扩展文件是当资源发生变化的时候(比如你的应用又增加了10张地图文件)，以patch的形式来提交这些变化。这样做的好处是，用户就不需要再重新下载整个大资源包，而仅仅需要下载新增的部分(patch扩展文件)既可，大大节省了流量，提高了效率。</p>
-<h3 id="扩展文件的命名">扩展文件的命名</h3><p>扩展文件的命名必须遵循一定的规则：</p>
-<pre><code>[main|patch].&lt;expansion-<span class="property">version</span>&gt;.&lt;package-<span class="property">name</span>&gt;.obb
-</code></pre><p>文件名包含四部分，其中：</p>
+<h2 id="相关类">相关类</h2><p>接下来看看RecyclerView相关的类以及其用途：</p>
+<table>
+<thead>
+<tr>
+<th>Class</th>
+<th>Purpose</th>
+<th>Optional</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Adapter</td>
+<td>提供数据，并且为每一个条目创建views</td>
+<td>Required</td>
+</tr>
+<tr>
+<td>ViewHolder</td>
+<td>缓存每一个entry的views的references</td>
+<td>Required</td>
+</tr>
+<tr>
+<td>LayoutManager</td>
+<td>用来定义所有的的entry的布局</td>
+<td>Required, but default implementations available</td>
+</tr>
+<tr>
+<td>ItemDecoration</td>
+<td>用来定义显示每一个条目周边的装饰.</td>
+<td>Default behaviour, but can be overridden</td>
+</tr>
+<tr>
+<td>ItemAnimator</td>
+<td>用来定义增加或者删除一项时的动画</td>
+<td>Default behaviour, but can be overridden </td>
+</tr>
+</tbody>
+</table>
+<h2 id="相关的开源库">相关的开源库</h2><p>目前在Github上已经有不少的RecyclerView相关的开源项目，有需要的时候可以参考或者拿来直接用：</p>
 <ul>
-<li>main|patch: 用来表示是主扩展还是补充扩展。</li>
-<li>expansion-version: 当前上传apk的version code。</li>
-<li>package-name: apk的包名</li>
-<li>obb：后缀，其实本质就是zip文件，Google play会自动将zip文件改为obb文件。</li>
+<li><a href="https://github.com/wasabeef/recyclerview-animators" target="_blank" rel="external">RecyclerView Anomation</a>: 提供了大量的增加或者删除相关的动画。</li>
+<li><a href="https://github.com/Malinskiy/SuperRecyclerView" target="_blank" rel="external">扩展了的RecyclerView</a>: 对默认的RecyclerView做了增强包括：自动加载，swipe refresh等。</li>
 </ul>
-<p>所以你只需要将所有的扩展资源打包到一个zip文件中，文件的命名需要符合上述规范。</p>
-<blockquote>
-<p>Tip：如果你的扩展文件是一些媒体文件并且你不想解压资源包，而是借助media playback call(例如MediaPlayer.setDataSource() and SoundPool.load())直接播放资源包里面的媒体文件。那么在创建扩展文件包的时候务必不要压缩文件，而仅仅是打包即可。具体做法：如果是命令行加上-n参数，如果是windows上用winzip，需要如下图所示：</p>
-</blockquote>
-<p><img src="/images/201503-android-apk-expansion/winzip.png" alt=" "></p>
-<h2 id="上传扩展文件">上传扩展文件</h2><p>扩展文件是不能单独上传的，也就是说每次需要上传扩展文件的时候，必须要同时先上传一个apk文件，即使apk没有变化(至少version code要变)，然后在上传好新的 apk后(<strong>这个时候先不要选择Save</strong>)，确认的窗口中有提示 问是否需要expansion file，这事选择上传事先已经创建好的扩展文件即可。</p>
-<p>两点注意事项：</p>
+<h1 id="CardView">CardView</h1><p>CardView比较简单直接，本质上就是一个FrameLayout, 在开发时只需要将需要在每个CardView中显示的内容填充进去即可。</p>
+<pre><code><span class="tag">&lt;<span class="title">LinearLayout</span> <span class="attribute">xmlns:android</span>=<span class="value">"http://schemas.android.com/apk/res/android"</span>
+<span class="attribute">xmlns:tools</span>=<span class="value">"http://schemas.android.com/tools"</span>
+<span class="attribute">xmlns:card_view</span>=<span class="value">"http://schemas.android.com/apk/res-auto"</span>
+<span class="attribute">...</span> &gt;</span>
+    <span class="comment">&lt;!-- A CardView that contains a TextView --&gt;</span>
+    <span class="tag">&lt;<span class="title">android.support.v7.widget.CardView</span>
+        <span class="attribute">xmlns:card_view</span>=<span class="value">"http://schemas.android.com/apk/res-auto"</span>
+        <span class="attribute">android:id</span>=<span class="value">"@+id/card_view"</span>
+        <span class="attribute">android:layout_gravity</span>=<span class="value">"center"</span>
+        <span class="attribute">android:layout_width</span>=<span class="value">"200dp"</span>
+        <span class="attribute">android:layout_height</span>=<span class="value">"200dp"</span>
+        <span class="attribute">card_view:cardCornerRadius</span>=<span class="value">"4dp"</span>&gt;</span>
+
+        //Add your cardview content here
+
+    <span class="tag">&lt;/<span class="title">android.support.v7.widget.CardView</span>&gt;</span>
+<span class="tag">&lt;/<span class="title">LinearLayout</span>&gt;</span>
+</code></pre><p>实际使用中发现最终的效果很不错，推荐使用！</p>
+<h1 id="一个例子">一个例子</h1><p>接下来我会提供一个使用RecyclerVIew以及CardView的例子来展示它们如何使用。</p>
 <ul>
-<li>扩展文件名字中的version部分，需要和<strong>本次</strong>上传的apk的version code一致</li>
-<li>如果是第一次为当前应用上传apk，那么不能上传扩展文件，你需要提交后，再次提交一个apk然后同时上传扩展文件(这或许是Google play的一个bug)</li>
+<li>加入依赖  </li>
 </ul>
-<h2 id="下载扩展文件">下载扩展文件</h2><p>扩展文件默认是跟随apk文件一起下载到用户的设备上的，如果仔细观察下载过程的话，你会发现它是在apk下载完成后进行的。</p>
-<p>扩展文件下载的位置位于： <code>&lt;shared-storage&gt;/Android/obb/&lt;package-name&gt;/</code></p>
-<p>其中shared-storage是设备的primary external storage。</p>
-<p>但是Google play并不完全保证扩展文件每次都会随着apk下载到用户设备上，这就要求在你的应用中需要检测其是否已经自动下载了，如果没有，则需要通过程序来进行下载，这里给出一个参考流程：</p>
-<p><img src="/images/201503-android-apk-expansion/process.png" alt=" "></p>
-<h3 id="下载方法">下载方法</h3><p>为了方便我们用在应用中下载并且使用扩展文件，Android提供了两个extra来简化开发者的工作：</p>
-<ul>
-<li>Google play Licensing package</li>
-<li>Google play APK Expansion Library package</li>
+<p>在使用之前，先在build.gradle中加入依赖：</p>
+<pre><code><span class="keyword">dependencies</span> {
+    ...
+    <span class="keyword">compile</span> <span class="string">'com.android.support:cardview-v7:21.0.+'</span>
+    <span class="keyword">compile</span> <span class="string">'com.android.support:recyclerview-v7:21.0.+'</span>
+}
+</code></pre><ul>
+<li>定义主layout xml，里面用上RecyclerView</li>
 </ul>
-<p>我们可以通过android manager把需要两个extra的库下载下来：play licensing lib和apk expansion lib。</p>
-<p>下载后会放到sdk\extras\google的对应的两个目录下，其中play licensing对应一个库，expansion对应两个库。可以将这两个工程build成两个相应的jar包供应用使用。</p>
-<p>关于具体的下载可以参考APK expansion extra下面对应的sample应用，比较简单。</p>
-<h3 id="使用方法">使用方法</h3><p>将APK扩展文件下载下来之后，紧接着我们就要考虑如何使用它了。如果你的扩展文件是zip文件的话，恭喜你，在你刚刚下载的APK Expansion Library包中还提供了对zip文件的处理，你可以很简单的将zip包中的文件拷贝出来放到你想要的位置。以下代码仅供参考：</p>
-<pre><code>public void copyFileFromZip() {
-    try {
-        ZipResourceFile expansionFile = APKExpansionSupport.getAPKExpansionZipFile(mContext,
-                mMainVersion, mPatchVersion);
+<pre><code>&lt;RelativeLayout xmlns:<span class="variable">android=</span><span class="string">"http://schemas.android.com/apk/res/android"</span>
+    xmlns:<span class="variable">tools=</span><span class="string">"http://schemas.android.com/tools"</span> android:<span class="variable">layout_width=</span><span class="string">"match_parent"</span>
+    android:<span class="variable">layout_height=</span><span class="string">"match_parent"</span> android:<span class="variable">paddingLeft=</span><span class="string">"@dimen/activity_horizontal_margin"</span>
+    android:<span class="variable">paddingRight=</span><span class="string">"@dimen/activity_horizontal_margin"</span>
+    android:<span class="variable">paddingTop=</span><span class="string">"@dimen/activity_vertical_margin"</span>
+    android:<span class="variable">paddingBottom=</span><span class="string">"@dimen/activity_vertical_margin"</span> tools:<span class="variable">context=</span><span class="string">".MainActivity"</span>&gt;
 
-        <span class="keyword">if</span>(expansionFile != null) {
-            ZipResourceFile.ZipEntryRO[] entries = expansionFile.getAllEntries();
+    &lt;android.support.v7.widget.RecyclerView
+        android:<span class="variable">id=</span><span class="string">"@+id/my_recycler_view"</span>
+        android:<span class="variable">layout_width=</span><span class="string">"match_parent"</span>
+        android:<span class="variable">layout_height=</span><span class="string">"match_parent"</span>/&gt;
 
-            <span class="keyword">for</span>(ZipResourceFile.ZipEntryRO entry : entries) {
-                String imgName = entry.mFileName.<span class="keyword">toString</span>();
-                <span class="keyword">Log</span>.<span class="literal">d</span>(TAG, <span class="string">"entry name is: "</span> + entry.mFileName.<span class="keyword">toString</span>());
-                InputStream is = expansionFile.getInputStream(imgName);
+&lt;/RelativeLayout&gt;
+</code></pre><ul>
+<li>定义RecyclerView的item layout，我们采用CardView来展示每一条记录：</li>
+</ul>
+<pre><code>    &lt;?xml <span class="variable">version=</span><span class="string">"1.0"</span> <span class="variable">encoding=</span><span class="string">"utf-8"</span>?&gt;
+    &lt;LinearLayout xmlns:<span class="variable">android=</span><span class="string">"http://schemas.android.com/apk/res/android"</span>
+        xmlns:<span class="variable">tools=</span><span class="string">"http://schemas.android.com/tools"</span>
+        android:<span class="variable">layout_width=</span><span class="string">"match_parent"</span>
+        android:<span class="variable">layout_height=</span><span class="string">"match_parent"</span>
+        android:<span class="variable">padding=</span><span class="string">"16dp"</span>&gt;
 
+        &lt;android.support.v7.widget.CardView
+            android:<span class="variable">layout_width=</span><span class="string">"match_parent"</span>
+            android:<span class="variable">layout_height=</span><span class="string">"wrap_content"</span>
+            android:<span class="variable">id=</span><span class="string">"@+id/cv"</span>&gt;
 
-                String outFilePath = DEPTH_FILE_DES+imgName;
-                <span class="keyword">Log</span>.<span class="literal">d</span>(TAG, <span class="string">"outfile path is: "</span> + outFilePath);
-                <span class="keyword">File</span> <span class="keyword">outFile</span> = new <span class="keyword">File</span>(outFilePath);
+            &lt;RelativeLayout
+                android:<span class="variable">layout_width=</span><span class="string">"match_parent"</span>
+                android:<span class="variable">layout_height=</span><span class="string">"wrap_content"</span>
+                android:<span class="variable">padding=</span><span class="string">"16dp"</span>&gt;
 
-                <span class="comment">//copy the image now</span>
-                <span class="keyword">if</span>(!<span class="keyword">outFile</span>.exists()) {
-                    copyInputStreamToFile(is, <span class="keyword">outFile</span>);
-                }
-            }
-        } <span class="keyword">else</span> {
-            <span class="keyword">Log</span>.<span class="literal">d</span>(TAG, <span class="string">"too bad, no expansion file found"</span>);
+                &lt;ImageView
+                android:<span class="variable">layout_width=</span><span class="string">"wrap_content"</span>
+                android:<span class="variable">layout_height=</span><span class="string">"wrap_content"</span>
+                android:<span class="variable">id=</span><span class="string">"@+id/photo"</span>
+                android:<span class="variable">layout_alignParentLeft=</span><span class="string">"true"</span>
+                android:<span class="variable">layout_alignParentTop=</span><span class="string">"true"</span>
+                android:<span class="variable">src=</span><span class="string">"@mipmap/ic_launcher"</span>
+                android:<span class="variable">layout_marginRight=</span><span class="string">"16dp"</span> /&gt;
+
+               &lt;TextView
+               android:<span class="variable">layout_width=</span><span class="string">"wrap_content"</span>
+               android:<span class="variable">layout_height=</span><span class="string">"wrap_content"</span>
+               android:<span class="variable">id=</span><span class="string">"@+id/tweet_id"</span>
+               android:<span class="variable">layout_toRightOf=</span><span class="string">"@+id/photo"</span>
+               android:<span class="variable">layout_alignParentTop=</span><span class="string">"true"</span>
+               android:<span class="variable">textSize=</span><span class="string">"30sp"</span>
+               tools:<span class="variable">text=</span><span class="string">"ID 12"</span> /&gt;
+
+               &lt;TextView
+               android:<span class="variable">layout_width=</span><span class="string">"wrap_content"</span>
+               android:<span class="variable">layout_height=</span><span class="string">"wrap_content"</span>
+               android:<span class="variable">id=</span><span class="string">"@+id/tweet_content"</span>
+               android:<span class="variable">layout_toRightOf=</span><span class="string">"@+id/photo"</span>
+               android:<span class="variable">layout_below=</span><span class="string">"@+id/tweet_id"</span>
+               tools:<span class="variable">text=</span><span class="string">"I am the content of tweet"</span>/&gt;
+
+        &lt;/RelativeLayout&gt;
+
+    &lt;/android.support.v7.widget.CardView&gt;
+
+&lt;/LinearLayout&gt;
+</code></pre><ul>
+<li><p>实现RecyclerView的adpter</p>
+<pre><code><span class="keyword">package</span> com.zhixin.twittersample.model.adapter;
+
+<span class="keyword">import</span> android.support.v7.widget.<span class="type">RecyclerView</span>;
+<span class="keyword">import</span> android.view.<span class="type">LayoutInflater</span>;
+<span class="keyword">import</span> android.view.<span class="type">View</span>;
+<span class="keyword">import</span> android.view.<span class="type">ViewGroup</span>;
+<span class="keyword">import</span> android.widget.<span class="type">TextView</span>;
+
+<span class="keyword">import</span> com.zhixin.twittersample.<span class="type">R</span>;
+<span class="keyword">import</span> com.zhixin.twittersample.model.twitter.<span class="type">Tweet</span>;
+
+<span class="keyword">import</span> java.util.<span class="type">ArrayList</span>;
+
+<span class="comment">/**
+ * Created by Zhixin on 4/21/2015.
+*/</span>
+public <span class="class"><span class="keyword">class</span> <span class="title">TwitterAdapter</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">RecyclerView</span>.<span class="title">Adapter&lt;TwitterAdapter</span>.<span class="title">ViewHolder&gt;</span> {</span>
+    <span class="keyword">private</span> <span class="type">ArrayList</span>&lt;<span class="type">Tweet</span>&gt; mDataSet;
+
+    public <span class="class"><span class="keyword">class</span> <span class="title">ViewHolder</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">RecyclerView</span>.<span class="title">ViewHolder</span> {</span>
+        public <span class="type">TextView</span> txtHeader;
+        public <span class="type">TextView</span> txtFooter;
+
+        public <span class="type">ViewHolder</span>(<span class="type">View</span> itemView) {
+            <span class="keyword">super</span>(itemView);
+            txtHeader = (<span class="type">TextView</span>)itemView.findViewById(<span class="type">R</span>.id.tweet_id);
+            txtFooter = (<span class="type">TextView</span>)itemView.findViewById(<span class="type">R</span>.id.tweet_content);
         }
-    } catch (IOException <span class="keyword">e</span>) {
-        <span class="keyword">Log</span>.<span class="literal">d</span>(TAG, <span class="string">"get expansion file exception"</span>);
-        <span class="keyword">e</span>.printStackTrace();
+    }
+
+    <span class="comment">// Provide a suitable constructor (depends on the kind of dataset)</span>
+    public <span class="type">TwitterAdapter</span>(<span class="type">ArrayList</span>&lt;<span class="type">Tweet</span>&gt; myDataset) {
+       mDataSet = myDataset;
+    }
+
+    <span class="comment">// Create new views (invoked by the layout manager)</span>
+    <span class="annotation">@Override</span>
+    public <span class="type">TwitterAdapter</span>.<span class="type">ViewHolder</span> onCreateViewHolder(<span class="type">ViewGroup</span> parent, int viewType) {
+        <span class="type">View</span> v = <span class="type">LayoutInflater</span>.from(parent.getContext()).inflate(<span class="type">R</span>.layout.tweet_item<span class="comment">/*tweet_entry*/</span>, parent, <span class="literal">false</span>);
+        <span class="type">ViewHolder</span> vh = <span class="keyword">new</span> <span class="type">ViewHolder</span>(v);
+        <span class="keyword">return</span> vh;
+    }
+
+    <span class="comment">// Replace the contents of a view (invoked by the layout manager)</span>
+    <span class="annotation">@Override</span>
+    public void onBindViewHolder(<span class="type">ViewHolder</span> viewHolder, int i) {
+        <span class="type">String</span> tweetContent = mDataSet.get(i).getText();
+        <span class="type">String</span> displayName = mDataSet.get(i).getUser().getName();
+        viewHolder.txtFooter.setText(tweetContent);
+        viewHolder.txtHeader.setText(displayName);
+    }
+
+    <span class="annotation">@Override</span>
+    public int getItemCount() {
+        <span class="keyword">return</span> mDataSet.size();
     }
 }
-</code></pre><h2 id="结束语">结束语</h2><p>Google play提供的扩展文件方案极大方便地解决了开发者对于较多资源使用的需求，并且由于不需要开发者自己额外的提供自己的资源服务器，所以还大大地降低了开发者的成本。辅以Android提供的相应库，开发成本也将变得很低。</p>
-<h2 id="Reference">Reference</h2><p><a href="https://developer.android.com/google/play/expansion-files.html" target="_blank" rel="external">Android developer</a></p>
+</code></pre></li>
+</ul>
+<ul>
+<li><p>在main activity中提取RecyclerView并给它set adapter</p>
+<pre><code><span class="constant">mRecyclerView</span> = (RecyclerView)findViewById(R.id.my_recycler_view);
+<span class="constant">mAdapter</span> = new TwitterAdapter(tweet);
+mRecyclerView.setAdapter(mAdapter);
+</code></pre></li>
+</ul>
+<p>最终的运行效果如下：</p>
+<p><img src="/images/201504-recyclerview/recyclerview-screen.png" alt=" "></p>
+<h1 id="总结">总结</h1><p>好了，基本的RecyclerView以及CardView的介绍以及使用就是这样了，你可以<a href="https://github.com/yishuihe/TwiiterSample/tree/master" target="_blank" rel="external"><strong>点击这里</strong></a>下载示例代码，该代码是从Tweeter上取指定用户的发布的所有tweet，然后在RecyclerView中展示出来，其中每一条记录是一个CardView。</p>
 
       
     </div>
@@ -243,7 +387,7 @@
       
         <div class="post-tags">
           
-            <a href="/tags/android-APK-，expansion-file-，扩展文件/"> #android , APK ，expansion file ，扩展文件 </a>
+            <a href="/tags/android-RecyclerView-CardView/"> #android , RecyclerView , CardView </a>
           
         </div>
       
@@ -252,13 +396,11 @@
         <div class="post-nav">
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2015/03/25/2015-03-25-gradle-wrapper/">Gradle wrapper的介绍与使用</a>
-            
           </div>
 
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2015/03/09/2015-03-09-Android-Studio-live-template/">Android Studio Live Template</a>
+              <a href="/2015/04/14/2015-04-14-tech-blog/">Tech blogs and sites</a>
             
           </div>
         </div>
@@ -274,8 +416,8 @@
     
       <div class="comments" id="comments">
         
-          <div class="ds-thread" data-thread-key="2015/03/13/2015-03-13-Androir-expansion-file/"
-               data-title="Android APK扩展文件" data-url="http://yishuihe.github.io/2015/03/13/2015-03-13-Androir-expansion-file/">
+          <div class="ds-thread" data-thread-key="2015/04/21/2015-04-21-RecyclerView-into/"
+               data-title="Android RecyclerView初探" data-url="http://yishuihe.github.io/2015/04/21/2015-04-21-RecyclerView-into/">
           </div>
         
       </div>
@@ -375,7 +517,7 @@
           <div class="post-toc">
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#扩展文件的由来"><span class="nav-text">扩展文件的由来</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#创建扩展文件"><span class="nav-text">创建扩展文件</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#扩展文件的命名"><span class="nav-text">扩展文件的命名</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#上传扩展文件"><span class="nav-text">上传扩展文件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#下载扩展文件"><span class="nav-text">下载扩展文件</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#下载方法"><span class="nav-text">下载方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用方法"><span class="nav-text">使用方法</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#结束语"><span class="nav-text">结束语</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference"><span class="nav-text">Reference</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#RecyclerView"><span class="nav-text">RecyclerView</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#特点"><span class="nav-text">特点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#相关类"><span class="nav-text">相关类</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#相关的开源库"><span class="nav-text">相关的开源库</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#CardView"><span class="nav-text">CardView</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#一个例子"><span class="nav-text">一个例子</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#总结"><span class="nav-text">总结</span></a></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator"></div>

@@ -18,7 +18,7 @@
 
 
 
-  <meta name="keywords" content="CardView,RecyclerView,android," />
+  <meta name="keywords" content="LruCache,android,cache," />
 
 
 
@@ -39,7 +39,7 @@
   </script>
 
 
-  <title> Android RecyclerView初探 // Zhixin Note </title>
+  <title> Android图片缓存之LruCache // Zhixin Note </title>
 </head>
 
 <body>
@@ -118,7 +118,7 @@
           
           
             
-              Android RecyclerView初探
+              Android图片缓存之LruCache
             
           
         </h1>
@@ -126,7 +126,7 @@
 
       <div class="post-meta">
         <span class="post-time">
-          Posted on 2015-04-21
+          Posted on 2015-06-23
         </span>
 
         
@@ -146,8 +146,8 @@
           
             <span class="post-comments-count">
             &nbsp; | &nbsp;
-            <a href="/2015/04/21/2015-04-21-RecyclerView-into/#comments" >
-              <span class="post-comments-count ds-thread-count" data-thread-key="2015/04/21/2015-04-21-RecyclerView-into/"></span>
+            <a href="/2015/06/23/2015-04-25-android-lruchche/#comments" >
+              <span class="post-comments-count ds-thread-count" data-thread-key="2015/06/23/2015-04-25-android-lruchche/"></span>
             </a>
           </span>
           
@@ -161,224 +161,167 @@
       
 
       
-        <p>RecyclerView和CardView是Android L兼容包(support libarary)中最新增加的两个widget。而且二者都符合Android material design风格。 基本的信息请看<a href="https://developer.android.com/training/material/lists-cards.html#Dependencies" target="_blank" rel="external">官方文档和例子</a>.</p>
-<h1 id="RecyclerView">RecyclerView</h1><p>引用Android官方语：这是一种更加高级、灵活的ListView。那么相对于ListView，它究竟强在哪了呢？我们又该如何使用？</p>
-<h2 id="特点">特点</h2><ul>
-<li>不仅仅可以替代ListView，还可以用作GridView，甚至瀑布流都可以。</li>
-<li>提供了默认的添加或者删除ListView中某一项时的动画。当然你也可以实现自定义的动画。</li>
-<li>提供了layoutmanager来专门管理显示。从而更好的将显示与数据分离开。事实上，这一特性决定了特性1，也就是可以实现不同的view形式。</li>
-<li>在Adapter中强制使用ViewHolder pattern</li>
-</ul>
+        <h2 id="引子">引子</h2><p>记得三四年前在做Camera应用的时候，想在Camera应用里面加入image quick view的功能，因为图片数量很多，经常会导致out of memory，一直苦巴巴的找着解决方案，最终是用的SoftReference的方案来解决的这个问题。 但是之后的某一天，突然，一个老外同事大喊一声，他所说的每一个字至今都记忆犹新：Look at this code, pretty neat! 我走过去一看，原来是Android原生camera里面的一个文件: LruCache.java。如果没记错的话，那是Android 2.2的原生Camera应用。</p>
+<p>如此漂亮的代码，google没有独享，把它做成了一个独立的类放入到了SDK中，用来帮助我们做图片缓存。今天我们就来看看这个类。</p>
 <a id="more"></a>
-<h2 id="相关类">相关类</h2><p>接下来看看RecyclerView相关的类以及其用途：</p>
-<table>
-<thead>
-<tr>
-<th>Class</th>
-<th>Purpose</th>
-<th>Optional</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Adapter</td>
-<td>提供数据，并且为每一个条目创建views</td>
-<td>Required</td>
-</tr>
-<tr>
-<td>ViewHolder</td>
-<td>缓存每一个entry的views的references</td>
-<td>Required</td>
-</tr>
-<tr>
-<td>LayoutManager</td>
-<td>用来定义所有的的entry的布局</td>
-<td>Required, but default implementations available</td>
-</tr>
-<tr>
-<td>ItemDecoration</td>
-<td>用来定义显示每一个条目周边的装饰.</td>
-<td>Default behaviour, but can be overridden</td>
-</tr>
-<tr>
-<td>ItemAnimator</td>
-<td>用来定义增加或者删除一项时的动画</td>
-<td>Default behaviour, but can be overridden </td>
-</tr>
-</tbody>
-</table>
-<h2 id="相关的开源库">相关的开源库</h2><p>目前在Github上已经有不少的RecyclerView相关的开源项目，有需要的时候可以参考或者拿来直接用：</p>
+<h2 id="LRU">LRU</h2><p>LRU - Least Recently Used，即最近最少使用，是一种常见的缓存设计方案。LRU算法的提出，是基于这样一个事实：在前面几条指令中使用频繁的页面很可能在后面的几条指令中频繁使用。反过来说，已经很久没有使用的页面很可能在未来较长的一段时间内不会被用到。这个，就是著名的局部性原理——比内存速度还要快的cache，也是基于同样的原理运行的。因此，我们只需要在每次调换时，找到最少使用的那个页面调出内存。这就是LRU算法的全部内容。</p>
+<p>而Android的LruCache类正是基于LRU的思想来实现的一个内存缓存方案。 注意它是用于内存的缓存，而不是磁盘的缓存，我会在另外一片文章中谈谈磁盘缓存。</p>
+<h2 id="LruCache_Vs_SoftReference/WeakReference">LruCache Vs SoftReference/WeakReference</h2><p>在LruCache广泛应用之前，SoftReference/WeakReference是占主导地位的图片out of memory解决方案，但是从android 3.0起，Google已经不在建议继续使用该方案，原因是：</p>
+<p>In the past, a popular memory cache implementation was a SoftReference or        WeakReference bitmap cache, however this is not recommended. Starting from Android 2.3 (API Level 9) the garbage collector is more aggressive with collecting soft/weak references which makes them fairly ineffective. In addition, prior to Android 3.0 (API Level 11), the backing data of a bitmap was stored in native memory which is not released in a predictable manner, potentially causing an application to briefly exceed its memory limits and crash.</p>
+<h2 id="LruCache用法">LruCache用法</h2><p>接下来说一下LruCache的使用方法：</p>
 <ul>
-<li><a href="https://github.com/wasabeef/recyclerview-animators" target="_blank" rel="external">RecyclerView Anomation</a>: 提供了大量的增加或者删除相关的动画。</li>
-<li><a href="https://github.com/Malinskiy/SuperRecyclerView" target="_blank" rel="external">扩展了的RecyclerView</a>: 对默认的RecyclerView做了增强包括：自动加载，swipe refresh等。</li>
-</ul>
-<h1 id="CardView">CardView</h1><p>CardView比较简单直接，本质上就是一个FrameLayout, 在开发时只需要将需要在每个CardView中显示的内容填充进去即可。</p>
-<pre><code><span class="tag">&lt;<span class="title">LinearLayout</span> <span class="attribute">xmlns:android</span>=<span class="value">"http://schemas.android.com/apk/res/android"</span>
-<span class="attribute">xmlns:tools</span>=<span class="value">"http://schemas.android.com/tools"</span>
-<span class="attribute">xmlns:card_view</span>=<span class="value">"http://schemas.android.com/apk/res-auto"</span>
-<span class="attribute">...</span> &gt;</span>
-    <span class="comment">&lt;!-- A CardView that contains a TextView --&gt;</span>
-    <span class="tag">&lt;<span class="title">android.support.v7.widget.CardView</span>
-        <span class="attribute">xmlns:card_view</span>=<span class="value">"http://schemas.android.com/apk/res-auto"</span>
-        <span class="attribute">android:id</span>=<span class="value">"@+id/card_view"</span>
-        <span class="attribute">android:layout_gravity</span>=<span class="value">"center"</span>
-        <span class="attribute">android:layout_width</span>=<span class="value">"200dp"</span>
-        <span class="attribute">android:layout_height</span>=<span class="value">"200dp"</span>
-        <span class="attribute">card_view:cardCornerRadius</span>=<span class="value">"4dp"</span>&gt;</span>
+<li><p>实现自定义LruCache，其中必须要实现的一个接口是sizeOf()，用来返回缓存中object的大小：</p>
+<pre><code><span class="keyword">private</span> <span class="class"><span class="keyword">class</span> <span class="title">MyLruCache</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">LruCache&lt;String</span>, <span class="title">Bitmap&gt;</span> {</span>
 
-        //Add your cardview content here
+    public <span class="type">MyLruCache</span>(int maxSize) {
+        <span class="keyword">super</span>(maxSize);
+    }
 
-    <span class="tag">&lt;/<span class="title">android.support.v7.widget.CardView</span>&gt;</span>
-<span class="tag">&lt;/<span class="title">LinearLayout</span>&gt;</span>
-</code></pre><p>实际使用中发现最终的效果很不错，推荐使用！</p>
-<h1 id="一个例子">一个例子</h1><p>接下来我会提供一个使用RecyclerVIew以及CardView的例子来展示它们如何使用。</p>
-<ul>
-<li>加入依赖  </li>
+    <span class="annotation">@Override</span>
+    <span class="keyword">protected</span> int sizeOf(<span class="type">ImagePoolKey</span> key, <span class="type">Bitmap</span> value) {
+        int kbOfBitmap = value.getByteCount() / <span class="number">1024</span>;
+        <span class="keyword">return</span> kbOfBitmap;
+    }
+}
+</code></pre></li>
+<li><p>创建LruCache</p>
+</li>
 </ul>
-<p>在使用之前，先在build.gradle中加入依赖：</p>
-<pre><code><span class="keyword">dependencies</span> {
-    ...
-    <span class="keyword">compile</span> <span class="string">'com.android.support:cardview-v7:21.0.+'</span>
-    <span class="keyword">compile</span> <span class="string">'com.android.support:recyclerview-v7:21.0.+'</span>
+<p>创建LruCache的一个关键参数就是Cache的大小：如果太大的话就会导致留给应用的其他部分的memory就会变的很小，从而极有可能再次导致out of memory。而如果创建的缓存太小的话，则达不到缓存的目的。一个可行的方案是根据当前可用的内存空间来确定cache的大小：</p>
+<pre><code>ActivityManager <span class="keyword">am</span> = (ActivityManager) context.getSystemService(
+        Context.ACTIVITY_SERVICE);                        
+<span class="keyword">int</span> availableMemInBytes = <span class="keyword">am</span>.getMemoryClass() * <span class="number">1024</span> * <span class="number">1024</span>;
+<span class="keyword">int</span> cacheSize = maxKb / <span class="number">8</span>; // <span class="number">1</span>/<span class="number">8</span><span class="keyword">th</span> of total ram
+LruCache = <span class="keyword">new</span> LruCache(cacheSize);    
+</code></pre><ul>
+<li>缓存内容</li>
+</ul>
+<p>当我们加载了新图片的时候，需要将其同时放入到缓存中，以备以后使用：</p>
+<pre><code>bmp = getBitmapFromURL<span class="comment">(url)</span>;
+<span class="keyword">if</span> <span class="comment">(bmp != null)</span> {
+    cache.put<span class="comment">(url, bmp)</span>;
 }
 </code></pre><ul>
-<li>定义主layout xml，里面用上RecyclerView</li>
+<li>使用缓存</li>
 </ul>
-<pre><code>&lt;RelativeLayout xmlns:<span class="variable">android=</span><span class="string">"http://schemas.android.com/apk/res/android"</span>
-    xmlns:<span class="variable">tools=</span><span class="string">"http://schemas.android.com/tools"</span> android:<span class="variable">layout_width=</span><span class="string">"match_parent"</span>
-    android:<span class="variable">layout_height=</span><span class="string">"match_parent"</span> android:<span class="variable">paddingLeft=</span><span class="string">"@dimen/activity_horizontal_margin"</span>
-    android:<span class="variable">paddingRight=</span><span class="string">"@dimen/activity_horizontal_margin"</span>
-    android:<span class="variable">paddingTop=</span><span class="string">"@dimen/activity_vertical_margin"</span>
-    android:<span class="variable">paddingBottom=</span><span class="string">"@dimen/activity_vertical_margin"</span> tools:<span class="variable">context=</span><span class="string">".MainActivity"</span>&gt;
+<p>当需要加载新图片的时候我们首先从缓存获取，只有在获取不到的情况下才去启动后台线程进行加载。</p>
+<pre><code>Bitmap <span class="built_in">image</span> = cache.<span class="built_in">get</span>(url);
+<span class="keyword">if</span> (<span class="built_in">image</span> != <span class="keyword">null</span>) {
+    imageview.setImageBitmap(<span class="built_in">image</span>);
+}
+<span class="keyword">else</span> {
+    <span class="keyword">new</span> SetImageTask(imageview).execute(url);
+}
+</code></pre><h2 id="完整例子">完整例子</h2><p>懒得自己写了，这里提供<a href="http://stackoverflow.com/questions/11623994/example-using-androids-lrucache" target="_blank" rel="external">SO上的一个例子</a>：</p>
+<pre><code><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TCImageLoader</span> <span class="keyword">implements</span> <span class="title">ComponentCallbacks2</span> </span>{
+<span class="keyword">private</span> TCLruCache cache;
 
-    &lt;android.support.v7.widget.RecyclerView
-        android:<span class="variable">id=</span><span class="string">"@+id/my_recycler_view"</span>
-        android:<span class="variable">layout_width=</span><span class="string">"match_parent"</span>
-        android:<span class="variable">layout_height=</span><span class="string">"match_parent"</span>/&gt;
+<span class="function"><span class="keyword">public</span> <span class="title">TCImageLoader</span><span class="params">(Context context)</span> </span>{
+    ActivityManager am = (ActivityManager) context.getSystemService(
+        Context.ACTIVITY_SERVICE);
+    <span class="keyword">int</span> maxKb = am.getMemoryClass() * <span class="number">1024</span>;
+    <span class="keyword">int</span> limitKb = maxKb / <span class="number">8</span>; <span class="comment">// 1/8th of total ram</span>
+    cache = <span class="keyword">new</span> TCLruCache(limitKb);
+}
 
-&lt;/RelativeLayout&gt;
-</code></pre><ul>
-<li>定义RecyclerView的item layout，我们采用CardView来展示每一条记录：</li>
-</ul>
-<pre><code>    &lt;?xml <span class="variable">version=</span><span class="string">"1.0"</span> <span class="variable">encoding=</span><span class="string">"utf-8"</span>?&gt;
-    &lt;LinearLayout xmlns:<span class="variable">android=</span><span class="string">"http://schemas.android.com/apk/res/android"</span>
-        xmlns:<span class="variable">tools=</span><span class="string">"http://schemas.android.com/tools"</span>
-        android:<span class="variable">layout_width=</span><span class="string">"match_parent"</span>
-        android:<span class="variable">layout_height=</span><span class="string">"match_parent"</span>
-        android:<span class="variable">padding=</span><span class="string">"16dp"</span>&gt;
+<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">display</span><span class="params">(String url, ImageView imageview, <span class="keyword">int</span> defaultresource)</span> </span>{
+    imageview.setImageResource(defaultresource);
+    Bitmap image = cache.get(url);
+    <span class="keyword">if</span> (image != <span class="keyword">null</span>) {
+        imageview.setImageBitmap(image);
+    }
+    <span class="keyword">else</span> {
+        <span class="keyword">new</span> SetImageTask(imageview).execute(url);
+    }
+}
 
-        &lt;android.support.v7.widget.CardView
-            android:<span class="variable">layout_width=</span><span class="string">"match_parent"</span>
-            android:<span class="variable">layout_height=</span><span class="string">"wrap_content"</span>
-            android:<span class="variable">id=</span><span class="string">"@+id/cv"</span>&gt;
+<span class="keyword">private</span> <span class="class"><span class="keyword">class</span> <span class="title">TCLruCache</span> <span class="keyword">extends</span> <span class="title">LruCache</span>&lt;<span class="title">String</span>, <span class="title">Bitmap</span>&gt; </span>{
 
-            &lt;RelativeLayout
-                android:<span class="variable">layout_width=</span><span class="string">"match_parent"</span>
-                android:<span class="variable">layout_height=</span><span class="string">"wrap_content"</span>
-                android:<span class="variable">padding=</span><span class="string">"16dp"</span>&gt;
+    <span class="function"><span class="keyword">public</span> <span class="title">TCLruCache</span><span class="params">(<span class="keyword">int</span> maxSize)</span> </span>{
+        <span class="keyword">super</span>(maxSize);
+    }
 
-                &lt;ImageView
-                android:<span class="variable">layout_width=</span><span class="string">"wrap_content"</span>
-                android:<span class="variable">layout_height=</span><span class="string">"wrap_content"</span>
-                android:<span class="variable">id=</span><span class="string">"@+id/photo"</span>
-                android:<span class="variable">layout_alignParentLeft=</span><span class="string">"true"</span>
-                android:<span class="variable">layout_alignParentTop=</span><span class="string">"true"</span>
-                android:<span class="variable">src=</span><span class="string">"@mipmap/ic_launcher"</span>
-                android:<span class="variable">layout_marginRight=</span><span class="string">"16dp"</span> /&gt;
+    <span class="annotation">@Override</span>
+    <span class="function"><span class="keyword">protected</span> <span class="keyword">int</span> <span class="title">sizeOf</span><span class="params">(ImagePoolKey key, Bitmap value)</span> </span>{
+        <span class="keyword">int</span> kbOfBitmap = value.getByteCount() / <span class="number">1024</span>;
+        <span class="keyword">return</span> kbOfBitmap;
+    }
+}
 
-               &lt;TextView
-               android:<span class="variable">layout_width=</span><span class="string">"wrap_content"</span>
-               android:<span class="variable">layout_height=</span><span class="string">"wrap_content"</span>
-               android:<span class="variable">id=</span><span class="string">"@+id/tweet_id"</span>
-               android:<span class="variable">layout_toRightOf=</span><span class="string">"@+id/photo"</span>
-               android:<span class="variable">layout_alignParentTop=</span><span class="string">"true"</span>
-               android:<span class="variable">textSize=</span><span class="string">"30sp"</span>
-               tools:<span class="variable">text=</span><span class="string">"ID 12"</span> /&gt;
+<span class="keyword">private</span> <span class="class"><span class="keyword">class</span> <span class="title">SetImageTask</span> <span class="keyword">extends</span> <span class="title">AsyncTask</span>&lt;<span class="title">String</span>, <span class="title">Void</span>, <span class="title">Integer</span>&gt; </span>{
+    <span class="keyword">private</span> ImageView imageview;
+    <span class="keyword">private</span> Bitmap bmp;
 
-               &lt;TextView
-               android:<span class="variable">layout_width=</span><span class="string">"wrap_content"</span>
-               android:<span class="variable">layout_height=</span><span class="string">"wrap_content"</span>
-               android:<span class="variable">id=</span><span class="string">"@+id/tweet_content"</span>
-               android:<span class="variable">layout_toRightOf=</span><span class="string">"@+id/photo"</span>
-               android:<span class="variable">layout_below=</span><span class="string">"@+id/tweet_id"</span>
-               tools:<span class="variable">text=</span><span class="string">"I am the content of tweet"</span>/&gt;
+    <span class="function"><span class="keyword">public</span> <span class="title">SetImageTask</span><span class="params">(ImageView imageview)</span> </span>{
+        <span class="keyword">this</span>.imageview = imageview;
+    }
 
-        &lt;/RelativeLayout&gt;
+    <span class="annotation">@Override</span>
+    <span class="function"><span class="keyword">protected</span> Integer <span class="title">doInBackground</span><span class="params">(String... params)</span> </span>{
+        String url = params[<span class="number">0</span>];
+        <span class="keyword">try</span> {
+            bmp = getBitmapFromURL(url);
+            <span class="keyword">if</span> (bmp != <span class="keyword">null</span>) {
+                cache.put(url, bmp);
+            }
+            <span class="keyword">else</span> {
+                <span class="keyword">return</span> <span class="number">0</span>;
+            }
+        } <span class="keyword">catch</span> (Exception e) {
+            e.printStackTrace();
+            <span class="keyword">return</span> <span class="number">0</span>;
+        }
+        <span class="keyword">return</span> <span class="number">1</span>;
+    }
 
-    &lt;/android.support.v7.widget.CardView&gt;
+    <span class="annotation">@Override</span>
+    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onPostExecute</span><span class="params">(Integer result)</span> </span>{
+        <span class="keyword">if</span> (result == <span class="number">1</span>) {
+            imageview.setImageBitmap(bmp);
+        }
+        <span class="keyword">super</span>.onPostExecute(result);
+    }
 
-&lt;/LinearLayout&gt;
-</code></pre><ul>
-<li><p>实现RecyclerView的adpter</p>
-<pre><code><span class="keyword">package</span> com.zhixin.twittersample.model.adapter;
-
-<span class="keyword">import</span> android.support.v7.widget.<span class="type">RecyclerView</span>;
-<span class="keyword">import</span> android.view.<span class="type">LayoutInflater</span>;
-<span class="keyword">import</span> android.view.<span class="type">View</span>;
-<span class="keyword">import</span> android.view.<span class="type">ViewGroup</span>;
-<span class="keyword">import</span> android.widget.<span class="type">TextView</span>;
-
-<span class="keyword">import</span> com.zhixin.twittersample.<span class="type">R</span>;
-<span class="keyword">import</span> com.zhixin.twittersample.model.twitter.<span class="type">Tweet</span>;
-
-<span class="keyword">import</span> java.util.<span class="type">ArrayList</span>;
-
-<span class="comment">/**
- * Created by Zhixin on 4/21/2015.
-*/</span>
-public <span class="class"><span class="keyword">class</span> <span class="title">TwitterAdapter</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">RecyclerView</span>.<span class="title">Adapter&lt;TwitterAdapter</span>.<span class="title">ViewHolder&gt;</span> {</span>
-    <span class="keyword">private</span> <span class="type">ArrayList</span>&lt;<span class="type">Tweet</span>&gt; mDataSet;
-
-    public <span class="class"><span class="keyword">class</span> <span class="title">ViewHolder</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">RecyclerView</span>.<span class="title">ViewHolder</span> {</span>
-        public <span class="type">TextView</span> txtHeader;
-        public <span class="type">TextView</span> txtFooter;
-
-        public <span class="type">ViewHolder</span>(<span class="type">View</span> itemView) {
-            <span class="keyword">super</span>(itemView);
-            txtHeader = (<span class="type">TextView</span>)itemView.findViewById(<span class="type">R</span>.id.tweet_id);
-            txtFooter = (<span class="type">TextView</span>)itemView.findViewById(<span class="type">R</span>.id.tweet_content);
+    <span class="function"><span class="keyword">private</span> Bitmap <span class="title">getBitmapFromURL</span><span class="params">(String src)</span> </span>{
+        <span class="keyword">try</span> {
+            URL url = <span class="keyword">new</span> URL(src);
+            HttpURLConnection connection
+                = (HttpURLConnection) url.openConnection();
+            connection.setDoInput(<span class="keyword">true</span>);
+            connection.connect();
+            InputStream input = connection.getInputStream();
+            Bitmap myBitmap = BitmapFactory.decodeStream(input);
+            <span class="keyword">return</span> myBitmap;
+        } <span class="keyword">catch</span> (IOException e) {
+            e.printStackTrace();
+            <span class="keyword">return</span> <span class="keyword">null</span>;
         }
     }
 
-    <span class="comment">// Provide a suitable constructor (depends on the kind of dataset)</span>
-    public <span class="type">TwitterAdapter</span>(<span class="type">ArrayList</span>&lt;<span class="type">Tweet</span>&gt; myDataset) {
-       mDataSet = myDataset;
-    }
+}
 
-    <span class="comment">// Create new views (invoked by the layout manager)</span>
-    <span class="annotation">@Override</span>
-    public <span class="type">TwitterAdapter</span>.<span class="type">ViewHolder</span> onCreateViewHolder(<span class="type">ViewGroup</span> parent, int viewType) {
-        <span class="type">View</span> v = <span class="type">LayoutInflater</span>.from(parent.getContext()).inflate(<span class="type">R</span>.layout.tweet_item<span class="comment">/*tweet_entry*/</span>, parent, <span class="literal">false</span>);
-        <span class="type">ViewHolder</span> vh = <span class="keyword">new</span> <span class="type">ViewHolder</span>(v);
-        <span class="keyword">return</span> vh;
-    }
+<span class="annotation">@Override</span>
+<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onConfigurationChanged</span><span class="params">(Configuration newConfig)</span> </span>{
+}
 
-    <span class="comment">// Replace the contents of a view (invoked by the layout manager)</span>
-    <span class="annotation">@Override</span>
-    public void onBindViewHolder(<span class="type">ViewHolder</span> viewHolder, int i) {
-        <span class="type">String</span> tweetContent = mDataSet.get(i).getText();
-        <span class="type">String</span> displayName = mDataSet.get(i).getUser().getName();
-        viewHolder.txtFooter.setText(tweetContent);
-        viewHolder.txtHeader.setText(displayName);
-    }
+<span class="annotation">@Override</span>
+<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onLowMemory</span><span class="params">()</span> </span>{
+}
 
-    <span class="annotation">@Override</span>
-    public int getItemCount() {
-        <span class="keyword">return</span> mDataSet.size();
+<span class="annotation">@Override</span>
+<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onTrimMemory</span><span class="params">(<span class="keyword">int</span> level)</span> </span>{
+    <span class="keyword">if</span> (level &gt;= TRIM_MEMORY_MODERATE) {
+        cache.evictAll();
+    }
+    <span class="function"><span class="keyword">else</span> <span class="title">if</span> <span class="params">(level &gt;= TRIM_MEMORY_BACKGROUND)</span> </span>{
+        cache.trimToSize(cache.size() / <span class="number">2</span>);
     }
 }
-</code></pre></li>
-</ul>
-<ul>
-<li><p>在main activity中提取RecyclerView并给它set adapter</p>
-<pre><code><span class="constant">mRecyclerView</span> = (RecyclerView)findViewById(R.id.my_recycler_view);
-<span class="constant">mAdapter</span> = new TwitterAdapter(tweet);
-mRecyclerView.setAdapter(mAdapter);
-</code></pre></li>
-</ul>
-<p>最终的运行效果如下：</p>
-<p><img src="/images/201504-recyclerview/recyclerview-screen.png" alt=" "></p>
-<h1 id="总结">总结</h1><p>好了，基本的RecyclerView以及CardView的介绍以及使用就是这样了，你可以<a href="https://github.com/yishuihe/TwiiterSample/tree/master" target="_blank" rel="external"><strong>点击这里</strong></a>下载示例代码，该代码是从Tweeter上取指定用户的发布的所有tweet，然后在RecyclerView中展示出来，其中每一条记录是一个CardView。</p>
+}
+</code></pre><h2 id="Reference">Reference</h2><ol>
+<li><a href="http://developer.android.com/reference/android/util/LruCache.html" target="_blank" rel="external">LruCache class</a></li>
+<li><a href="http://developer.android.com/training/displaying-bitmaps/cache-bitmap.html" target="_blank" rel="external">Android developer document</a></li>
+</ol>
 
       
     </div>
@@ -387,11 +330,11 @@ mRecyclerView.setAdapter(mAdapter);
       
         <div class="post-tags">
           
-            <a href="/tags/CardView/"> #CardView </a>
-          
-            <a href="/tags/RecyclerView/"> #RecyclerView </a>
+            <a href="/tags/LruCache/"> #LruCache </a>
           
             <a href="/tags/android/"> #android </a>
+          
+            <a href="/tags/cache/"> #cache </a>
           
         </div>
       
@@ -400,13 +343,11 @@ mRecyclerView.setAdapter(mAdapter);
         <div class="post-nav">
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2015/04/26/2015-04-25-google-play-memo/">Google play memo</a>
-            
           </div>
 
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2015/04/14/2015-04-14-tech-blog/">Tech blogs and sites</a>
+              <a href="/2015/04/26/2015-04-25-google-play-memo/">Google play memo</a>
             
           </div>
         </div>
@@ -422,8 +363,8 @@ mRecyclerView.setAdapter(mAdapter);
     
       <div class="comments" id="comments">
         
-          <div class="ds-thread" data-thread-key="2015/04/21/2015-04-21-RecyclerView-into/"
-               data-title="Android RecyclerView初探" data-url="http://yishuihe.github.io/2015/04/21/2015-04-21-RecyclerView-into/">
+          <div class="ds-thread" data-thread-key="2015/06/23/2015-04-25-android-lruchche/"
+               data-title="Android图片缓存之LruCache" data-url="http://yishuihe.github.io/2015/06/23/2015-04-25-android-lruchche/">
           </div>
         
       </div>
@@ -523,7 +464,7 @@ mRecyclerView.setAdapter(mAdapter);
           <div class="post-toc">
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#RecyclerView"><span class="nav-text">RecyclerView</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#特点"><span class="nav-text">特点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#相关类"><span class="nav-text">相关类</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#相关的开源库"><span class="nav-text">相关的开源库</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#CardView"><span class="nav-text">CardView</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#一个例子"><span class="nav-text">一个例子</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#总结"><span class="nav-text">总结</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#引子"><span class="nav-text">引子</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#LRU"><span class="nav-text">LRU</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#LruCache_Vs_SoftReference/WeakReference"><span class="nav-text">LruCache Vs SoftReference/WeakReference</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#LruCache用法"><span class="nav-text">LruCache用法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#完整例子"><span class="nav-text">完整例子</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference"><span class="nav-text">Reference</span></a></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator"></div>

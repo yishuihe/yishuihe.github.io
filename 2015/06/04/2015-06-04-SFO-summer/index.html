@@ -18,7 +18,7 @@
 
 
 
-  <meta name="keywords" content="android studio ， live template,code snippet," />
+  <meta name="keywords" content="天气,旧金山," />
 
 
 
@@ -39,7 +39,7 @@
   </script>
 
 
-  <title> Android Studio Live Template // Zhixin Note </title>
+  <title> 最冷的冬天 // Zhixin Note </title>
 </head>
 
 <body>
@@ -118,7 +118,7 @@
           
           
             
-              Android Studio Live Template
+              最冷的冬天
             
           
         </h1>
@@ -126,14 +126,14 @@
 
       <div class="post-meta">
         <span class="post-time">
-          Posted on 2015-03-09
+          Posted on 2015-06-04
         </span>
 
         
           <span class="post-category">
             &nbsp; | &nbsp; In
             
-              <a href="/categories/Android/">Android</a>
+              <a href="/categories/think/">think</a>
 
               
               
@@ -146,8 +146,8 @@
           
             <span class="post-comments-count">
             &nbsp; | &nbsp;
-            <a href="/2015/03/09/2015-03-09-Android-Studio-live-template/#comments" >
-              <span class="post-comments-count ds-thread-count" data-thread-key="2015/03/09/2015-03-09-Android-Studio-live-template/"></span>
+            <a href="/2015/06/04/2015-06-04-SFO-summer/#comments" >
+              <span class="post-comments-count ds-thread-count" data-thread-key="2015/06/04/2015-06-04-SFO-summer/"></span>
             </a>
           </span>
           
@@ -161,58 +161,17 @@
       
 
       
-        <p>代码的复用在开发过程中为我们省却不少重复性的工作，从而提高开发效率。目前大部分的IDE都支持了code snippet，Android studio也不例外，今天我们就一起来看看Android studio中Live template(Android studio将code snippet称为live template)的创建与使用。</p>
+        <blockquote>
+<p>我所经历过的最冷的冬天，是旧金山的夏天。 － 马克吐温</p>
+</blockquote>
+<p><img src="/images/201506-sfo-summer/golden-gate.jpg" alt=" "></p>
 <a id="more"></a>
-<h2 id="使用已有的Live_Template">使用已有的Live Template</h2><p>Android studio默认已经集成了一些live template进去，也就是我们在开发过程中可以快速的插入一些代码块。</p>
-<p>下面是个简单的例子：</p>
-<p>假如我们的代码中定义了一个list:</p>
-<pre><code><span class="built_in">List</span><span class="subst">&lt;</span><span class="built_in">String</span><span class="subst">&gt;</span> <span class="built_in">list</span> <span class="subst">=</span> Arrays<span class="built_in">.</span>asList(<span class="string">"a"</span>, <span class="string">"b"</span>, <span class="string">"c"</span>);
-</code></pre><p>现在想遍历这个list，我们只需要敲入：</p>
-<pre><code>itli
-</code></pre><p>然后按Tab键，这时Android studio就会自动插入遍历list的代码：</p>
-<pre><code><span class="built_in">List</span>&lt;<span class="built_in">String</span>&gt; list = Arrays.asList(<span class="string">"a"</span>, <span class="string">"b"</span>, <span class="string">"c"</span>)
-
-<span class="keyword">for</span> (<span class="built_in">int</span> i = <span class="number">0</span>; i &lt; list.size(); i++) {
-    <span class="built_in">Object</span> s =  list.<span class="literal">get</span>(i);
-
-}
-</code></pre><p>怎么样，是不是很方便？</p>
-<p>更方便的是，Android Studio默认就提供了很多类似的live template，可以通过File-&gt;Setting-&gt;Live template查看所有的live template：</p>
-<p><img src="/images/201503-android-studio-live-template/overview.png" alt=" "></p>
-<h2 id="创建自定义的Live_Template">创建自定义的Live Template</h2><p>随着开发的深入，我们会发现：仅仅使用Android studio自带的live template不能满足我们的需求的。有时候我们想把自己的一些代码存成live template，以便以后能够方便的复用。 其实方法也很简单：</p>
-<p>首先选中要创建的代码，然后选择tools-&gt; save as Live Template，命名保存即可。</p>
-<p>接下来也举个例子：<br>比如开发中常见的单例模式，我们有个类名字为ClassA，然后想使其成为单例模式，其中createInstance函数可以这样写</p>
-<pre><code><span class="keyword">private</span> <span class="keyword">static</span> ClassA mInstance = <span class="keyword">null</span>;
-<span class="keyword">public</span> <span class="keyword">static</span> <span class="function">ClassA <span class="title">createInstance</span><span class="params">()</span> </span>{
-    <span class="keyword">if</span>(mInstance == <span class="keyword">null</span>) {
-        mInstance = <span class="keyword">new</span> $variable$();
-    }
-
-    <span class="keyword">return</span> mInstance;
-}
-</code></pre><p>然后选中这段代码，点击菜单Tools -&gt; save as Live Template, 命名为singleton保存。等以后使用时直接敲入singleton然后按tab键，那么上面的一大段代码就自动插入进来了。 </p>
-<p>然后问题总是不期而至，使用了一段时间之后，你又发现了问题：不管我的类名是什么，插入的代码总是ClassA！！ 怎么处理呢？ 还是有办法：<br>我们把template中的ClassA改成一个变量的形式，例如$variable$, 改完后如下：</p>
-<pre><code><span class="keyword">private</span> <span class="keyword">static</span> <span class="variable">$variable</span>$ mInstance = <span class="keyword">null</span>;
-<span class="keyword">public</span> <span class="keyword">static</span> <span class="variable">$variable</span>$ createInstance() {
-    <span class="keyword">if</span>(mInstance == <span class="keyword">null</span>) {
-        mInstance = <span class="keyword">new</span> <span class="variable">$variable</span>$();
-    }
-
-    <span class="keyword">return</span> mInstance;
-}
-</code></pre><p>那么$variable$如何定义呢？</p>
-<p>打开Live template 管理界面：</p>
-<p><img src="/images/201503-android-studio-live-template/edit-variable.png" alt=" "></p>
-<p>点击‘Edit Variables’按钮，然后编辑如下：</p>
-<p><img src="/images/201503-android-studio-live-template/singleton-variable.png" alt=" "></p>
-<p>我们将variable定义成className(), 这样在以后的代码插入时，Android studio会为我们获取到当前的类名，然后用它替换掉tamplate中的$variable$。</p>
-<p>事实上，Android studio(本质上其实是IntelliJ)的Live Template的一大优点是内置了一些智能的变量和函数，可以做到一些语义级别的分析和运用。</p>
-<p>接下来再接着看一个例子：我们这次要做成live template的是在Android中最最常用的Log.d, 我们可以把template写成下面的形式：</p>
-<pre><code>android.util.Log.d(<span class="string">"<span class="variable">$CLASS_NAME</span>$"</span>,  <span class="string">"<span class="variable">$METHOD_NAME</span>$ (line <span class="variable">$LINE</span>$): <span class="variable">$MESSAGE</span>$"</span>);<span class="variable">$END</span>$
-</code></pre><p>然后借助Android Studio内置的函数来配置这个template中用到的变量，配置方法如下：</p>
-<p><img src="/images/201503-android-studio-live-template/log-variable.png" alt=" "></p>
-<h2 id="小结">小结</h2><p>通过以上介绍，详细你已经了解了Android Studio的代码模板的使用以及创建。 这样在以后的开发中可以尽量少的重复创建轮子。 不过既然想拒绝重复创造，我们其实还可以直接引入别人已经创建好的template，google一下，你会发现已经有一些不错的template可以直接拿来用了。</p>
-<p>Happy coding!</p>
+<p>—————————————————————————I——————————-</p>
+<p>The coldest winter I ever spent was a summer in San Francisco.</p>
+<p>头一次听说过马先生的这句话的时候心想这大文豪真特么矫情啊，这是典型的拉仇恨啊，尤其是对于我这种生活在夏季如蒸笼般的帝都屁民来说，凉爽的天气简直就是炎炎夏日里最奢望的东西了。可是在定居到硅谷这边的第一个夏天到来之后，我发现我不得不重新审视马老先生的这句戏言了。</p>
+<p>刚刚到达三藩的时候正值冬季，和预想中的一样，天气温暖而阳光明媚，又恰逢一年之中硅谷最湿润的季节－冬天是这边雨水最多的时候，树木草地都绿油油的，蓝天碧水让人心情舒畅。白天十几度的温度让我那些在北京、纽约穿过的冬装变得毫无用处，欣喜的整天穿着衬衫、短袖每天穿梭于公司与酒店之间。然后好景不长，很快我找到了公寓，便搬离了酒店。最冷的“冬天“到来了。</p>
+<p>搬入公寓一个月后，我就经常感觉到头疼，尤其是晚上睡觉前或者早上起床之后，整个头颅都很疼，甚至有时候会有中煤气的感觉。开始以为是睡眠不足导致的，后来发现即便是睡眠时间很长很长也不行。再后来以为是感冒了，但是吃了感冒药也不见任何效果。就这样折腾了一个月，最后终于找到了原因。那时已经是4，5月份的样子了，属于这边的初夏季节，下午的温度大概在18度左右，而由于这边的昼夜温差很大(再加上光照强烈，这也是为什么加州的水果超级好吃的原因了 有些类似于我们的新疆啊 嘿嘿)，所以傍晚的温度只有大概10来度的样子，而每天晚饭后我都要带着儿子去公寓对面的公园去玩，由于感觉已经是夏天了所以只穿一件短袖或者长袖T恤就出去了。所以经常会感觉到越玩越冷，但是也没有太在意。直到有一次回来后就直接感觉到头疼了，才意识到原来着冷就是头疼的罪魁祸首啊！！从此以后，即使是夏天，每天早上起床后都要穿上外套，晚上下班后也不例外。</p>
+<p>这边的夏天就是这样子的了，你喜欢吗？</p>
 
       
     </div>
@@ -221,9 +180,9 @@
       
         <div class="post-tags">
           
-            <a href="/tags/android-studio-，-live-template/"> #android studio ， live template </a>
+            <a href="/tags/天气/"> #天气 </a>
           
-            <a href="/tags/code-snippet/"> #code snippet </a>
+            <a href="/tags/旧金山/"> #旧金山 </a>
           
         </div>
       
@@ -232,13 +191,11 @@
         <div class="post-nav">
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2015/03/13/2015-03-13-Androir-expansion-file/">Android APK扩展文件</a>
-            
           </div>
 
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2015/02/24/2015-02-24-SAF-and-client-code/">Android SAF介绍以及SD Card的访问实例</a>
+              <a href="/2015/06/03/2015-06-03-android-lruchche/">Android图片缓存之LruCache</a>
             
           </div>
         </div>
@@ -254,8 +211,8 @@
     
       <div class="comments" id="comments">
         
-          <div class="ds-thread" data-thread-key="2015/03/09/2015-03-09-Android-Studio-live-template/"
-               data-title="Android Studio Live Template" data-url="http://yishuihe.github.io/2015/03/09/2015-03-09-Android-Studio-live-template/">
+          <div class="ds-thread" data-thread-key="2015/06/04/2015-06-04-SFO-summer/"
+               data-title="最冷的冬天" data-url="http://yishuihe.github.io/2015/06/04/2015-06-04-SFO-summer/">
           </div>
         
       </div>
@@ -355,7 +312,7 @@
           <div class="post-toc">
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#使用已有的Live_Template"><span class="nav-text">使用已有的Live Template</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#创建自定义的Live_Template"><span class="nav-text">创建自定义的Live Template</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#小结"><span class="nav-text">小结</span></a></li></ol></div>
+              <p class="post-toc-empty">This post does not have a Table Of Contents</p>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator"></div>

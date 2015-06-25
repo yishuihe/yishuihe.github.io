@@ -18,7 +18,7 @@
 
 
 
-  <meta name="keywords" content="Android Studio,gradle," />
+  <meta name="keywords" content="android,cache,disk cache," />
 
 
 
@@ -39,7 +39,7 @@
   </script>
 
 
-  <title> Gradle wrapper的介绍与使用 // Zhixin Life@US </title>
+  <title> Andoid Disk Cache // Zhixin Life@US </title>
 </head>
 
 <body>
@@ -118,7 +118,7 @@
           
           
             
-              Gradle wrapper的介绍与使用
+              Andoid Disk Cache
             
           
         </h1>
@@ -126,7 +126,7 @@
 
       <div class="post-meta">
         <span class="post-time">
-          Posted on 2015-03-25
+          Posted on 2015-06-25
         </span>
 
         
@@ -146,8 +146,8 @@
           
             <span class="post-comments-count">
             &nbsp; | &nbsp;
-            <a href="/2015/03/25/2015-03-25-gradle-wrapper/#comments" >
-              <span class="post-comments-count ds-thread-count" data-thread-key="2015/03/25/2015-03-25-gradle-wrapper/"></span>
+            <a href="/2015/06/25/2015-06-25-android-disk-cache/#comments" >
+              <span class="post-comments-count ds-thread-count" data-thread-key="2015/06/25/2015-06-25-android-disk-cache/"></span>
             </a>
           </span>
           
@@ -161,37 +161,98 @@
       
 
       
-        <blockquote>
-<p>藤牵萝绕互依附，濡沫相润脂和膏。</p>
-</blockquote>
-<h2 id="由来">由来</h2><p>在使用Android Studio作为IDE开发Android的应用的时候，我们可以直接使用IDE集成的build工具对应用进行编译打包，也可以使用命令行的形式执行gradle命令来做同样的事情，也就是基于gradle来构建android应用的build系统。在需要用到gradle的时候，我们可以在我们的电脑上安装gradle，然后配置好环境变量后就可以使用了。但是当我们把项目分享给电脑上没有gradle的人时，问题就来了。或者我们在一个没有装gradle的server上build的时候也会出现同样的问题。</p>
-<p>所以基于此，gradle系统引入了我们今天的主角-gralde wrapper: 一个gradle的封装体。有了gradle wrapper，即便你的机器上没有安装gradle，也可以执行gradle的构建工作了。</p>
+        <p>在<a href="http://zhixinliu.com/2015/06/03/2015-06-03-android-lruchche/" target="_blank" rel="external">上一篇文章</a>中我们介绍了缓存的基本原理以及如何借助于LruCache类来实现一级缓存，也就是在内存中的缓存。但是由于内存空间的局限，我们不可能在一级缓存中放入太多的东西，那么聪明的你也一定想到了，没错，同电脑缓存一样，我们还可以记住外部存储在给应用做二级缓存，也就是缓存在磁盘之上。这样一来，我们就可以缓存更多的数据，但是二级缓存同样也有自身的局限性，比如性能相对于一级缓存要慢很多，另外对于缓存的网络上的内容还要考虑其实效性。</p>
 <a id="more"></a>
-<h2 id="创建">创建</h2><p>想使用gradle wrapper，首先要在你的项目中创建。具体来说就是在build.gradle里面加入类似于下面的task：</p>
-<pre><code><span class="comment">// File: build.gradle</span>
-task createWrapper(<span class="class"><span class="keyword">type</span>:</span> <span class="type">Wrapper</span>) {
-    gradleVersion = <span class="symbol">'0</span>.9-preview-<span class="number">1</span>'
+<h2 id="实现">实现</h2><p>不同于内存缓存，Android SDK中的并没有提供一个现成的disk的缓存类，但是<a href="https://github.com/JakeWharton/DiskLruCache" target="_blank" rel="external">Square的Jake Wharton提供了一个DiskLRUCache：JakeWharton/DiskLruCache</a>，并且已被Google认证并且使用于<a href="android.googlesource.com/platform/libcore/+/jb-mr2-release/luni/src/main/java/libcore/io/DiskLruCache.java">Android项目中</a>。顾名思义，该方案同样是机遇LRU的替换策略。所以对于我们开发者来说，直接拿过来就可以了。</p>
+<p>你可以简单地将代码拷贝到你的android工程当中，如果是采用Gradle，可以这样引用：</p>
+<pre><code><span class="keyword">compile</span> <span class="string">'com.jakewharton:disklrucache:2.0.2'</span>
+</code></pre><h2 id="使用">使用</h2><h3 id="open">open</h3><p>如果想要使用DiskLruCache，首先我们要通过其open方法创建一个DiskLruCache的实例，接口定义如下：</p>
+<pre><code><span class="keyword">public</span> <span class="keyword">static</span> DiskLruCache open(<span class="keyword">File</span> directory, <span class="keyword">int</span> appVersion, <span class="keyword">int</span> valueCount, <span class="keyword">long</span> maxSize)
+</code></pre><p>该方法需要四个参数，</p>
+<ul>
+<li>directory: 数据的缓存地址,一般存在应用的package-specific目录 <a href="http://zhixinliu.com/2015/01/28/2015-01-28-android-storage-story/" target="_blank" rel="external">如有疑问,可以参考这里</a></li>
+<li>appVersion: 当前应用程序的版本号</li>
+<li>valueCount: 指定同一个key可以对应多少个缓存文件，基本都是传1</li>
+<li>maxSize: 指定最多可以缓存多少字节的数据</li>
+</ul>
+<p>缓存地址前面已经说过了，通常都会存放在 /sdcard/Android/data/your.package.name/cache 这个路径下面，关于如何获取该路径，<a href="http://zhixinliu.com/2015/01/28/2015-01-28-android-storage-story/" target="_blank" rel="external">可以参考我的另外一篇文章</a>。</p>
+<p>关于应用程序版本号这个参数，需要注意的是，每当版本号改变，缓存路径下存储的所有数据都会被清除掉，所以在传入这个参数时需要慎重，除非你觉得需要更新cache，否则该参数不要该拜年。</p>
+<p>因此，open()方法就可以这样写：</p>
+<pre><code>DiskLruCache mDiskLruCache = <span class="keyword">null</span>;
+<span class="keyword">int</span> VERSION_CODE = <span class="number">1</span>;
+<span class="keyword">long</span> <span class="keyword">int</span> MAX_SIZE = <span class="number">10</span> * <span class="number">1024</span> * <span class="number">1024</span>; <span class="comment">//10M</span>
+<span class="keyword">try</span> {
+    <span class="keyword">File</span> cacheDir = getDiskCacheDir(context, <span class="string">"bitmap"</span>);<span class="comment">//自己定义的获取缓存目录函数</span>
+    <span class="keyword">if</span> (!cacheDir.exists()) {
+        cacheDir.mkdirs();
+    }
+    mDiskLruCache = DiskLruCache.open(cacheDir, VERSION_CODE, <span class="number">1</span>, MAX_SIZE);
+} <span class="keyword">catch</span> (IOException e) {
+    e.printStackTrace();
 }
-</code></pre><p>什么原理？ 其实很简单：在生成gradle wrapper的时候指定项目所需要用的gradle版本，这样当别人用gradle wrapper的时候，</p>
-<p>然后执行该task： <code>$ gradle createWrapper</code></p>
-<p>就会在项目工程生成以下的文件：</p>
-<pre><code>Project-name/
-  gradlew
-  gradlew<span class="class">.bat</span>
-  gradle/wrapper/
-    gradle-wrapper<span class="class">.jar</span>
-    gradle-wrapper.properties
-</code></pre><p>这些文件构成了我们的gradle wrapper。</p>
-<p>需要注意的是：这些文件需要上传到版本控制工具(例如git, svn)的server端。生成这些文件的操作只需要做一次即可。</p>
-<h2 id="使用">使用</h2><p>需要使用gradle wrapper的时候，我们就直接在项目根目录下直接执行<code>gradlew</code>(gradle wrapper的简写), 使用gradlew的方式和gradle一模一样, 例如通过<code>gradlew tasks</code>来查看所有的任务。事实上，执行gradlew命令的时候，gradlew会委托gradle命令来做相应的事情，所以gradlew真的只是一个壳而已。</p>
-<p>当执行gradlew的时候，wrapper会检查当前机器是否已经安装了对应版本的gradle，如果安装了那么gradlew就会委托gradle执行用户输入的命令。如果还未安装的话，那么首先会自动帮我们从gradle repository下载安装。当然你也可以在配置文件中指定想要下载的server来替代默认的gradle repo。</p>
-<p>不过需要说明的是，假如你是用android studio新建的项目，它会自动为新建的工程添加wrapper。也就是你就不必自己再去创建gradle wrapper了，直接在命令行或者你的编译脚本中使用就好了。</p>
-<h3 id="使用场景1">使用场景1</h3><p>编写脚本，调用gradlew来进行项目的每日构建。或者当你想同时编译多个项目的时候，也可以通过此形式轻松实现，这一点上会比使用Android Studio方便不少。</p>
-<h3 id="使用场景2">使用场景2</h3><p>用于编译第三方应用：当我们从github或者其他地方拿到一个其他人的Android应用的项目代码的时候，假如该项目也是基于Android studio或者gradle开发的，那么我们也可以借助gradlew进行编译从而生成apk。一般来说只需要两条命令就搞定了：</p>
-<pre><code><span class="title">gradlew</span> clean
+</code></pre><h3 id="写入缓存">写入缓存</h3><p>写入的操作是借助DiskLruCache.Editor这个类完成的。类似地，这个类也是不能new的，需要调用DiskLruCache的edit()方法来获取实例，接口如下所示：</p>
+<pre><code><span class="keyword">public</span> Editor edit(<span class="keyword">String</span> <span class="variable">key</span>) <span class="keyword">throws</span> IOException
+</code></pre><p>可以看到，edit()方法接收一个参数key，这个key将会成为缓存文件的文件名，并且必须要和图片的URL是一一对应的。那么怎样才能让key和图片的URL能够一一对应呢？直接使用URL来作为key？不太合适，因为图片URL中可能包含一些特殊字符，这些字符有可能在命名文件时是不合法的。其实最简单的做法就是将图片的URL进行MD5编码，编码后的字符串肯定是唯一的，并且只会包含0-F这样的字符，完全符合文件的命名规则</p>
+<p>那么我们就写一个方法用来将字符串进行MD5编码，代码如下所示：</p>
+<pre><code><span class="keyword">public</span> <span class="keyword">String</span> hashKeyForDisk(<span class="keyword">String</span> <span class="variable">key</span>) {
+    <span class="keyword">String</span> cacheKey;
+    <span class="keyword">try</span> {
+        <span class="keyword">final</span> MessageDigest mDigest = MessageDigest.getInstance(<span class="string">"MD5"</span>);
+        mDigest.update(<span class="variable">key</span>.getBytes());
+        cacheKey = bytesToHexString(mDigest.digest());
+    } <span class="keyword">catch</span> (NoSuchAlgorithmException e) {
+        cacheKey = <span class="keyword">String</span>.valueOf(<span class="variable">key</span>.hashCode());
+    }
+    <span class="keyword">return</span> cacheKey;
+}
 
-gradlew build
-</code></pre><p>怎么样，是不是很方便？免去了很多实用Android导入、编译带来的痛苦了。</p>
+<span class="keyword">private</span> <span class="keyword">String</span> bytesToHexString(<span class="built_in">byte</span>[] bytes) {
+    StringBuilder sb = <span class="keyword">new</span> StringBuilder();
+    <span class="keyword">for</span> (<span class="built_in">int</span> i = <span class="number">0</span>; i &lt; bytes.length; i++) {
+        <span class="keyword">String</span> <span class="built_in">hex</span> = Integer.toHexString(<span class="number">0xFF</span> &amp; bytes[i]);
+        <span class="keyword">if</span> (<span class="built_in">hex</span>.length() == <span class="number">1</span>) {
+            sb.<span class="built_in">append</span>(<span class="string">'0'</span>);
+        }
+        sb.<span class="built_in">append</span>(<span class="built_in">hex</span>);
+    }
+    <span class="keyword">return</span> sb.toString();
+}
+</code></pre><p>代码很简单，现在我们只需要调用一下hashKeyForDisk()方法，并把图片的URL传入到这个方法中，就可以得到对应的key了。<br>因此，现在就可以这样写来得到一个DiskLruCache.Editor的实例：</p>
+<pre><code><span class="keyword">String</span> imageUrl = <span class="string">"http://www.someweb.com/sample.jpg"</span>;
+<span class="keyword">String</span> <span class="variable">key</span> = hashKeyForDisk(imageUrl);
+DiskLruCache.Editor editor = mDiskLruCache.edit(<span class="variable">key</span>);
+</code></pre><h3 id="读取缓存">读取缓存</h3><p>缓存已经写入成功之后，接下来我们就该学习一下如何读取了。读取的方法要比写入简单一些，主要是借助DiskLruCache的get()方法实现的，接口如下所示：</p>
+<pre><code><span class="keyword">public</span> <span class="keyword">synchronized</span> Snapshot <span class="built_in">get</span>(<span class="keyword">String</span> <span class="variable">key</span>) <span class="keyword">throws</span> IOException
+</code></pre><p>很明显，get()方法要求传入一个key来获取到相应的缓存数据，而这个key毫无疑问就是将图片URL进行MD5编码后的值了，因此读取缓存数据的代码就可以这样写：</p>
+<pre><code><span class="keyword">String</span> imageUrl = <span class="string">"http://www.someweb.com/sample.jpg"</span>;
+<span class="keyword">String</span> <span class="variable">key</span> = hashKeyForDisk(imageUrl);
+DiskLruCache.Snapshot snapShot = mDiskLruCache.<span class="built_in">get</span>(<span class="variable">key</span>);
+</code></pre><p>很奇怪的是，这里获取到的是一个DiskLruCache.Snapshot对象，这个对象我们该怎么利用呢？很简单，只需要调用它的getInputStream()方法就可以得到缓存文件的输入流了。同样地，getInputStream()方法也需要传一个index参数，这里传入0就好。有了文件的输入流之后，想要把缓存图片显示到界面上就轻而易举了。所以，一段完整的读取缓存，并将图片加载到界面上的代码如下所示：</p>
+<pre><code><span class="keyword">try</span> {
+    <span class="built_in">String</span> imageUrl = <span class="string">"http://www.someweb.com/sample.jpg"</span>;
+    <span class="built_in">String</span> key = hashKeyForDisk(imageUrl);
+    DiskLruCache.Snapshot snapShot = mDiskLruCache.<span class="literal">get</span>(key);
+    <span class="keyword">if</span> (snapShot != <span class="keyword">null</span>) {
+        InputStream <span class="keyword">is</span> = snapShot.getInputStream(<span class="number">0</span>);
+        Bitmap bitmap = BitmapFactory.decodeStream(<span class="keyword">is</span>);
+        mImage.setImageBitmap(bitmap);
+    }
+} <span class="keyword">catch</span> (IOException e) {
+    e.printStackTrace();
+}
+</code></pre><p>我们使用了BitmapFactory的decodeStream()方法将文件流解析成Bitmap对象，然后把它设置到ImageView当中</p>
+<h3 id="移除缓存">移除缓存</h3><p>移除缓存主要是借助DiskLruCache的remove()方法实现的，接口如下所示：</p>
+<pre><code><span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="built_in">boolean</span> remove(<span class="keyword">String</span> <span class="variable">key</span>) <span class="keyword">throws</span> IOException
+</code></pre><p>看个例子：</p>
+<pre><code><span class="keyword">try</span> {
+    <span class="built_in">String</span> imageUrl = <span class="string">"http://www.someweb.com/sample.jpg"</span>;  
+    <span class="built_in">String</span> key = hashKeyForDisk(imageUrl);  
+    mDiskLruCache.remove(key);
+} <span class="keyword">catch</span> (IOException <span class="literal">e</span>) {
+    <span class="literal">e</span>.printStackTrace();
+}
+</code></pre><h2 id="后记">后记</h2><p>在了解了两级缓存的基本原理以及使用方法之后，接下来会通过一个具体的例子来演示如何在具体的项目中来使用二级缓存。</p>
+<h3 id="Reference">Reference</h3><p><a href="http://developer.android.com/training/displaying-bitmaps/cache-bitmap.html" target="_blank" rel="external">Displaying Bitmaps Efficiently</a></p>
 
       
     </div>
@@ -200,9 +261,11 @@ gradlew build
       
         <div class="post-tags">
           
-            <a href="/tags/Android-Studio/"> #Android Studio </a>
+            <a href="/tags/android/"> #android </a>
           
-            <a href="/tags/gradle/"> #gradle </a>
+            <a href="/tags/cache/"> #cache </a>
+          
+            <a href="/tags/disk-cache/"> #disk cache </a>
           
         </div>
       
@@ -211,13 +274,11 @@ gradlew build
         <div class="post-nav">
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2015/04/14/2015-04-14-tech-blog/">Tech blogs and sites</a>
-            
           </div>
 
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2015/03/13/2015-03-13-Androir-expansion-file/">Android APK扩展文件</a>
+              <a href="/2015/06/18/2015-06-18-git-flow/">git branch实践总结</a>
             
           </div>
         </div>
@@ -233,8 +294,8 @@ gradlew build
     
       <div class="comments" id="comments">
         
-          <div class="ds-thread" data-thread-key="2015/03/25/2015-03-25-gradle-wrapper/"
-               data-title="Gradle wrapper的介绍与使用" data-url="http://yishuihe.github.io/2015/03/25/2015-03-25-gradle-wrapper/">
+          <div class="ds-thread" data-thread-key="2015/06/25/2015-06-25-android-disk-cache/"
+               data-title="Andoid Disk Cache" data-url="http://yishuihe.github.io/2015/06/25/2015-06-25-android-disk-cache/">
           </div>
         
       </div>
@@ -334,7 +395,7 @@ gradlew build
           <div class="post-toc">
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#由来"><span class="nav-text">由来</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#创建"><span class="nav-text">创建</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用"><span class="nav-text">使用</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#使用场景1"><span class="nav-text">使用场景1</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用场景2"><span class="nav-text">使用场景2</span></a></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#实现"><span class="nav-text">实现</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用"><span class="nav-text">使用</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#open"><span class="nav-text">open</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#写入缓存"><span class="nav-text">写入缓存</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#读取缓存"><span class="nav-text">读取缓存</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#移除缓存"><span class="nav-text">移除缓存</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#后记"><span class="nav-text">后记</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Reference"><span class="nav-text">Reference</span></a></li></ol></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator"></div>

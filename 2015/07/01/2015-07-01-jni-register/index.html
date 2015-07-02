@@ -18,7 +18,7 @@
 
 
 
-  <meta name="keywords" content="branch,git," />
+  <meta name="keywords" content="Android,jni,ndk," />
 
 
 
@@ -39,7 +39,7 @@
   </script>
 
 
-  <title> git branch实践总结 // Zhixin Life@US </title>
+  <title> Andoid NDK编程 1 － 注册native函数 // Zhixin Life@US </title>
 </head>
 
 <body>
@@ -118,7 +118,7 @@
           
           
             
-              git branch实践总结
+              Andoid NDK编程 1 － 注册native函数
             
           
         </h1>
@@ -126,14 +126,14 @@
 
       <div class="post-meta">
         <span class="post-time">
-          Posted on 2015-06-18
+          Posted on 2015-07-01
         </span>
 
         
           <span class="post-category">
             &nbsp; | &nbsp; In
             
-              <a href="/categories/Development/">Development</a>
+              <a href="/categories/Android/">Android</a>
 
               
               
@@ -146,8 +146,8 @@
           
             <span class="post-comments-count">
             &nbsp; | &nbsp;
-            <a href="/2015/06/18/2015-06-18-git-flow/#comments" >
-              <span class="post-comments-count ds-thread-count" data-thread-key="2015/06/18/2015-06-18-git-flow/"></span>
+            <a href="/2015/07/01/2015-07-01-jni-register/#comments" >
+              <span class="post-comments-count ds-thread-count" data-thread-key="2015/07/01/2015-07-01-jni-register/"></span>
             </a>
           </span>
           
@@ -161,68 +161,137 @@
       
 
       
-        <h2 id="引子">引子</h2><p>Git branch开发实践的一个总结。</p>
+        <p>打算对Android的NDK的开发做一总结，首先是JNI部分，接下来是NDK的内容。今天首先介绍一下JNI的第一部分：注册native函数。</p>
 <a id="more"></a>
-<p>说到git branch模型，就不得不说一下关于它的一篇开创性的文章：<a href="http://nvie.com/posts/a-successful-git-branching-model/" target="_blank" rel="external">A successful Git branching model</a>，该文中提到的模型被绝大多数人所采用，或直接，或微调。其模型图图下：<br><img src="/images/201506-git-modle/git-model.png" alt=" "></p>
-<p>下面结合自己的实践做一梳理。</p>
-<h2 id="分支模型概述">分支模型概述</h2><h3 id="主分支">主分支</h3><p>此开发模型的核心主要受现有的模型启发。中心仓库包含了两个主要分支，这两个分支的寿命是无限的：</p>
-<ul>
-<li>master</li>
-<li>develop</li>
+<p>当java代码中执行native的代码时候，首先是通过一定的方法来找到这些native方法。而注册native函数的具体方法的不同，会导致系统在运行时采用不同的方式来寻找这些native方法。</p>
+<p>JNI有如下两种注册native方法的途径：静态和动态。其中：</p>
+<p>静态：先由Java得到本地方法的声明，然后再通过JNI实现该声明方法。</p>
+<p>动态：先通过JNI重载JNI_OnLoad()实现本地方法，然后直接在Java中调用本地方法。</p>
+<h2 id="静态注册">静态注册</h2><p>根据函数名找到对应的JNI函数:Java层调用函数时，会从对应的JNI中寻找该函数，如果没有就会报错，如果存在则会建立一个关联联系，以后在调用时会直接使用这个函数，这部分的操作由虚拟机完成。<br>静态方法就是根据函数名来遍历java和jni函数之间的关联，而且要求jni层函数的名字必须遵循<br>特定的格式。</p>
+<p>具体的实现很简单，首先在java代码中声明native函数，然后通过javah来生成native函数的具体形式，接下来在JNI代码中实现这些函数即可。</p>
+<p>看个例子就更明了了：</p>
+<p>Java层：</p>
+<pre><code><span class="keyword">static</span> {
+   System.loadLibrary(<span class="string">"samplelib_jni"</span>);
+    registerNatives();
+}
+
+<span class="keyword">private</span> <span class="keyword">native</span> <span class="function"><span class="keyword">void</span> <span class="title">nativeFunc1</span><span class="params">()</span></span>;
+<span class="keyword">private</span> <span class="keyword">native</span> <span class="function"><span class="keyword">void</span> <span class="title">nativeFunc2</span><span class="params">()</span></span>;
+<span class="keyword">private</span> <span class="keyword">native</span> <span class="function"><span class="keyword">void</span> <span class="title">nativeFunc3</span><span class="params">()</span></span>;
+</code></pre><p>接下来通过javah来产生jni代码声明：</p>
+<p>假设你的java文件的包名是com.jni.samle 而类名是JniSample。</p>
+<pre><code>javah -d .<span class="regexp">/jni/</span> -<span class="keyword">classpath</span> <span class="regexp">/Users/Y</span>OUR_NAME<span class="regexp">/Library/</span>Android<span class="regexp">/sdk/</span>platforms<span class="regexp">/android-21/</span>android.jar:..<span class="regexp">/../</span>build<span class="regexp">/intermediates/</span>classes<span class="regexp">/debug/</span> com.jni.samle.JniSample    
+</code></pre><p>然后就会得到一个JNI的.h文件，里面包含这几个native函数的声明，观察一下文件名以及函数名，会有一定的规律，我会在下一篇文章中对此做一详细介绍，在此不再赘述。</p>
+<p>最后实现jni层的native方法即可。</p>
+<h2 id="动态注册">动态注册</h2><p>对Java程序员来说，可能我们总是会遵循：1.编写带有native方法的Java类；—-&gt;2.使用javah命令生成.h头文件；—-&gt;3.编写代码实现头文件中的方法，这样的标准流程，但也许有人无法忍受那“丑陋”的方法名称，所以我们可以采用动态注册方法，也就是通过RegisterNatives方法把c/c++中的方法隐射到Java中的native方法，而无需遵循特定的方法命名格式。</p>
+<p>JNI 允许你提供一个函数映射表，注册给Jave虚拟机，这样Jvm就可以用函数映射表来调用相应的函数，<br>就可以不必通过函数名来查找需要调用的函数了。<br>Java与JNI通过JNINativeMethod的结构来建立联系，它在jni.h中被定义，其结构内容如下： </p>
+<pre><code><span class="keyword">typedef</span> <span class="keyword">struct</span> { 
+    <span class="keyword">const</span> <span class="keyword">char</span>* name; 
+    <span class="keyword">const</span> <span class="keyword">char</span>* signature; 
+    <span class="keyword">void</span>* fnPtr; 
+} JNINativeMethod; 
+</code></pre><p>第一个变量name是Java中函数的名字。</p>
+<p>第二个变量signature，用字符串是描述了函数的参数和返回值 </p>
+<p>第三个变量fnPtr是函数指针，指向C函数。 </p>
+<p>当java通过System.loadLibrary加载完JNI动态库后，紧接着会查找一个JNI_OnLoad的函数，如果有，就调用它， 而动态注册的工作就是在这里完成的。 </p>
+<p>一起来看一下具体的实现方法：</p>
+<p><strong>Java code:</strong></p>
+<p>比较简单，仅仅是加载so库。</p>
+<pre><code><span class="keyword">static</span> {
+    System.loadLibrary(<span class="string">"samplelib_jni"</span>);
+}
+</code></pre><p><strong>JNI code:</strong></p>
+<p>在JNI中实现</p>
+<pre><code>jint <span class="function"><span class="title">JNI_OnLoad</span><span class="params">(JavaVM* vm, void* reserved)</span></span>
+</code></pre><p>并且在这个函数里面去动态的注册native方法，完整的参考代码如下：</p>
+<pre><code><span class="comment">#include &lt;jni.h&gt;</span>
+<span class="comment">#include "Log4Android.h"</span>
+<span class="comment">#include &lt;stdio.h&gt;</span>
+<span class="comment">#include &lt;stdlib.h&gt;</span>
+
+<span class="keyword">using</span> namespace std;
+
+<span class="comment">#ifdef __cplusplus</span>
+extern <span class="string">"C"</span> {
+<span class="comment">#endif</span>
+
+<span class="keyword">static</span> <span class="keyword">const</span> <span class="type">char</span> *className = <span class="string">"com/zhixin/jnisample/JniManager"</span>;
+
+<span class="keyword">static</span> <span class="type">void</span> sayHello(<span class="type">JNIEnv</span> *env, jobject, jlong handle) {
+    <span class="type">LOGI</span>(<span class="string">"JNI"</span>, <span class="string">"native: say hello ###"</span>);
+}
+
+<span class="keyword">static</span> <span class="type">JNINativeMethod</span> gJni_Methods_table[] = {
+    {<span class="string">"sayHello"</span>, <span class="string">"(J)V"</span>, (<span class="type">void</span>*)sayHello},
+};
+
+<span class="keyword">static</span> <span class="type">int</span> jniRegisterNativeMethods(<span class="type">JNIEnv</span>* env, <span class="keyword">const</span> <span class="type">char</span>* className,
+    <span class="keyword">const</span> <span class="type">JNINativeMethod</span>* gMethods, <span class="type">int</span> numMethods)
+{
+    jclass clazz;
+
+    <span class="type">LOGI</span>(<span class="string">"JNI"</span>,<span class="string">"Registering %s natives\n"</span>, className);
+    clazz = (env)-&gt;<span class="type">FindClass</span>( className);
+    <span class="keyword">if</span> (clazz == <span class="type">NULL</span>) {
+        <span class="type">LOGE</span>(<span class="string">"JNI"</span>,<span class="string">"Native registration unable to find class '%s'\n"</span>, className);
+        <span class="keyword">return</span> -<span class="number">1</span>;
+    }
+
+    <span class="type">int</span> <span class="literal">result</span> = <span class="number">0</span>;
+    <span class="keyword">if</span> ((env)-&gt;<span class="type">RegisterNatives</span>(clazz, gJni_Methods_table, numMethods) &lt; <span class="number">0</span>) {
+        <span class="type">LOGE</span>(<span class="string">"JNI"</span>,<span class="string">"RegisterNatives failed for '%s'\n"</span>, className);
+        <span class="literal">result</span> = -<span class="number">1</span>;
+    }
+
+    (env)-&gt;<span class="type">DeleteLocalRef</span>(clazz);
+    <span class="keyword">return</span> <span class="literal">result</span>;
+}
+
+jint <span class="type">JNI_OnLoad</span>(<span class="type">JavaVM</span>* vm, <span class="type">void</span>* reserved){
+    <span class="type">LOGI</span>(<span class="string">"JNI"</span>, <span class="string">"enter jni_onload"</span>);
+
+    <span class="type">JNIEnv</span>* env = <span class="type">NULL</span>;
+    jint <span class="literal">result</span> = -<span class="number">1</span>;
+
+    <span class="keyword">if</span> (vm-&gt;<span class="type">GetEnv</span>((<span class="type">void</span>**) &amp;env, <span class="type">JNI_VERSION_1_4</span>) != <span class="type">JNI_OK</span>) {
+        <span class="keyword">return</span> <span class="literal">result</span>;
+    }
+
+    jniRegisterNativeMethods(env, className, gJni_Methods_table, sizeof(gJni_Methods_table) / sizeof(<span class="type">JNINativeMethod</span>));
+
+    <span class="keyword">return</span> <span class="type">JNI_VERSION_1_4</span>;
+}
+
+<span class="comment">#ifdef __cplusplus</span>
+}
+<span class="comment">#endif</span>
+</code></pre><h2 id="比较">比较</h2><p>下面我们来比较一下这两种不同的实现方法。</p>
+<p>首先是静态方法：</p>
+<h3 id="优点">优点</h3><ul>
+<li>实现起来比较简单，直接用javah就能将Java代码中的native函数的声明转化为native代码的函数。</li>
 </ul>
-<p>每个Git用户都应该熟悉origin上的master分支，这是我们默认的起始分支。与master分支平行存在的，是另外一个名为develop的分支。当develop分支上的源码到达一个稳定的状态时，就可以发布版本。所有develop上的变更都应该以某种方式合并回master分支，</p>
-<h3 id="支持性分支">支持性分支</h3><p>我们的开发模型使用多种支持性分支来帮助团队成员间实现并行开发、追踪产品特性、准备产品版本发布、以及快速修复产品问题。与主要分支不同的是，这些分支的寿命是有限的，它们最终都会被删除。</p>
-<p>我们会用到的分支有这几类：</p>
-<ul>
-<li>特性分支（feature branch）</li>
-<li>发布分支（release branch）</li>
-<li>hot fix分支（hotfix branch）</li>
+<h3 id="缺点在于：">缺点在于：</h3><ul>
+<li>javah生成的jni层函数特别长； </li>
+<li>初次调用native函数时要根据名字搜索对应的jni层函数来建立关联联系，这样影响效率。</li>
 </ul>
-<h2 id="分支模型实践">分支模型实践</h2><p>对该模型有个感性的认识之后，接下来我们一起来看看分支模型的具体的做法和命令。</p>
-<p>master分支是默认创建的就不再介绍。</p>
-<h3 id="develop_分支">develop 分支</h3><p>来源：master<br>必须合并回：master</p>
-<p>创建：</p>
-<pre><code>git checkout -<span class="tag">b</span> develop master
-</code></pre><p>merge回master：</p>
-<pre><code>git checkout master
-git <span class="built_in">merge</span> <span class="built_in">merge</span> <span class="comment">--no-ff develop</span>
-</code></pre><h3 id="feature_分支">feature 分支</h3><p>特性分支（有时也被称作topic分支）是用来为下一发布版本开发新特性。特性分支的重点是，只要特性还在开发，该分支就会一直存在，不过它最终会被合并回develop分支（将该特性加入到发布版本中），或者被丢弃（如果试验的结果令人失望）。</p>
-<p>可能的分支来源：develop</p>
-<p>必须合并回：develop</p>
-<p>创建：</p>
-<pre><code>git checkout -<span class="tag">b</span> feature-name develop
-</code></pre><p>merge回develoop：</p>
-<pre><code>git checkout develop
-git <span class="keyword">merge</span> <span class="keyword">merge</span> --<span class="keyword">no</span>-ff feature-name 
-git branch -<span class="keyword">d</span> feature－name <span class="comment">//删除该分支</span>
-git push origin develop
-</code></pre><h3 id="release_分支">release 分支</h3><p>发布分支为准备新的产品版本发布做支持。它允许你在最后时刻检查所有的细节。此外，它还允许你修复小bug以及准备版本发布的元数据（例如版本号，构建日期等等）。在发布分支做这些事情之后，develop分支就会显得比较干净，也方便为下一大版本发布接受特性。</p>
-<p>从develop分支创建发布分支的时间通常是develop分支（差不多）能反映新版本所期望状态的时候。至少说，这是时候版本发布所计划的特性都已经合并回了develop分支。而未来其它版本发布计划的特性则不应该合并，它们必须等到当前的版本分支创建好之后才能合并。</p>
-<p>正是在发布分支创建的时候，对应的版本发布才获得一个版本号——不能更早。在该时刻之前，develop分支反映的是“下一版本”的相关变更，但不知道这“下一版本”到底会成为0.3还是1.0，直到发布分支被创建。版本号是在发布分支创建时，基于项目版本号规则确定的。</p>
-<p>可能的分支来源：develop</p>
-<p>必须合并回：develop和master</p>
-<p>分支命名约定：release-*</p>
-<p>创建：</p>
-<pre><code>git checkout -<span class="tag">b</span> release-<span class="number">1.0</span> develop
-</code></pre><p>merge回master/develoop：</p>
-<p>当发布分支达到一个可以正式发布的状态时，我们就需要执行一些操作。首先，将发布分支合并至master（记住，我们之前定义master分支上的每一个commit都对应一个新版本）。接着，master分支上的commit必须被打上标签（tag），以方便将来寻找历史版本。最后，发布分支上的变更需要合并回develop，这样将来的版本也能包含相关的bug修复。</p>
-<pre><code>git checkout master
-git <span class="operator"><span class="keyword">merge</span> <span class="keyword">merge</span> <span class="comment">--no-ff release-1.0 </span>
-git tag -a <span class="keyword">release</span>-<span class="number">1.0</span>
-git push origin <span class="keyword">master</span>
+<p>而动态方法的优缺点刚好和静态方法相反。</p>
+<p>通过上面的介绍我们发现，尽管静态注册实现起来比较简单，但是会导致效率相对来说比较低。<br>所以在JNI层提供JNI_OnLoad是一个推荐的做法。如果不提供JNI_OnLoad，那么JNI函数的命名就需要符合规范，并且需要导出该函数。这样做很容易被别人反编译。相反，如果提供JNI_OnLoad，就可以在里面自己注册JNI函数给Dalvik VM，这样JNI函数的命名就可以按照自己的习惯了，而且也不用导出。</p>
+<h2 id="一个巧妙的合作">一个巧妙的合作</h2><p>在实际的应用中，我们可以巧妙的将静态注册和动态注册结合起来：也就是在java代码中仍然声明一个native函数，但是这个函数仅仅是用来去触发在JNI层的native函数的动态注册。说的有些绕，看看代码就明白了：</p>
+<p>Java层：</p>
+<pre><code><span class="keyword">static</span> {
+   System.loadLibrary(<span class="string">"samplelib_jni"</span>);
+    registerNatives();
+}
 
-
-git checkout develop
-git <span class="keyword">merge</span> <span class="keyword">merge</span> <span class="comment">--no-ff release-1.0 </span>
-git tag -a <span class="keyword">release</span>-<span class="number">1.0</span>
-git push origin develop</span>
-</code></pre><h3 id="hot_fix_分支">hot fix 分支</h3><p>热补丁分支和发布分支十分类似，它的目的也是发布一个新的产品版本，尽管是不在计划中的版本发布。当产品版本发现未预期的问题的时候，就需要理解着手处理，这个时候就要用到热补丁分支。当产品版本的重大bug需要立即解决的时候，我们从对应版本的标签创建出一个热补丁分支。</p>
-<p>可能的分支来源：master</p>
-<p>必须合并回：develop和master</p>
-<p>分支命名约定：hotfix-*</p>
-<p>其创建以及合并回来的命令和release分支几乎一样，这里就不再多表。</p>
-<h2 id="总结">总结</h2><p>正如前面提到的那样，该模型可以很好的适用于大多数的软件开发实践，但我们也不必教条的拘泥于该模型，可以灵活的根据项目的需要做适当的调整。</p>
-
+<span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">native</span> <span class="function"><span class="keyword">void</span> <span class="title">registerNatives</span><span class="params">()</span></span>;
+</code></pre><p>JNI层：</p>
+<p>通过javah生成java层声明的native函数的文件，并且在实现代码中去动态注册JNI函数：</p>
+<pre><code><span class="function">JNIEXPORT <span class="keyword">void</span> JNICALL <span class="title">Java_com_zhixin_jni_JniSample_registerNatives</span>
+<span class="params">(JNIEnv *env, jclass clazz)</span></span>{
+     (env)-&gt;RegisterNatives(clazz, gJni_Methods_table, <span class="keyword">sizeof</span>(gJni_Methods_table) / <span class="keyword">sizeof</span>(JNINativeMethod));
+}
+</code></pre>
       
     </div>
 
@@ -230,9 +299,11 @@ git push origin develop</span>
       
         <div class="post-tags">
           
-            <a href="/tags/branch/"> #branch </a>
+            <a href="/tags/Android/"> #Android </a>
           
-            <a href="/tags/git/"> #git </a>
+            <a href="/tags/jni/"> #jni </a>
+          
+            <a href="/tags/ndk/"> #ndk </a>
           
         </div>
       
@@ -241,13 +312,11 @@ git push origin develop</span>
         <div class="post-nav">
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2015/06/25/2015-06-25-android-disk-cache/">Andoid Disk Cache</a>
-            
           </div>
 
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2015/06/16/2015-06-16-english-intonation/">英语语调笔记</a>
+              <a href="/2015/06/25/2015-06-25-android-disk-cache/">Andoid Disk Cache</a>
             
           </div>
         </div>
@@ -263,8 +332,8 @@ git push origin develop</span>
     
       <div class="comments" id="comments">
         
-          <div class="ds-thread" data-thread-key="2015/06/18/2015-06-18-git-flow/"
-               data-title="git branch实践总结" data-url="http://yishuihe.github.io/2015/06/18/2015-06-18-git-flow/">
+          <div class="ds-thread" data-thread-key="2015/07/01/2015-07-01-jni-register/"
+               data-title="Andoid NDK编程 1 － 注册native函数" data-url="http://yishuihe.github.io/2015/07/01/2015-07-01-jni-register/">
           </div>
         
       </div>
@@ -364,7 +433,7 @@ git push origin develop</span>
           <div class="post-toc">
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#引子"><span class="nav-text">引子</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#分支模型概述"><span class="nav-text">分支模型概述</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#主分支"><span class="nav-text">主分支</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#支持性分支"><span class="nav-text">支持性分支</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#分支模型实践"><span class="nav-text">分支模型实践</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#develop_分支"><span class="nav-text">develop 分支</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#feature_分支"><span class="nav-text">feature 分支</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#release_分支"><span class="nav-text">release 分支</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#hot_fix_分支"><span class="nav-text">hot fix 分支</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-text">总结</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#静态注册"><span class="nav-text">静态注册</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#动态注册"><span class="nav-text">动态注册</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#比较"><span class="nav-text">比较</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#优点"><span class="nav-text">优点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#缺点在于："><span class="nav-text">缺点在于：</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#一个巧妙的合作"><span class="nav-text">一个巧妙的合作</span></a></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator"></div>

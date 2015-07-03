@@ -161,7 +161,7 @@
       
 
       
-        <p>在<a href="">上一篇文章</a>中我们探讨了如何注册JNI的native函数，分为静态和动态两种注册方法。而在讨论静态注册的时候提到了要注意由javah生成的native函数的签名。今天我们就来深入的看看其签名规则。</p>
+        <p>在<a href="http://zhixinliu.com/2015/07/01/2015-07-01-jni-register/" target="_blank" rel="external">上一篇文章</a>中我们探讨了如何注册JNI的native函数，分为静态和动态两种注册方法。而在讨论静态注册的时候提到了要注意由javah生成的native函数的签名。今天我们就来深入的看看其签名规则。</p>
 <a id="more"></a>
 <h2 id="JNI方法命名规则">JNI方法命名规则</h2><p>首先是JNI方法的命名规则，也就是用javah生成的native函数看起来是什么样子的？</p>
 <p>JNI方法名规范 :</p>
@@ -172,7 +172,7 @@
 </li>
 <li><p>如果在java中声明的是“静态”方法，则native方法也是static的。 否则不是。</p>
 </li>
-<li>如果你的jni的native方法不是通过‘静态注册’的方法声明的，则不需要符合此规范，可根据自己习惯随意命名。(关于‘静态注册’与‘动态注册’请参考<a href="">上一篇文章</a>)</li>
+<li>如果你的jni的native方法不是通过‘静态注册’的方法声明的，则不需要符合此规范，可根据自己习惯随意命名。(关于‘静态注册’与‘动态注册’请参考<a href="http://zhixinliu.com/2015/07/01/2015-07-01-jni-register/" target="_blank" rel="external">上一篇文章</a>)</li>
 </ul>
 <h2 id="JNI方法签名规则">JNI方法签名规则</h2><p>当java层调用jni函数的时候，JNI是如何识别Java方法的呢？</p>
 <p>JNI依靠函数名和方法签名来识别方法, 函数名是不能唯一识别一个方法的, 因为方法可以重载, 类型签名包括了函数的参数和它的返回值;</p>
@@ -236,7 +236,6 @@
 </tr>
 </tbody>
 </table>
-<p>字符     Java类型     C/C++类型<br>V           void          void<br>Z         jboolean      boolean<br>I            jint            int<br>J           jlong          long<br>D         jdouble       double<br>F          jfloat          float<br>B          jbyte          byte<br>C          jchar           char<br>S          jshort         short</p>
 <p>数组则以”[“开始，用两个字符表示：</p>
 <table>
 <thead>

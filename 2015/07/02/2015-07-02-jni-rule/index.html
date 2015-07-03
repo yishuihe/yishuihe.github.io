@@ -18,7 +18,7 @@
 
 
 
-  <meta name="keywords" content="Android Studio,gradle," />
+  <meta name="keywords" content="Android,jni,jni签名,ndk," />
 
 
 
@@ -39,7 +39,7 @@
   </script>
 
 
-  <title> Gradle wrapper的介绍与使用 // Zhixin Life@US </title>
+  <title> Andoid NDK编程 2 － JNI签名规则 // Zhixin Life@US </title>
 </head>
 
 <body>
@@ -118,7 +118,7 @@
           
           
             
-              Gradle wrapper的介绍与使用
+              Andoid NDK编程 2 － JNI签名规则
             
           
         </h1>
@@ -126,7 +126,7 @@
 
       <div class="post-meta">
         <span class="post-time">
-          Posted on 2015-03-25
+          Posted on 2015-07-02
         </span>
 
         
@@ -146,8 +146,8 @@
           
             <span class="post-comments-count">
             &nbsp; | &nbsp;
-            <a href="/2015/03/25/2015-03-25-gradle-wrapper/#comments" >
-              <span class="post-comments-count ds-thread-count" data-thread-key="2015/03/25/2015-03-25-gradle-wrapper/"></span>
+            <a href="/2015/07/02/2015-07-02-jni-rule/#comments" >
+              <span class="post-comments-count ds-thread-count" data-thread-key="2015/07/02/2015-07-02-jni-rule/"></span>
             </a>
           </span>
           
@@ -161,37 +161,174 @@
       
 
       
-        <blockquote>
-<p>藤牵萝绕互依附，濡沫相润脂和膏。</p>
-</blockquote>
-<h2 id="由来">由来</h2><p>在使用Android Studio作为IDE开发Android的应用的时候，我们可以直接使用IDE集成的build工具对应用进行编译打包，也可以使用命令行的形式执行gradle命令来做同样的事情，也就是基于gradle来构建android应用的build系统。在需要用到gradle的时候，我们可以在我们的电脑上安装gradle，然后配置好环境变量后就可以使用了。但是当我们把项目分享给电脑上没有gradle的人时，问题就来了。或者我们在一个没有装gradle的server上build的时候也会出现同样的问题。</p>
-<p>所以基于此，gradle系统引入了我们今天的主角-gralde wrapper: 一个gradle的封装体。有了gradle wrapper，即便你的机器上没有安装gradle，也可以执行gradle的构建工作了。</p>
+        <p>在<a href="">上一篇文章</a>中我们探讨了如何注册JNI的native函数，分为静态和动态两种注册方法。而在讨论静态注册的时候提到了要注意由javah生成的native函数的签名。今天我们就来深入的看看其签名规则。</p>
 <a id="more"></a>
-<h2 id="创建">创建</h2><p>想使用gradle wrapper，首先要在你的项目中创建。具体来说就是在build.gradle里面加入类似于下面的task：</p>
-<pre><code><span class="comment">// File: build.gradle</span>
-task createWrapper(<span class="class"><span class="keyword">type</span>:</span> <span class="type">Wrapper</span>) {
-    gradleVersion = <span class="symbol">'0</span>.9-preview-<span class="number">1</span>'
-}
-</code></pre><p>什么原理？ 其实很简单：在生成gradle wrapper的时候指定项目所需要用的gradle版本，这样当别人用gradle wrapper的时候，</p>
-<p>然后执行该task： <code>$ gradle createWrapper</code></p>
-<p>就会在项目工程生成以下的文件：</p>
-<pre><code>Project-name/
-  gradlew
-  gradlew<span class="class">.bat</span>
-  gradle/wrapper/
-    gradle-wrapper<span class="class">.jar</span>
-    gradle-wrapper.properties
-</code></pre><p>这些文件构成了我们的gradle wrapper。</p>
-<p>需要注意的是：这些文件需要上传到版本控制工具(例如git, svn)的server端。生成这些文件的操作只需要做一次即可。</p>
-<h2 id="使用">使用</h2><p>需要使用gradle wrapper的时候，我们就直接在项目根目录下直接执行<code>gradlew</code>(gradle wrapper的简写), 使用gradlew的方式和gradle一模一样, 例如通过<code>gradlew tasks</code>来查看所有的任务。事实上，执行gradlew命令的时候，gradlew会委托gradle命令来做相应的事情，所以gradlew真的只是一个壳而已。</p>
-<p>当执行gradlew的时候，wrapper会检查当前机器是否已经安装了对应版本的gradle，如果安装了那么gradlew就会委托gradle执行用户输入的命令。如果还未安装的话，那么首先会自动帮我们从gradle repository下载安装。当然你也可以在配置文件中指定想要下载的server来替代默认的gradle repo。</p>
-<p>不过需要说明的是，假如你是用android studio新建的项目，它会自动为新建的工程添加wrapper。也就是你就不必自己再去创建gradle wrapper了，直接在命令行或者你的编译脚本中使用就好了。</p>
-<h3 id="使用场景1">使用场景1</h3><p>编写脚本，调用gradlew来进行项目的每日构建。或者当你想同时编译多个项目的时候，也可以通过此形式轻松实现，这一点上会比使用Android Studio方便不少。</p>
-<h3 id="使用场景2">使用场景2</h3><p>用于编译第三方应用：当我们从github或者其他地方拿到一个其他人的Android应用的项目代码的时候，假如该项目也是基于Android studio或者gradle开发的，那么我们也可以借助gradlew进行编译从而生成apk。一般来说只需要两条命令就搞定了：</p>
-<pre><code><span class="title">gradlew</span> clean
-
-gradlew build
-</code></pre><p>怎么样，是不是很方便？免去了很多实用Android导入、编译带来的痛苦了。</p>
+<h2 id="JNI方法命名规则">JNI方法命名规则</h2><p>首先是JNI方法的命名规则，也就是用javah生成的native函数看起来是什么样子的？</p>
+<p>JNI方法名规范 :</p>
+<pre><code>返回值 + Java前缀 + 全路径类名 + 方法名 + 参数① JNIEnv + 参数② jobject + 其它参数;
+</code></pre><p>一些注意事项：</p>
+<ul>
+<li><p>注意分隔符 : Java前缀 与 类名 以及类名之间的包名 和 方法名之间 使用 “_” 进行分割;</p>
+</li>
+<li><p>如果在java中声明的是“静态”方法，则native方法也是static的。 否则不是。</p>
+</li>
+<li>如果你的jni的native方法不是通过‘静态注册’的方法声明的，则不需要符合此规范，可根据自己习惯随意命名。(关于‘静态注册’与‘动态注册’请参考<a href="">上一篇文章</a>)</li>
+</ul>
+<h2 id="JNI方法签名规则">JNI方法签名规则</h2><p>当java层调用jni函数的时候，JNI是如何识别Java方法的呢？</p>
+<p>JNI依靠函数名和方法签名来识别方法, 函数名是不能唯一识别一个方法的, 因为方法可以重载, 类型签名包括了函数的参数和它的返回值;</p>
+<p>而JNI函数的具体签名规则是：</p>
+<pre><code><span class="comment">(参数1类型签名参数2类型签名参数3类型签名参数N类型签名...)</span>返回值类型签名
+</code></pre><p>注意参数列表中没有任何间隔。</p>
+<p>那么函数中的参数或者返回值类型在jni签名中该如何表示呢？请看下表：（注意 boolean 与 long 不是大写首字母, 分别是 Z 与 J,  类是L全限定类名, 数组是[元素类型签名，而其他类型则是其大写首字母）</p>
+<table>
+<thead>
+<tr>
+<th>字符</th>
+<th style="text-align:center">Java类型</th>
+<th style="text-align:right">C/C++类型</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>V</td>
+<td style="text-align:center">void</td>
+<td style="text-align:right">void</td>
+</tr>
+<tr>
+<td>Z</td>
+<td style="text-align:center">jboolean</td>
+<td style="text-align:right">boolean</td>
+</tr>
+<tr>
+<td>I</td>
+<td style="text-align:center">jint</td>
+<td style="text-align:right">int</td>
+</tr>
+<tr>
+<td>J</td>
+<td style="text-align:center">jlong</td>
+<td style="text-align:right">long</td>
+</tr>
+<tr>
+<td>D</td>
+<td style="text-align:center">jdouble</td>
+<td style="text-align:right">doube</td>
+</tr>
+<tr>
+<td>F</td>
+<td style="text-align:center">jfloat</td>
+<td style="text-align:right">float</td>
+</tr>
+<tr>
+<td>B</td>
+<td style="text-align:center">jbyte</td>
+<td style="text-align:right">byte</td>
+</tr>
+<tr>
+<td>C</td>
+<td style="text-align:center">jchar</td>
+<td style="text-align:right">char</td>
+</tr>
+<tr>
+<td>S</td>
+<td style="text-align:center">jshort</td>
+<td style="text-align:right">short</td>
+</tr>
+</tbody>
+</table>
+<p>字符     Java类型     C/C++类型<br>V           void          void<br>Z         jboolean      boolean<br>I            jint            int<br>J           jlong          long<br>D         jdouble       double<br>F          jfloat          float<br>B          jbyte          byte<br>C          jchar           char<br>S          jshort         short</p>
+<p>数组则以”[“开始，用两个字符表示：</p>
+<table>
+<thead>
+<tr>
+<th>字符</th>
+<th style="text-align:center">Java类型</th>
+<th style="text-align:right">C/C++类型</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>[Z</td>
+<td style="text-align:center">jbooleanArray</td>
+<td style="text-align:right">boolean[]</td>
+</tr>
+<tr>
+<td>[I</td>
+<td style="text-align:center">jintArray</td>
+<td style="text-align:right">int[]</td>
+</tr>
+<tr>
+<td>[J</td>
+<td style="text-align:center">jlongArray</td>
+<td style="text-align:right">long[]</td>
+</tr>
+<tr>
+<td>[D</td>
+<td style="text-align:center">jdoubleArray</td>
+<td style="text-align:right">doube[]</td>
+</tr>
+<tr>
+<td>[F</td>
+<td style="text-align:center">jfloatArray</td>
+<td style="text-align:right">float[]</td>
+</tr>
+<tr>
+<td>[B</td>
+<td style="text-align:center">jbyteArray</td>
+<td style="text-align:right">byte[]</td>
+</tr>
+<tr>
+<td>[C</td>
+<td style="text-align:center">jcharArray</td>
+<td style="text-align:right">char[]</td>
+</tr>
+<tr>
+<td>[S</td>
+<td style="text-align:center">jshortArray</td>
+<td style="text-align:right">short[]</td>
+</tr>
+</tbody>
+</table>
+<p>上面的都是基本类型，如果参数是Java类，则以”L”开头，以”;”结尾，中间是用”/“隔开包及类名，而其对应的C函数的参数则为jobject，一个例外是String类，它对应C类型jstring，例如：Ljava/lang /String; 、Ljava/net/Socket; 等，如果JAVA函数位于一个嵌入类（也被称为内部类），则用$作为类名间的分隔符，例如：</p>
+<pre><code><span class="string">"Landroid/os/FileUtils<span class="variable">$FileStatus</span>;"</span>。
+</code></pre><p>注意事项：</p>
+<ul>
+<li><p>类的签名规则:L + 全限定名 + ;三部分, 全限定类名以 / 分割;</p>
+<p>  eg. long function(int n, String str, int[] arr);</p>
+<p> 该方法的签名: (ILjava/lang/String;[I)J</p>
+</li>
+</ul>
+<p>接下来我们看几个具体的例子，来对JNI的签名有个更为直观的认识。</p>
+<p>首先，在java代码中声明以下native函数：</p>
+<pre><code><span class="keyword">private</span> <span class="keyword">native</span> <span class="function"><span class="keyword">long</span> <span class="title">nativeFun1</span><span class="params">(<span class="keyword">long</span> arg1, <span class="keyword">int</span> arg2)</span></span>;
+<span class="keyword">private</span> <span class="keyword">native</span> <span class="function"><span class="keyword">boolean</span> <span class="title">nativeFun2</span><span class="params">(<span class="keyword">long</span> arg1, <span class="keyword">long</span> arg2)</span></span>;
+<span class="keyword">private</span> <span class="keyword">native</span> <span class="function"><span class="keyword">float</span> <span class="title">nativeFunc3</span><span class="params">(<span class="keyword">long</span> arg1, <span class="keyword">int</span> arg2, <span class="keyword">int</span> arg3, <span class="keyword">int</span> arg4)</span></span>;
+<span class="keyword">static</span> <span class="keyword">private</span> <span class="keyword">native</span> <span class="function"><span class="keyword">void</span>  <span class="title">nativeFun4</span><span class="params">(<span class="keyword">long</span> handle)</span></span>;
+<span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">native</span> <span class="function"><span class="keyword">long</span> <span class="title">nativeFunc5</span><span class="params">(<span class="keyword">long</span> arg1, ByteBuffer arg2)</span></span>;
+</code></pre><p>那么这些函数在JNI层的函数映射表中对应的签名如下：</p>
+<pre><code><span class="keyword">static</span> JNINativeMethod native_functions_table[] = {
+    {<span class="string">"nativeFun1"</span>, <span class="string">"(JI)J"</span>, (<span class="keyword">void</span>*)Jni_fun1 },
+    {<span class="string">"nativeFun2"</span>,<span class="string">"(J)V"</span>,  (<span class="keyword">void</span>*) Jni_fun2 },
+    {<span class="string">"nativeFun3"</span>,<span class="string">"(JIII)F"</span>,(<span class="keyword">void</span>*) Jni_fun3},
+    {<span class="string">"nativeFun4"</span>,<span class="string">"(J)V"</span>, (<span class="keyword">void</span>*) Jni_fun4 },
+    {<span class="string">"nativeFun5"</span>, <span class="string">"(JLjava/nio/ByteBuffer;)J"</span>, (<span class="keyword">void</span> *) Jni_fun5 }
+｝
+</code></pre><h2 id="JNI函数的参数">JNI函数的参数</h2><p>讲完了函数的签名规则，最后我们来看看函数里面的参数。</p>
+<p>细心的你可能已经从你的jni函数的参数里面发现了：每个函数的前两个参数都默认加上的，也就是即便你的java函数中声明的native函数没有参数，但是对应生成的jni函数里面也有两个参数：JNIEnv* 以及 jobject。接下来说一说这俩参数是做什么用的：</p>
+<ul>
+<li><p>JNIEnv: 该参数代表Java环境, 通过这个环境可以调用Java中的方法; 这些函数可以在jni.h中查询到,通过这些函数可以实现 Java层 与 JNI层的交互 , 通过JNIEnv 调用JNI函数 可以访问java虚拟机, 操作java对象;</p>
+</li>
+<li><p>jobject: 该参数代表调用jni方法的Java类或者对象, 如果Native方法是非静态的, 那么第这个参数就是对Java对象的引用, 如果Native方法是静态的, 那么这个参数就是对Java类的Class对象的引用;</p>
+</li>
+</ul>
+<p>另外关于JNIEnv，还有一些注意事项：</p>
+<ul>
+<li><p>JNI线程相关性 : JNIEnv只在当前的线程有效,JNIEnv不能跨线程传递, 相同的Java线程调用本地方法, 所使用的JNIEnv是相同的, 一个Native方法不能被不同的Java线程调用;</p>
+</li>
+<li><p>JNIEnv结构体系 : JNIEnv指针指向一个线程相关的结构,线程相关结构指向一个指针数组,指针数组中的每个元素最终指向一个JNI函数.</p>
+</li>
+</ul>
+<h2 id="后续">后续</h2><p>JNI的签名相关的内容就到了，接下来我们会继续学习JNI，讨论关于JNI与java交互的具体实现方法。</p>
 
       
     </div>
@@ -200,9 +337,13 @@ gradlew build
       
         <div class="post-tags">
           
-            <a href="/tags/Android-Studio/"> #Android Studio </a>
+            <a href="/tags/Android/"> #Android </a>
           
-            <a href="/tags/gradle/"> #gradle </a>
+            <a href="/tags/jni/"> #jni </a>
+          
+            <a href="/tags/jni签名/"> #jni签名 </a>
+          
+            <a href="/tags/ndk/"> #ndk </a>
           
         </div>
       
@@ -211,13 +352,11 @@ gradlew build
         <div class="post-nav">
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2015/04/14/2015-04-14-tech-blog/">Tech blogs and sites</a>
-            
           </div>
 
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2015/03/13/2015-03-13-Androir-expansion-file/">Android APK扩展文件</a>
+              <a href="/2015/07/01/2015-07-01-jni-register/">Andoid NDK编程 1 － 注册native函数</a>
             
           </div>
         </div>
@@ -233,8 +372,8 @@ gradlew build
     
       <div class="comments" id="comments">
         
-          <div class="ds-thread" data-thread-key="2015/03/25/2015-03-25-gradle-wrapper/"
-               data-title="Gradle wrapper的介绍与使用" data-url="http://yishuihe.github.io/2015/03/25/2015-03-25-gradle-wrapper/">
+          <div class="ds-thread" data-thread-key="2015/07/02/2015-07-02-jni-rule/"
+               data-title="Andoid NDK编程 2 － JNI签名规则" data-url="http://yishuihe.github.io/2015/07/02/2015-07-02-jni-rule/">
           </div>
         
       </div>
@@ -334,7 +473,7 @@ gradlew build
           <div class="post-toc">
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#由来"><span class="nav-text">由来</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#创建"><span class="nav-text">创建</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用"><span class="nav-text">使用</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#使用场景1"><span class="nav-text">使用场景1</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用场景2"><span class="nav-text">使用场景2</span></a></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#JNI方法命名规则"><span class="nav-text">JNI方法命名规则</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#JNI方法签名规则"><span class="nav-text">JNI方法签名规则</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#JNI函数的参数"><span class="nav-text">JNI函数的参数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#后续"><span class="nav-text">后续</span></a></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator"></div>

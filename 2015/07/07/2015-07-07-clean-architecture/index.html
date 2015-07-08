@@ -18,7 +18,7 @@
 
 
 
-  <meta name="keywords" content="branch,git," />
+  <meta name="keywords" content="architecture," />
 
 
 
@@ -39,7 +39,7 @@
   </script>
 
 
-  <title> git branch实践总结 // Zhixin Life@US </title>
+  <title> 整洁架构 // Zhixin Life@US </title>
 </head>
 
 <body>
@@ -118,7 +118,7 @@
           
           
             
-              git branch实践总结
+              整洁架构
             
           
         </h1>
@@ -126,14 +126,14 @@
 
       <div class="post-meta">
         <span class="post-time">
-          Posted on 2015-06-18
+          Posted on 2015-07-07
         </span>
 
         
           <span class="post-category">
             &nbsp; | &nbsp; In
             
-              <a href="/categories/Development/">Development</a>
+              <a href="/categories/Software-Development/">Software Development</a>
 
               
               
@@ -146,8 +146,8 @@
           
             <span class="post-comments-count">
             &nbsp; | &nbsp;
-            <a href="/2015/06/18/2015-06-18-git-flow/#comments" >
-              <span class="post-comments-count ds-thread-count" data-thread-key="2015/06/18/2015-06-18-git-flow/"></span>
+            <a href="/2015/07/07/2015-07-07-clean-architecture/#comments" >
+              <span class="post-comments-count ds-thread-count" data-thread-key="2015/07/07/2015-07-07-clean-architecture/"></span>
             </a>
           </span>
           
@@ -161,67 +161,37 @@
       
 
       
-        <h2 id="引子">引子</h2><p>Git branch开发实践的一个总结。</p>
+        <p>本文是关于Bob大叔关于整洁架构的一篇学习笔记。</p>
 <a id="more"></a>
-<p>说到git branch模型，就不得不说一下关于它的一篇开创性的文章：<a href="http://nvie.com/posts/a-successful-git-branching-model/" target="_blank" rel="external">A successful Git branching model</a>，该文中提到的模型被绝大多数人所采用，或直接，或微调。其模型图图下：<br><img src="/images/201506-git-modle/git-model.png" alt=" "></p>
-<p>下面结合自己的实践做一梳理。</p>
-<h2 id="分支模型概述">分支模型概述</h2><h3 id="主分支">主分支</h3><p>此开发模型的核心主要受现有的模型启发。中心仓库包含了两个主要分支，这两个分支的寿命是无限的：</p>
+<h2 id="前言">前言</h2><p>整洁架构(Clean Architecture)是由Bob大叔在2012年提出的一个架构模型，顾名思义，是为了使架构更简洁。</p>
+<p><img src="/images/201507-CleanArchitecture.jpg" alt=" "></p>
+<p>在开始深入的介绍这个架构之前，Bob大叔首先提到了近些年来比较流行的一个系统架构，包括Hexagonal Architecture，Onion Architecture，以及他自己以前提出的Screaming architecuture等。并且着中说道通过这些架构产生的系统特点是：</p>
 <ul>
-<li>master</li>
-<li>develop</li>
+<li>独立的框架. 这样的架构并不依赖与应用软件的具体库包，这样可以将框架作为工具，而不必将你的系统都胡乱混合在一起。</li>
+<li>可测试. 业务规则能够在没有UI和数据库 或Web服务器的情况下被测试。</li>
+<li>UI的独立性. UI改变变得容易，不必改变系统的其余部分，一个Web UI能被一个控制台或专门的图形UI替代, 这些读不必更改业务核心规则。</li>
+<li>数据库的独立性. 你能够在Oracle或SQL Server Mongo, BigTable, CouchDB,或之间切换, . 你的业务规则不会和数据库绑定</li>
+<li>独立的外部代理，其实你的业务规则可以对其外面的技术世界毫无所知，比如是否使用了MVC或DCI都可以不关心。</li>
 </ul>
-<p>每个Git用户都应该熟悉origin上的master分支，这是我们默认的起始分支。与master分支平行存在的，是另外一个名为develop的分支。当develop分支上的源码到达一个稳定的状态时，就可以发布版本。所有develop上的变更都应该以某种方式合并回master分支，</p>
-<h3 id="支持性分支">支持性分支</h3><p>我们的开发模型使用多种支持性分支来帮助团队成员间实现并行开发、追踪产品特性、准备产品版本发布、以及快速修复产品问题。与主要分支不同的是，这些分支的寿命是有限的，它们最终都会被删除。</p>
-<p>我们会用到的分支有这几类：</p>
-<ul>
-<li>特性分支（feature branch）</li>
-<li>发布分支（release branch）</li>
-<li>hot fix分支（hotfix branch）</li>
-</ul>
-<h2 id="分支模型实践">分支模型实践</h2><p>对该模型有个感性的认识之后，接下来我们一起来看看分支模型的具体的做法和命令。</p>
-<p>master分支是默认创建的就不再介绍。</p>
-<h3 id="develop_分支">develop 分支</h3><p>来源：master<br>必须合并回：master</p>
-<p>创建：</p>
-<pre><code>git checkout -<span class="tag">b</span> develop master
-</code></pre><p>merge回master：</p>
-<pre><code>git checkout master
-git <span class="built_in">merge</span> <span class="built_in">merge</span> <span class="comment">--no-ff develop</span>
-</code></pre><h3 id="feature_分支">feature 分支</h3><p>特性分支（有时也被称作topic分支）是用来为下一发布版本开发新特性。特性分支的重点是，只要特性还在开发，该分支就会一直存在，不过它最终会被合并回develop分支（将该特性加入到发布版本中），或者被丢弃（如果试验的结果令人失望）。</p>
-<p>可能的分支来源：develop</p>
-<p>必须合并回：develop</p>
-<p>创建：</p>
-<pre><code>git checkout -<span class="tag">b</span> feature-name develop
-</code></pre><p>merge回develoop：</p>
-<pre><code>git checkout develop
-git <span class="keyword">merge</span> <span class="keyword">merge</span> --<span class="keyword">no</span>-ff feature-name 
-git branch -<span class="keyword">d</span> feature－name <span class="comment">//删除该分支</span>
-git push origin develop
-</code></pre><h3 id="release_分支">release 分支</h3><p>发布分支为准备新的产品版本发布做支持。它允许你在最后时刻检查所有的细节。此外，它还允许你修复小bug以及准备版本发布的元数据（例如版本号，构建日期等等）。在发布分支做这些事情之后，develop分支就会显得比较干净，也方便为下一大版本发布接受特性。</p>
-<p>从develop分支创建发布分支的时间通常是develop分支（差不多）能反映新版本所期望状态的时候。至少说，这是时候版本发布所计划的特性都已经合并回了develop分支。而未来其它版本发布计划的特性则不应该合并，它们必须等到当前的版本分支创建好之后才能合并。</p>
-<p>正是在发布分支创建的时候，对应的版本发布才获得一个版本号——不能更早。在该时刻之前，develop分支反映的是“下一版本”的相关变更，但不知道这“下一版本”到底会成为0.3还是1.0，直到发布分支被创建。版本号是在发布分支创建时，基于项目版本号规则确定的。</p>
-<p>可能的分支来源：develop</p>
-<p>必须合并回：develop和master</p>
-<p>分支命名约定：release-*</p>
-<p>创建：</p>
-<pre><code>git checkout -<span class="tag">b</span> release-<span class="number">1.0</span> develop
-</code></pre><p>merge回master/develoop：</p>
-<p>当发布分支达到一个可以正式发布的状态时，我们就需要执行一些操作。首先，将发布分支合并至master（记住，我们之前定义master分支上的每一个commit都对应一个新版本）。接着，master分支上的commit必须被打上标签（tag），以方便将来寻找历史版本。最后，发布分支上的变更需要合并回develop，这样将来的版本也能包含相关的bug修复。</p>
-<pre><code>git checkout master
-git <span class="operator"><span class="keyword">merge</span> <span class="keyword">merge</span> <span class="comment">--no-ff release-1.0 </span>
-git tag -a <span class="keyword">release</span>-<span class="number">1.0</span>
-git push origin <span class="keyword">master</span>
-
-
-git checkout develop
-git <span class="keyword">merge</span> <span class="keyword">merge</span> <span class="comment">--no-ff release-1.0 </span>
-git tag -a <span class="keyword">release</span>-<span class="number">1.0</span>
-git push origin develop</span>
-</code></pre><h3 id="hot_fix_分支">hot fix 分支</h3><p>热补丁分支和发布分支十分类似，它的目的也是发布一个新的产品版本，尽管是不在计划中的版本发布。当产品版本发现未预期的问题的时候，就需要理解着手处理，这个时候就要用到热补丁分支。当产品版本的重大bug需要立即解决的时候，我们从对应版本的标签创建出一个热补丁分支。</p>
-<p>可能的分支来源：master</p>
-<p>必须合并回：develop和master</p>
-<p>分支命名约定：hotfix-*</p>
-<p>其创建以及合并回来的命令和release分支几乎一样，这里就不再多表。</p>
-<h2 id="总结">总结</h2><p>正如前面提到的那样，该模型可以很好的适用于大多数的软件开发实践，但我们也不必教条的拘泥于该模型，可以灵活的根据项目的需要做适当的调整。</p>
+<p>好的，接下来一起了解一下clean architecture：</p>
+<h2 id="依赖规则(Dependency_Rule)">依赖规则(Dependency Rule)</h2><p>用一组同心圆来表示软件的不同领域。一般来说，越深入代表你的软件层次越高。外圆是战术是实现机制(mechanisms)，内圆的是核心原则(policy)。</p>
+<p>使此体系架构能够工作的关键是依赖规则。<strong>这条规则规定软件模块只能向内依赖，而里面的部分对外面的模块一无所知，也就是内部不依赖外部，而外部依赖内部</strong>。同样，在外面圈中使用的数据格式不应被内圈中使用，特别是如果这些数据格式是由外面一圈的框架生成的。我们不希望任何外圆的东西会影响内圈层</p>
+<h2 id="实体_(Entities)">实体 (Entities)</h2><p>实体封装的是<strong>整个企业范围内的业务核心原则(policy)</strong>，一个实体能是一个带有方法的对象，或者是一系列数据结构和函数，只要这个实体能够被不同的应用程序使用即可。</p>
+<p>如果你没有编写企业软件，只是编写简单的应用程序，这些实体就是应用的业务对象，它们封装着最普通的高级别业务规则，你不能希望这些实体对象被一个页面的分页导航功能改变，也不能被安全机制改变，操作实现层面的任何改变不能影响实体层，只有业务需求改变了才可以改变实体</p>
+<h2 id="用例_(Use_case)">用例 (Use case)</h2><p>在这个层的软件包含<strong>只和应用相关的业务规则，它封装和实现系统的所有用例</strong>，这些用例会混合各种来自实体的各种数据流程，并且指导这些实体使用企业规则来完成用例的功能目标。</p>
+<p>我们并不期望改变这层会影响实体层. 我们也不期望这层被更外部如数据库 UI或普通框架影响，<strong>而这也正是我们分离出这一层来的原因所在</strong>。</p>
+<p>然而，应用层面的操作改变将会影响到这个用例层，如果需求中用例发生改变，这个层的代码就会随之发生改变。所以可以看到，<strong>这一层是和应用本身紧密相关的</strong></p>
+<h2 id="接口适配器_(Interface_Adapters)">接口适配器 (Interface Adapters)</h2><p>这一层的软件基本都是一些适配器，<strong>主要用于将用例和实体中的数据转换为外部系统如数据库或Web使用的数据，</strong>在这个层次，可以包含一些GUI的MVC架构，表现视图 控制器都属于这个层，模型Model是从控制器传递到用例或从用例传递到视图的数据结构。</p>
+<p>通常在这个层数据被转换，从用例和实体使用的数据格式转换到持久层框架使用的数据，主要是为了存储到数据库中，这个圈层的代码是一点和数据库没有任何关系，如果数据库是一个SQL数据库， 这个层限制使用SQL语句以及任何和数据库打交道的事情。</p>
+<h2 id="框架和驱动器">框架和驱动器</h2><p>最外面一圈<strong>通常是由一些框架和工具组成</strong>，如数据库Database, Web框架等. 通常你不必在这个层不必写太多代码，而是写些胶水性质的代码与内层进行粘结通讯。这个层是细节所在，Web技术是细节，数据库是细节，我们将这些实现细节放在外面以免它们对我们的业务规则造成影响伤害</p>
+<h2 id="只有四个圈层吗？">只有四个圈层吗？</h2><p>这个圆圈图是示意性的。您可能会发现您需要的不仅仅是这四个。也没有规定说你必须始终只有这四个。然而，依赖规则始终适用。源代码的依赖关系总是由外向内。当你越向内时，抽象水平越高。而最外面的一圈是低层次的具体细节。当你越向内时软件变得越为抽象，封装了更高层次的策略。</p>
+<h2 id="跨边界流程_(Crossing_boundaries)">跨边界流程 (Crossing boundaries)</h2><p>在图的右下方是我们如何越过圆边界的例子。它显示控制器和Presenters之间是如何和用例进行通信的。注意控制流程。它开始于控制器，通过用例，然后在界面处执行。还要注意源代码的依赖关系。他们中的每一个点都是指向内部用例。</p>
+<p>那么，从图中可以看到use case需要访问Presenters，也就是内部的模块需要访问外部模块，那么内部的模块就需要知道外面模块的一些细节，这违反了刚刚提到的只能向内依赖的原则！</p>
+<p>如何解决呢？ <strong>通常我们会使用<a href="https://en.wikipedia.org/wiki/Dependency_inversion_principle" target="_blank" rel="external">依赖倒置原则</a>来解决这种冲突</strong>。具体的实现方式可以是定义接口来表示外层的对象，然后在内层中调用接口而不是直接调用外层的类(否则会破坏依赖原则)，而外层需要做的就是去实现这个接口。</p>
+<h2 id="那么什么数据可以跨层流动呢？">那么什么数据可以跨层流动呢？</h2><p>通常跨层的数据是简单的数据结构。如果你喜欢你可以使用基本结构或简单的数据传输对象DTO。或可以函数可以调用数据参数。或者你可以打包到哈希表中，或为它建构一个对象。最重要是跨层传递是孤立的、 简单的数据结构。</p>
+<p>我们不想让这个数据结构是一个实体或数据库记录，因为我们不希望它们有任何的依赖关系，这会违反了依赖规则。例如，许多数据库框架在查询响应中返回一个方便的数据格式。我们可能会要求这对这个记录重构，因为我们不想要跨层向内传递数据库记录。这就违反了依赖规则，它会迫使内圈要知道关于外圈的东西。<strong>所以当我们跨层传递数据，它总是以对内圈最方便的形式</strong>。</p>
+<h2 id="总结">总结</h2><p><strong>Clean architecture的核心就是依赖原则。</strong>外圈的层次可以依赖内层，反之不可以，内圈核心的实体代表业务，不可以依赖其所处的技术环境。这样做的最大好处是当系统的外部模块不得不改变时（比如，替换已有的过时的数据库系统），系统的内层模块不需要做任何改变。</p>
+<h2 id="参考">参考</h2><p><a href="http://blog.8thlight.com/uncle-bob/2012/08/13/the-clean-architecture.html" target="_blank" rel="external">The Clean Architecture</a></p>
 
       
     </div>
@@ -230,9 +200,7 @@ git push origin develop</span>
       
         <div class="post-tags">
           
-            <a href="/tags/branch/"> #branch </a>
-          
-            <a href="/tags/git/"> #git </a>
+            <a href="/tags/architecture/"> #architecture </a>
           
         </div>
       
@@ -241,13 +209,11 @@ git push origin develop</span>
         <div class="post-nav">
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2015/06/25/2015-06-25-android-disk-cache/">Andoid Disk Cache</a>
-            
           </div>
 
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2015/06/16/2015-06-16-english-intonation/">英语语调笔记</a>
+              <a href="/2015/07/02/2015-07-02-jni-rule/">Andoid NDK编程 2 － JNI签名规则</a>
             
           </div>
         </div>
@@ -263,8 +229,8 @@ git push origin develop</span>
     
       <div class="comments" id="comments">
         
-          <div class="ds-thread" data-thread-key="2015/06/18/2015-06-18-git-flow/"
-               data-title="git branch实践总结" data-url="http://yishuihe.github.io/2015/06/18/2015-06-18-git-flow/">
+          <div class="ds-thread" data-thread-key="2015/07/07/2015-07-07-clean-architecture/"
+               data-title="整洁架构" data-url="http://yishuihe.github.io/2015/07/07/2015-07-07-clean-architecture/">
           </div>
         
       </div>
@@ -364,7 +330,7 @@ git push origin develop</span>
           <div class="post-toc">
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#引子"><span class="nav-text">引子</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#分支模型概述"><span class="nav-text">分支模型概述</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#主分支"><span class="nav-text">主分支</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#支持性分支"><span class="nav-text">支持性分支</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#分支模型实践"><span class="nav-text">分支模型实践</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#develop_分支"><span class="nav-text">develop 分支</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#feature_分支"><span class="nav-text">feature 分支</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#release_分支"><span class="nav-text">release 分支</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#hot_fix_分支"><span class="nav-text">hot fix 分支</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-text">总结</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#前言"><span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#依赖规则(Dependency_Rule)"><span class="nav-text">依赖规则(Dependency Rule)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#实体_(Entities)"><span class="nav-text">实体 (Entities)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#用例_(Use_case)"><span class="nav-text">用例 (Use case)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#接口适配器_(Interface_Adapters)"><span class="nav-text">接口适配器 (Interface Adapters)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#框架和驱动器"><span class="nav-text">框架和驱动器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#只有四个圈层吗？"><span class="nav-text">只有四个圈层吗？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#跨边界流程_(Crossing_boundaries)"><span class="nav-text">跨边界流程 (Crossing boundaries)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#那么什么数据可以跨层流动呢？"><span class="nav-text">那么什么数据可以跨层流动呢？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-text">总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-text">参考</span></a></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator"></div>

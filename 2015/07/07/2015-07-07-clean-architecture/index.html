@@ -165,7 +165,8 @@
 <a id="more"></a>
 <h2 id="前言">前言</h2><p>整洁架构(Clean Architecture)是由Bob大叔在2012年提出的一个架构模型，顾名思义，是为了使架构更简洁。</p>
 <p><img src="/images/201507-CleanArchitecture.jpg" alt=" "></p>
-<p>在开始深入的介绍这个架构之前，Bob大叔首先提到了近些年来比较流行的一个系统架构，包括Hexagonal Architecture，Onion Architecture，以及他自己以前提出的Screaming architecuture等。并且着中说道通过这些架构产生的系统特点是：</p>
+<p>在开始深入的介绍这个架构之前，Bob大叔首先提到了</p>
+<p>近些年来比较流行的一个系统架构，包括Hexagonal Architecture，Onion Architecture，以及他自己以前提出的Screaming architecuture等。并且着中说道通过这些架构产生的系统特点是：</p>
 <ul>
 <li>独立的框架. 这样的架构并不依赖与应用软件的具体库包，这样可以将框架作为工具，而不必将你的系统都胡乱混合在一起。</li>
 <li>可测试. 业务规则能够在没有UI和数据库 或Web服务器的情况下被测试。</li>
@@ -175,6 +176,10 @@
 </ul>
 <p>好的，接下来一起了解一下clean architecture：</p>
 <h2 id="依赖规则(Dependency_Rule)">依赖规则(Dependency Rule)</h2><p>用一组同心圆来表示软件的不同领域。一般来说，越深入代表你的软件层次越高。外圆是战术是实现机制(mechanisms)，内圆的是核心原则(policy)。</p>
+<blockquote>
+<p>Policy means the application logic.</p>
+<p>Mechanism means the domain primitives.</p>
+</blockquote>
 <p>使此体系架构能够工作的关键是依赖规则。<strong>这条规则规定软件模块只能向内依赖，而里面的部分对外面的模块一无所知，也就是内部不依赖外部，而外部依赖内部</strong>。同样，在外面圈中使用的数据格式不应被内圈中使用，特别是如果这些数据格式是由外面一圈的框架生成的。我们不希望任何外圆的东西会影响内圈层</p>
 <h2 id="实体_(Entities)">实体 (Entities)</h2><p>实体封装的是<strong>整个企业范围内的业务核心原则(policy)</strong>，一个实体能是一个带有方法的对象，或者是一系列数据结构和函数，只要这个实体能够被不同的应用程序使用即可。</p>
 <p>如果你没有编写企业软件，只是编写简单的应用程序，这些实体就是应用的业务对象，它们封装着最普通的高级别业务规则，你不能希望这些实体对象被一个页面的分页导航功能改变，也不能被安全机制改变，操作实现层面的任何改变不能影响实体层，只有业务需求改变了才可以改变实体</p>
@@ -188,10 +193,15 @@
 <h2 id="跨边界流程_(Crossing_boundaries)">跨边界流程 (Crossing boundaries)</h2><p>在图的右下方是我们如何越过圆边界的例子。它显示控制器和Presenters之间是如何和用例进行通信的。注意控制流程。它开始于控制器，通过用例，然后在界面处执行。还要注意源代码的依赖关系。他们中的每一个点都是指向内部用例。</p>
 <p>那么，从图中可以看到use case需要访问Presenters，也就是内部的模块需要访问外部模块，那么内部的模块就需要知道外面模块的一些细节，这违反了刚刚提到的只能向内依赖的原则！</p>
 <p>如何解决呢？ <strong>通常我们会使用<a href="https://en.wikipedia.org/wiki/Dependency_inversion_principle" target="_blank" rel="external">依赖倒置原则</a>来解决这种冲突</strong>。具体的实现方式可以是定义接口来表示外层的对象，然后在内层中调用接口而不是直接调用外层的类(否则会破坏依赖原则)，而外层需要做的就是去实现这个接口。</p>
+<p>首先需要理解的是Ownership inversion，也就是将本来在内层提供的功能定义在外层的接口中，而内层去实现这些接口。<br>一个示意图如下：</p>
+<p><img src="/images/201507-DIPLayersPattern.png" alt=""></p>
+<p>再来看一个更加具体的例子：假设一个应用要调用一个库，那么直接的方法是直接调用这个库提供的方法。但是更好的设计是将这个库提供的服务抽象成接口包含在调用应用中，而库需要做的事情是去实现这些接口，示例如下：</p>
+<p><img src="/images/201507-Dependency-inversion.png" alt=""></p>
 <h2 id="那么什么数据可以跨层流动呢？">那么什么数据可以跨层流动呢？</h2><p>通常跨层的数据是简单的数据结构。如果你喜欢你可以使用基本结构或简单的数据传输对象DTO。或可以函数可以调用数据参数。或者你可以打包到哈希表中，或为它建构一个对象。最重要是跨层传递是孤立的、 简单的数据结构。</p>
 <p>我们不想让这个数据结构是一个实体或数据库记录，因为我们不希望它们有任何的依赖关系，这会违反了依赖规则。例如，许多数据库框架在查询响应中返回一个方便的数据格式。我们可能会要求这对这个记录重构，因为我们不想要跨层向内传递数据库记录。这就违反了依赖规则，它会迫使内圈要知道关于外圈的东西。<strong>所以当我们跨层传递数据，它总是以对内圈最方便的形式</strong>。</p>
 <h2 id="总结">总结</h2><p><strong>Clean architecture的核心就是依赖原则。</strong>外圈的层次可以依赖内层，反之不可以，内圈核心的实体代表业务，不可以依赖其所处的技术环境。这样做的最大好处是当系统的外部模块不得不改变时（比如，替换已有的过时的数据库系统），系统的内层模块不需要做任何改变。</p>
 <h2 id="参考">参考</h2><p><a href="http://blog.8thlight.com/uncle-bob/2012/08/13/the-clean-architecture.html" target="_blank" rel="external">The Clean Architecture</a></p>
+<p><a href="https://en.wikipedia.org/wiki/Dependency_inversion_principle" target="_blank" rel="external">Dependency inversion principle</a></p>
 
       
     </div>

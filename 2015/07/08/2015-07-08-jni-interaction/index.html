@@ -39,7 +39,7 @@
   </script>
 
 
-  <title> Andoid NDK编程 1 － 注册native函数 // Zhixin Life@US </title>
+  <title> Andoid NDK编程 3 － java与JNI的交互 // Zhixin Life@US </title>
 </head>
 
 <body>
@@ -118,7 +118,7 @@
           
           
             
-              Andoid NDK编程 1 － 注册native函数
+              Andoid NDK编程 3 － java与JNI的交互
             
           
         </h1>
@@ -126,7 +126,7 @@
 
       <div class="post-meta">
         <span class="post-time">
-          Posted on 2015-07-01
+          Posted on 2015-07-08
         </span>
 
         
@@ -146,8 +146,8 @@
           
             <span class="post-comments-count">
             &nbsp; | &nbsp;
-            <a href="/2015/07/01/2015-07-01-jni-register/#comments" >
-              <span class="post-comments-count ds-thread-count" data-thread-key="2015/07/01/2015-07-01-jni-register/"></span>
+            <a href="/2015/07/08/2015-07-08-jni-interaction/#comments" >
+              <span class="post-comments-count ds-thread-count" data-thread-key="2015/07/08/2015-07-08-jni-interaction/"></span>
             </a>
           </span>
           
@@ -161,138 +161,129 @@
       
 
       
-        <p>打算对Android的NDK的开发做一总结，首先是JNI部分，接下来是NDK的内容。今天首先介绍一下JNI的第一部分：注册native函数。</p>
-<a id="more"></a>
-<p>当java代码中执行native的代码时候，首先是通过一定的方法来找到这些native方法。而注册native函数的具体方法的不同，会导致系统在运行时采用不同的方式来寻找这些native方法。</p>
-<p>JNI有如下两种注册native方法的途径：静态和动态。其中：</p>
-<p>静态：先由Java得到本地方法的声明，然后再通过JNI实现该声明方法。</p>
-<p>动态：先通过JNI重载JNI_OnLoad()实现本地方法，然后直接在Java中调用本地方法。</p>
-<h2 id="静态注册">静态注册</h2><p>根据函数名找到对应的JNI函数:Java层调用函数时，会从对应的JNI中寻找该函数，如果没有就会报错，如果存在则会建立一个关联联系，以后在调用时会直接使用这个函数，这部分的操作由虚拟机完成。<br>静态方法就是根据函数名来遍历java和jni函数之间的关联，而且要求jni层函数的名字必须遵循<br>特定的格式。</p>
-<p>具体的实现很简单，首先在java代码中声明native函数，然后通过javah来生成native函数的具体形式，接下来在JNI代码中实现这些函数即可。</p>
-<p>看个例子就更明了了：</p>
-<p>Java层：</p>
-<pre><code><span class="keyword">static</span> {
-   System.loadLibrary(<span class="string">"samplelib_jni"</span>);
-    registerNatives();
-}
+        <p>通过前面的两篇文章的学习，相信基本的JNI开发对你来说已经不是什么难事。 但是有时候我们想在JNI中做更多的事情，比如回调Java类中的函数，那么今天我们就来看一下如何实现。<br><a id="more"></a></p>
+<h2 id="JNI调用Java层函数">JNI调用Java层函数</h2><p>对于如何从JNI中调用Java类中的方法，其实在jni.h中已经定义了一系列的函数来实现这一目的，以下是一些经常用到的函数：</p>
+<hr>
+<p>使用JNIEnv指针获取Class对象: </p>
+<pre><code><span class="comment">// C version</span>
+jclass <span class="comment">(*FindClass)(JNIEnv*, const char*)</span>; 
 
-<span class="keyword">private</span> <span class="keyword">native</span> <span class="function"><span class="keyword">void</span> <span class="title">nativeFunc1</span><span class="params">()</span></span>;
-<span class="keyword">private</span> <span class="keyword">native</span> <span class="function"><span class="keyword">void</span> <span class="title">nativeFunc2</span><span class="params">()</span></span>;
-<span class="keyword">private</span> <span class="keyword">native</span> <span class="function"><span class="keyword">void</span> <span class="title">nativeFunc3</span><span class="params">()</span></span>;
-</code></pre><p>接下来通过javah来产生jni代码声明：</p>
-<p>假设你的java文件的包名是com.jni.samle 而类名是JniSample。</p>
-<pre><code>javah -d .<span class="regexp">/jni/</span> -<span class="keyword">classpath</span> <span class="regexp">/Users/Y</span>OUR_NAME<span class="regexp">/Library/</span>Android<span class="regexp">/sdk/</span>platforms<span class="regexp">/android-21/</span>android.jar:..<span class="regexp">/../</span>build<span class="regexp">/intermediates/</span>classes<span class="regexp">/debug/</span> com.jni.samle.JniSample    
-</code></pre><p>然后就会得到一个JNI的.h文件，里面包含这几个native函数的声明，观察一下文件名以及函数名，会有一定的规律，我会在下一篇文章中对此做一详细介绍，在此不再赘述。</p>
-<p>最后实现jni层的native方法即可。</p>
-<h2 id="动态注册">动态注册</h2><p>对Java程序员来说，可能我们总是会遵循：1.编写带有native方法的Java类；—-&gt;2.使用javah命令生成.h头文件；—-&gt;3.编写代码实现头文件中的方法，这样的标准流程，但也许有人无法忍受那“丑陋”的方法名称，所以我们可以采用动态注册方法，也就是通过RegisterNatives方法把c/c++中的方法隐射到Java中的native方法，而无需遵循特定的方法命名格式。</p>
-<p>JNI 允许你提供一个函数映射表，注册给Jave虚拟机，这样Jvm就可以用函数映射表来调用相应的函数，<br>就可以不必通过函数名来查找需要调用的函数了。<br>Java与JNI通过JNINativeMethod的结构来建立联系，它在jni.h中被定义，其结构内容如下： </p>
-<pre><code><span class="keyword">typedef</span> <span class="keyword">struct</span> { 
-    <span class="keyword">const</span> <span class="keyword">char</span>* name; 
-    <span class="keyword">const</span> <span class="keyword">char</span>* signature; 
-    <span class="keyword">void</span>* fnPtr; 
-} JNINativeMethod; 
-</code></pre><p>第一个变量name是Java中函数的名字。</p>
-<p>第二个变量signature，用字符串是描述了函数的参数和返回值 </p>
-<p>第三个变量fnPtr是函数指针，指向C函数。 </p>
-<p>当java通过System.loadLibrary加载完JNI动态库后，紧接着会查找一个JNI_OnLoad的函数，如果有，就调用它， 而动态注册的工作就是在这里完成的。 </p>
-<p>一起来看一下具体的实现方法：</p>
-<p><strong>Java code:</strong></p>
-<p>比较简单，仅仅是加载so库。</p>
-<pre><code><span class="keyword">static</span> {
-    System.loadLibrary(<span class="string">"samplelib_jni"</span>);
-}
-</code></pre><p><strong>JNI code:</strong></p>
-<p>在JNI中实现</p>
-<pre><code>jint <span class="function"><span class="title">JNI_OnLoad</span><span class="params">(JavaVM* vm, void* reserved)</span></span>
-</code></pre><p>并且在这个函数里面去动态的注册native方法，完整的参考代码如下：</p>
-<pre><code><span class="comment">#include &lt;jni.h&gt;</span>
-<span class="comment">#include "Log4Android.h"</span>
-<span class="comment">#include &lt;stdio.h&gt;</span>
-<span class="comment">#include &lt;stdlib.h&gt;</span>
-
-<span class="keyword">using</span> namespace std;
-
-<span class="comment">#ifdef __cplusplus</span>
-extern <span class="string">"C"</span> {
-<span class="comment">#endif</span>
-
-<span class="keyword">static</span> <span class="keyword">const</span> <span class="type">char</span> *className = <span class="string">"com/zhixin/jnisample/JniManager"</span>;
-
-<span class="keyword">static</span> <span class="type">void</span> sayHello(<span class="type">JNIEnv</span> *env, jobject, jlong handle) {
-    <span class="type">LOGI</span>(<span class="string">"JNI"</span>, <span class="string">"native: say hello ###"</span>);
-}
-
-<span class="keyword">static</span> <span class="type">JNINativeMethod</span> gJni_Methods_table[] = {
-    {<span class="string">"sayHello"</span>, <span class="string">"(J)V"</span>, (<span class="type">void</span>*)sayHello},
-};
-
-<span class="keyword">static</span> <span class="type">int</span> jniRegisterNativeMethods(<span class="type">JNIEnv</span>* env, <span class="keyword">const</span> <span class="type">char</span>* className,
-    <span class="keyword">const</span> <span class="type">JNINativeMethod</span>* gMethods, <span class="type">int</span> numMethods)
-{
-    jclass clazz;
-
-    <span class="type">LOGI</span>(<span class="string">"JNI"</span>,<span class="string">"Registering %s natives\n"</span>, className);
-    clazz = (env)-&gt;<span class="type">FindClass</span>( className);
-    <span class="keyword">if</span> (clazz == <span class="type">NULL</span>) {
-        <span class="type">LOGE</span>(<span class="string">"JNI"</span>,<span class="string">"Native registration unable to find class '%s'\n"</span>, className);
-        <span class="keyword">return</span> -<span class="number">1</span>;
-    }
-
-    <span class="type">int</span> <span class="literal">result</span> = <span class="number">0</span>;
-    <span class="keyword">if</span> ((env)-&gt;<span class="type">RegisterNatives</span>(clazz, gJni_Methods_table, numMethods) &lt; <span class="number">0</span>) {
-        <span class="type">LOGE</span>(<span class="string">"JNI"</span>,<span class="string">"RegisterNatives failed for '%s'\n"</span>, className);
-        <span class="literal">result</span> = -<span class="number">1</span>;
-    }
-
-    (env)-&gt;<span class="type">DeleteLocalRef</span>(clazz);
-    <span class="keyword">return</span> <span class="literal">result</span>;
-}
-
-jint <span class="type">JNI_OnLoad</span>(<span class="type">JavaVM</span>* vm, <span class="type">void</span>* reserved){
-    <span class="type">LOGI</span>(<span class="string">"JNI"</span>, <span class="string">"enter jni_onload"</span>);
-
-    <span class="type">JNIEnv</span>* env = <span class="type">NULL</span>;
-    jint <span class="literal">result</span> = -<span class="number">1</span>;
-
-    <span class="keyword">if</span> (vm-&gt;<span class="type">GetEnv</span>((<span class="type">void</span>**) &amp;env, <span class="type">JNI_VERSION_1_4</span>) != <span class="type">JNI_OK</span>) {
-        <span class="keyword">return</span> <span class="literal">result</span>;
-    }
-
-    jniRegisterNativeMethods(env, className, gJni_Methods_table, sizeof(gJni_Methods_table) / sizeof(<span class="type">JNINativeMethod</span>));
-
-    <span class="keyword">return</span> <span class="type">JNI_VERSION_1_4</span>;
-}
-
-<span class="comment">#ifdef __cplusplus</span>
-}
-<span class="comment">#endif</span>
-</code></pre><h2 id="比较">比较</h2><p>下面我们来比较一下这两种不同的实现方法。</p>
-<p>首先是静态方法：</p>
-<h3 id="优点">优点</h3><ul>
-<li>实现起来比较简单，直接用javah就能将Java代码中的native函数的声明转化为native代码的函数。</li>
+<span class="comment">// C++ version</span>
+jclass FindClass(<span class="keyword">const</span> char* name)
+</code></pre><p>参数介绍: </p>
+<ul>
+<li>name: 类的路径字符串, 如 “/your/package/name/ClassName” ;</li>
 </ul>
-<h3 id="缺点在于：">缺点在于：</h3><ul>
-<li>javah生成的jni层函数特别长； </li>
-<li>初次调用native函数时要根据名字搜索对应的jni层函数来建立关联联系，这样影响效率。</li>
+<p>另外还有一种替代方法是通过Java层传到JNI层的JObject来获取该object所代表的类：</p>
+<pre><code>jclass <span class="function"><span class="title">GetObjectClass</span><span class="params">(jobject obj)</span></span>；
+</code></pre><hr>
+<p>获取Java类中定义的method方法: </p>
+<p>在jni.h中找到方法 </p>
+<pre><code><span class="comment">// C Version</span>
+jmethodID <span class="comment">(*GetMethodID)(JNIEnv*, jclass, const char*, const char*)</span>;
+
+<span class="comment">// C++ version</span>
+jmethodID GetMethodID(jclass clazz, <span class="keyword">const</span> char* name, <span class="keyword">const</span> char* sig)
+</code></pre><p>参数介绍: </p>
+<ul>
+<li>clazz: Java类的Class对象</li>
+<li>name: 方法名</li>
+<li>sig: Java方法的签名;</li>
 </ul>
-<p>而动态方法的优缺点刚好和静态方法相反。</p>
-<p>通过上面的介绍我们发现，尽管静态注册实现起来比较简单，但是会导致效率相对来说比较低。<br>所以在JNI层提供JNI_OnLoad是一个推荐的做法。如果不提供JNI_OnLoad，那么JNI函数的命名就需要符合规范，并且需要导出该函数。这样做很容易被别人反编译。相反，如果提供JNI_OnLoad，就可以在里面自己注册JNI函数给Dalvik VM，这样JNI函数的命名就可以按照自己的习惯了，而且也不用导出。</p>
-<h2 id="一个巧妙的合作">一个巧妙的合作</h2><p>在实际的应用中，我们可以巧妙的将静态注册和动态注册结合起来：也就是在java代码中仍然声明一个native函数，但是这个函数仅仅是用来去触发在JNI层的native函数的动态注册。说的有些绕，看看代码就明白了：</p>
-<p>Java层：</p>
-<pre><code><span class="keyword">static</span> {
-   System.loadLibrary(<span class="string">"samplelib_jni"</span>);
-    registerNatives();
-}
+<hr>
+<p>获取Java类中的静态方法：</p>
+<pre><code><span class="comment">// get static function id </span>
+<span class="comment">// C++ version</span>
+jmethodID GetStaticMethodID(jclass clazz, <span class="keyword">const</span> <span class="keyword">char</span>* name, <span class="keyword">const</span> <span class="keyword">char</span>* sig)
+</code></pre><p>参数介绍: </p>
+<ul>
+<li>clazz: Java类的Class对象</li>
+<li>name: 方法名</li>
+<li>sig: Java方法的签名;</li>
+</ul>
+<hr>
+<p>获取Java类中的成员变量：</p>
+<pre><code><span class="comment">// get field id</span>
+<span class="comment">// C++ version</span>
+jfieldID GetFieldID(jclass clazz, <span class="keyword">const</span> <span class="keyword">char</span>* name, <span class="keyword">const</span> <span class="keyword">char</span>* sig)
+</code></pre><p>参数介绍: </p>
+<ul>
+<li>clazz: Java类的Class对象</li>
+<li>name: 成员变量的名字</li>
+<li>sig: 成员变量的签名，如String的成员变量签名是：”L/java/lang/String;”</li>
+</ul>
+<hr>
+<p>获取Java类中的静态成员变量：</p>
+<pre><code><span class="comment">// get field id</span>
+<span class="comment">// C++ version</span>
+jfieldID GetStaticFieldID(jclass clazz, <span class="keyword">const</span> <span class="keyword">char</span>* name, <span class="keyword">const</span> <span class="keyword">char</span>* sig)
+</code></pre><p>参数介绍: </p>
+<ul>
+<li>clazz: Java类的Class对象</li>
+<li>name: 成员变量的名字</li>
+<li>sig: 成员变量的签名，如String的成员变量签名是：”L/java/lang/String;”</li>
+</ul>
+<hr>
+<p>构造一个Java类的对象：</p>
+<pre><code><span class="comment">// C++ version construct one java object</span>
+jobject <span class="function"><span class="title">NewObject</span><span class="params">(jclass clazz, jmethodID methodID, ...)</span></span>
+</code></pre><p>调用指定的构造函数, 构造函数的名字叫做<init><br>如下面的例子：</init></p>
+<pre><code>jmethodID mid = <span class="list">(<span class="keyword">*env</span>)</span>-&gt;GetMethodID<span class="list">(<span class="keyword">env</span>, cls, <span class="string">"&lt;init&gt;"</span>, <span class="string">"()V"</span>)</span><span class="comment">;</span>
+obj = <span class="list">(<span class="keyword">*env</span>)</span>-&gt;NewObject<span class="list">(<span class="keyword">env</span>, cls, mid)</span><span class="comment">;</span>
+</code></pre><hr>
+<p>通过上面介绍的一系列API，我们可以在JNI中获取到Java类的名字，获取到类中的函数名字了，那么如何调用这些Java中的函数呢？请看下面的jni函数：</p>
+<p>   // 调用java 类中的返回值为void的某个函数<br>    void CallVoidMethod(jobject obj, jmethodID methodID, …)</p>
+<p>参数介绍: </p>
+<ul>
+<li>obj: Java类的Class对象</li>
+<li>methodID: 方法的ID，通过上面的GetMethodID()得到</li>
+</ul>
+<p>这里使用的是CallVoidMethod方法调用，因为没有返回值，如果有返回值的话使用对应的方法，要用对应的Call函数：</p>
+<pre><code>// non-static java function call back <span class="keyword">from</span> jni
+C<span class="literal">all</span>VoidMethod                   
+C<span class="literal">all</span>IntMethod                         
+C<span class="literal">all</span>BooleanMethod              
+C<span class="literal">all</span>ByteMethod 
 
-<span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">native</span> <span class="function"><span class="keyword">void</span> <span class="title">registerNatives</span><span class="params">()</span></span>;
-</code></pre><p>JNI层：</p>
-<p>通过javah生成java层声明的native函数的文件，并且在实现代码中去动态注册JNI函数：</p>
-<pre><code><span class="function">JNIEXPORT <span class="keyword">void</span> JNICALL <span class="title">Java_com_zhixin_jni_JniSample_registerNatives</span>
-<span class="params">(JNIEnv *env, jclass clazz)</span></span>{
-     (env)-&gt;RegisterNatives(clazz, gJni_Methods_table, <span class="keyword">sizeof</span>(gJni_Methods_table) / <span class="keyword">sizeof</span>(JNINativeMethod));
-}
-</code></pre><h2 id="后续">后续</h2><p>关于JNI的函数注册就到这里了，在<a href="http://zhixinliu.com/2015/07/02/2015-07-02-jni-rule/" target="_blank" rel="external">下一篇文章</a>中会总结JNI的签名规则问题。</p>
+// Java static functions call back <span class="keyword">from</span> jni   
+C<span class="literal">all</span>StaticVoidMethod
+C<span class="literal">all</span>StaticIntMethod
+C<span class="literal">all</span>StaticBooleanMethod
+C<span class="literal">all</span>StaticByteMethod
+</code></pre><h2 id="一个例子">一个例子</h2><p>接下来用个简单的例子来介展示一下如何使用上面提到的函数：</p>
+<p>Java代码：</p>
+<p>假设我们在Java层中定义了包名为com.test.jnisample, 类名为JniManager的java类，在类中定义了一个函数供JNI来调用：</p>
+<pre><code><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">JniManager</span> {
+    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">callFromJni_1</span><span class="params">()</span> </span>{
+        Log.d(TAG, <span class="string">"Call from JNI: void func"</span>);
+    }
+｝
+</code></pre><p>JNI代码：</p>
+<pre><code>static void sayHello<span class="list">(<span class="keyword">JNIEnv</span> <span class="variable">*env, jobject obj, jlong handle) {
+     // get class name
+        char*</span> className = <span class="string">"com/test/jnisample/JniManager"</span><span class="comment">;</span>
+     jclass javaClazz = env-&gt;FindClass<span class="list">(<span class="keyword">className</span>)</span><span class="comment">;</span>
+     //jclass javaClazz = env-&gt;GetObjectClass<span class="list">(<span class="keyword">obj</span>)</span><span class="comment">;</span>
 
+     if<span class="list">(<span class="keyword">javaClazz</span> == <span class="number">0</span>)</span> {
+            LOGI<span class="list">(<span class="string">"JNI"</span>, <span class="string">"Java class not found"</span>)</span><span class="comment">;</span>
+     } else {
+          LOGI<span class="list">(<span class="string">"JNI"</span>, <span class="string">"Java class found"</span>)</span><span class="comment">;</span>
+     }
+
+    // get method id
+        jmethodID method_1 = env-&gt;GetMethodID<span class="list">(<span class="keyword">javaClazz</span>, <span class="string">"callFromJni_1"</span>, <span class="string">"()V"</span>)</span><span class="comment">;</span>
+     if<span class="list">(<span class="list">(<span class="keyword">method_1</span> == <span class="number">0</span>)</span>)</span> {
+       LOGI<span class="list">(<span class="string">"JNI"</span>, <span class="string">"Method 1 not found"</span>)</span><span class="comment">;</span>
+    } else {
+        LOGI<span class="list">(<span class="string">"JNI"</span>, <span class="string">"found method 1"</span>)</span><span class="comment">;</span>
+
+        // Call java function
+        env-&gt;CallVoidMethod<span class="list">(<span class="keyword">obj</span>, method_1)</span><span class="comment">;</span>
+    }
+
+}</span>
+</code></pre>
       
     </div>
 
@@ -313,13 +304,11 @@ jint <span class="type">JNI_OnLoad</span>(<span class="type">JavaVM</span>* vm, 
         <div class="post-nav">
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2015/07/02/2015-07-02-jni-rule/">Andoid NDK编程 2 － JNI签名规则</a>
-            
           </div>
 
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2015/06/25/2015-06-25-android-disk-cache/">Andoid Disk Cache</a>
+              <a href="/2015/07/07/2015-07-07-clean-architecture/">整洁架构</a>
             
           </div>
         </div>
@@ -335,8 +324,8 @@ jint <span class="type">JNI_OnLoad</span>(<span class="type">JavaVM</span>* vm, 
     
       <div class="comments" id="comments">
         
-          <div class="ds-thread" data-thread-key="2015/07/01/2015-07-01-jni-register/"
-               data-title="Andoid NDK编程 1 － 注册native函数" data-url="http://yishuihe.github.io/2015/07/01/2015-07-01-jni-register/">
+          <div class="ds-thread" data-thread-key="2015/07/08/2015-07-08-jni-interaction/"
+               data-title="Andoid NDK编程 3 － java与JNI的交互" data-url="http://yishuihe.github.io/2015/07/08/2015-07-08-jni-interaction/">
           </div>
         
       </div>
@@ -436,7 +425,7 @@ jint <span class="type">JNI_OnLoad</span>(<span class="type">JavaVM</span>* vm, 
           <div class="post-toc">
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#静态注册"><span class="nav-text">静态注册</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#动态注册"><span class="nav-text">动态注册</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#比较"><span class="nav-text">比较</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#优点"><span class="nav-text">优点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#缺点在于："><span class="nav-text">缺点在于：</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#一个巧妙的合作"><span class="nav-text">一个巧妙的合作</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#后续"><span class="nav-text">后续</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#JNI调用Java层函数"><span class="nav-text">JNI调用Java层函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#一个例子"><span class="nav-text">一个例子</span></a></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator"></div>

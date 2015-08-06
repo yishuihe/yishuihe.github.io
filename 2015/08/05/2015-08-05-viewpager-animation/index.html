@@ -18,7 +18,7 @@
 
 
 
-  <meta name="keywords" content="2015,think," />
+  <meta name="keywords" content="Android,animation,viewpager," />
 
 
 
@@ -39,7 +39,7 @@
   </script>
 
 
-  <title> Hello 2015 // Zhixin Life@US </title>
+  <title> Andoid ViewPager animation // Zhixin Life@US </title>
 </head>
 
 <body>
@@ -118,7 +118,7 @@
           
           
             
-              Hello 2015
+              Andoid ViewPager animation
             
           
         </h1>
@@ -126,14 +126,14 @@
 
       <div class="post-meta">
         <span class="post-time">
-          Posted on 2015-01-23
+          Posted on 2015-08-05
         </span>
 
         
           <span class="post-category">
             &nbsp; | &nbsp; In
             
-              <a href="/categories/think/">think</a>
+              <a href="/categories/Android/">Android</a>
 
               
               
@@ -146,8 +146,8 @@
           
             <span class="post-comments-count">
             &nbsp; | &nbsp;
-            <a href="/2015/01/23/2015-01-23-hello-md/#comments" >
-              <span class="post-comments-count ds-thread-count" data-thread-key="2015/01/23/2015-01-23-hello-md/"></span>
+            <a href="/2015/08/05/2015-08-05-viewpager-animation/#comments" >
+              <span class="post-comments-count ds-thread-count" data-thread-key="2015/08/05/2015-08-05-viewpager-animation/"></span>
             </a>
           </span>
           
@@ -161,28 +161,81 @@
       
 
       
-        <h2 id="New_Journey">New Journey</h2><p>It’s already the 23rd day in 2015, the first month of the 15th year in twenty first century almost done, but I can’t believe that the time flying so fast that sometimes I still sign 2014 sometimes. Look back toward the last year, I still feel unbelievable even now. </p>
+        <p>ViewPager在Android应用开发中占据着很重要的地位，出现频率非常高。关于Viewpager的基本用法不在赘述。今天要说的是ViewPager切换时的动画。</p>
 <a id="more"></a>
-<p>Back to 2013, I decided to move to US after a considerable evaluation and discussion with my family. And here is the time line for the whole process:</p>
+<h2 id="原理">原理</h2><p>从3.0开始，ViewPager开始支持自定义切换动画，暴露的接口为PageTransformer，因此只要实现PageTransformer接口和其唯一的方法transformPage(View view, float position)即可。首先进入到ViewPager.java来看看该接口定义：</p>
+<pre><code>/**
+ * A PageTransformer <span class="keyword">is</span> invoked whenever a visible/attached page <span class="keyword">is</span> scrolled.
+ * This offers an opportunity <span class="keyword">for</span> <span class="keyword">the</span> <span class="type">application</span> <span class="keyword">to</span> apply a custom transformation
+ * <span class="keyword">to</span> <span class="keyword">the</span> page views using animation properties.
+ *
+ * &lt;p&gt;As <span class="keyword">property</span> animation <span class="keyword">is</span> only supported <span class="keyword">as</span> <span class="keyword">of</span> Android <span class="number">3.0</span> <span class="keyword">and</span> forward,
+ * setting a PageTransformer <span class="function_start"><span class="keyword">on</span></span> a ViewPager <span class="function_start"><span class="keyword">on</span></span> earlier platform versions will
+ * be ignored.&lt;/p&gt;
+ */
+public interface PageTransformer {
+    /**
+     * Apply a <span class="keyword">property</span> transformation <span class="keyword">to</span> <span class="keyword">the</span> <span class="keyword">given</span> page.
+     *
+     * @param page Apply <span class="keyword">the</span> transformation <span class="keyword">to</span> this page
+     * @param position Position <span class="keyword">of</span> page relative <span class="keyword">to</span> <span class="keyword">the</span> current <span class="keyword">front</span>-<span class="keyword">and</span>-center
+     *                 position <span class="keyword">of</span> <span class="keyword">the</span> pager. <span class="number">0</span> <span class="keyword">is</span> <span class="keyword">front</span> <span class="keyword">and</span> center. <span class="number">1</span> <span class="keyword">is</span> one full
+     *                 page position <span class="keyword">to</span> <span class="keyword">the</span> right, <span class="keyword">and</span> -<span class="number">1</span> <span class="keyword">is</span> one page position <span class="keyword">to</span> <span class="keyword">the</span> left.
+     */
+    public void transformPage(View page, float position);
+}
+</code></pre><p>可以看到transformPage有以下两个参数：</p>
 <ul>
-<li>2011/10 The first time to US for a business travel</li>
-<li>2013/4  Decide to move to US</li>
-<li>2013/7  GRE exam</li>
-<li>2013/8  TOEFL exam</li>
-<li>2013/9  Start to apply US graduate programs</li>
-<li>2013/10 Start to receive the offer from US universities</li>
-<li>2013/11 Accept Stevens’s offer</li>
-<li>2013/11 Apply F1 Visa</li>
-<li>2013/12 Book flight ticket to New York</li>
-<li>2014/1  Departure to Stevens for a new journey</li>
-<li>2014/12 Graduation from Stevens after three semesters’ study(Spring, Summer and Fall).</li>
-<li>2014/12 Head to Bay area to join Intel</li>
+<li>page: 就是在滑动过程中涉及到两个Page。</li>
+<li>position: </li>
 </ul>
-<p>What an amazing journey start! I really fell lucky and appreciate all the support from my family and friends, especially the encourage and help during my preparation in 2013, which is a long and tough way but make you encouraging! Too many of them, I would keep all of them in mind rather than list here.</p>
-<h2 id="Why_this_site?">Why this site?</h2><p>For a long time, I wish I could find some place where I can place my thinking, no matter it’s technique related or any ideas burst in, the last, also the most important, will construct my own thinking about something which I believe is important to my growth. About 10 years ago, I started to write blog at <a href="http://blog.chinaunix.net/uid/20355083.html" target="_blank" rel="external">ChinaUnix</a>, which last about three years until I got a exhausted job plus the long distance from home to office, also, one of the important thing in my life - my son’s born. I paused writing then.</p>
-<p>I realized that writing actually is a habit, you would not stopping it once started and addicted to that. But it’s hard to keep it if you paused during the journey.</p>
-<p>Till now, my smart friends, you should already get my idea on the reason that push me back to writing and set up this site - keep writing.</p>
-<h2 id="The_goal">The goal</h2><p>I don’t know how to set a exact goal for my writing after all too many stuff here with lots of challenges, however, it’s always good to have a goal based on the SMART principle. So let me try to update my site at least weekly, no matter what the new article is, as long as it’s my own, that’s enough, isn’t it? </p>
+<p>这个参数需要稍微多介绍一点：</p>
+<p>“The position parameter indicates where a given page is located relative to the center of the screen. It is a dynamic property that changes as the user scrolls through the pages. When a page fills the screen, its position value is 0. When a page is drawn just off the right side of the screen, its position value is 1. If the user scrolls halfway between pages one and two, page one has a position of -0.5 and page two has a position of 0.5.”</p>
+<p>也就是说：</p>
+<p>position是给定界面的位置相对于屏幕中心的偏移量。在用户滑动界面的时候，是动态变化的。那么我们可以将position的值应用于setAlpha(), setTranslationX(), or setScaleY()方法，从而实现自定义的动画效果。<br>另外在ViewPager滑动时，内存中存活的Page都会执行transformPage方法，在滑动过程中涉及到两个Page，当前页和下一页，而它们的position值是相反的（因为是相对运动,一个滑入一个滑出），比如，页面A向右滑动到屏幕一半，页面B也正好处于一半的位置，那么A和B的position为：0.5 和 -0.5</p>
+<p>position = 0 ：当前界面位于屏幕中心的时候</p>
+<p>position = 1 ：当前Page刚好滑出屏幕右侧</p>
+<p>position = -1 ：当前Page刚好滑出屏幕左侧</p>
+<h2 id="应用">应用</h2><p>了解了基本的原理之后，我们接下来就要开始给ViewPager加上动画了，实现起来很直接，给ViewPager加上一个PagerTransformer即可：</p>
+<pre><code>viewpager.setPageTransformer(<span class="keyword">false</span>, <span class="keyword">new</span> ViewPager.PageTransformer() {
+<span class="annotation">@Override</span>
+<span class="keyword">public</span> <span class="function"><span class="keyword">void</span> <span class="title">transformPage</span><span class="params">(View page, <span class="keyword">float</span> position)</span> </span>{
+    <span class="comment">// do transformation here</span>
+    }
+});
+</code></pre><p>接下来需要做的就是来实现transformPage方法。由于该方法已经将view所在的相对中心的位置传给我们了，那么我们只需要将position的值根据动画需要做相应的转换，然后应用于setAlpha(), setTranslationX(), or setScaleY()等方法，从而实现需要的动画效果。</p>
+<p>在android的<a href="http://developer.android.com/training/animation/screen-slide.html#pagetransformer" target="_blank" rel="external">android官方文档</a>中已经提供了很好的例子，包括zoom-out动画，depth动画等。</p>
+<p>值得一提的是在<a href="http://andraskindler.com/blog/2013/create-viewpager-transitions-a-pagertransformer-example/" target="_blank" rel="external">这篇文章中</a>，博主提出了将positon nomalize，进而不必考虑positon的正负符号了，实现起来非常巧妙，一起看看例子：</p>
+<p><strong>Nomalize position</strong>：</p>
+<pre><code><span class="keyword">final</span> <span class="built_in">float</span> normalizedposition = Math.<span class="built_in">abs</span>(Math.<span class="built_in">abs</span>(<span class="keyword">position</span>) - <span class="number">1</span>);
+</code></pre><p><strong>通过alpha变化实现ViewPager的fade out/in动画：</strong></p>
+<pre><code>@Override
+<span class="keyword">public</span> void transformPage(View page, <span class="built_in">float</span> <span class="keyword">position</span>) {
+        <span class="keyword">final</span> <span class="built_in">float</span> normalizedposition = Math.<span class="built_in">abs</span>(Math.<span class="built_in">abs</span>(<span class="keyword">position</span>) - <span class="number">1</span>);
+    page.setAlpha(normalizedposition);
+}
+</code></pre><p><strong>ViewPager的scale动画</strong>：</p>
+<pre><code>@<span class="function">Override
+<span class="keyword">public</span> <span class="keyword">void</span> <span class="title">transformPage</span><span class="params">(View page, <span class="keyword">float</span> position)</span> </span>{
+    final <span class="keyword">float</span> normalizedposition = Math.<span class="built_in">abs</span>(Math.<span class="built_in">abs</span>(position) - <span class="number">1</span>);
+    page.setScaleX(normalizedposition / <span class="number">2</span> + <span class="number">0.5f</span>);
+    page.setScaleY(normalizedposition / <span class="number">2</span> + <span class="number">0.5f</span>);
+}
+</code></pre><p><strong>令ViewPager绕Z轴转30度的切换动画：</strong></p>
+<pre><code><span class="annotation">@Override</span>
+<span class="keyword">public</span> <span class="function"><span class="keyword">void</span> <span class="title">transformPage</span><span class="params">(View page, <span class="keyword">float</span> position)</span> </span>{
+    page.setRotationY(position * -<span class="number">30</span>);
+}
+</code></pre><h2 id="你可以做的，其实可以更多">你可以做的，其实可以更多</h2><p>通过上面的介绍，相信给ViewPager加上动画已经不是什么难事了。但是我们其实我们还可以做的更多！那就是不仅仅是让ViewPager的每一个pager动起来，还要让Pager上面的各个UI元素也动起来。</p>
+<p>具体做法以及例子请<a href="https://medium.com/@BashaChris/the-android-viewpager-has-become-a-fairly-popular-component-among-android-apps-its-simple-6bca403b16d4" target="_blank" rel="external">参考这里</a>，不再搬运。</p>
+<h2 id="Reference">Reference</h2><ul>
+<li><p><a href="http://andraskindler.com/blog/2013/create-viewpager-transitions-a-pagertransformer-example/" target="_blank" rel="external">Create ViewPager transitions: a PagerTransformer example</a></p>
+</li>
+<li><p><a href="http://www.lightskystreet.com/2014/12/15/viewpager-anim/" target="_blank" rel="external">动画系列 - ViewPager动画</a></p>
+</li>
+<li><p><a href="https://medium.com/@BashaChris/the-android-viewpager-has-become-a-fairly-popular-component-among-android-apps-its-simple-6bca403b16d4" target="_blank" rel="external">Great animations with PageTransformer</a></p>
+</li>
+</ul>
 
       
     </div>
@@ -191,9 +244,11 @@
       
         <div class="post-tags">
           
-            <a href="/tags/2015/"> #2015 </a>
+            <a href="/tags/Android/"> #Android </a>
           
-            <a href="/tags/think/"> #think </a>
+            <a href="/tags/animation/"> #animation </a>
+          
+            <a href="/tags/viewpager/"> #viewpager </a>
           
         </div>
       
@@ -202,11 +257,11 @@
         <div class="post-nav">
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2015/01/28/2015-01-28-android-storage-story/">The Evolution of Android Storage</a>
-            
           </div>
 
           <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/08/04/2015-08-04-frame-animation/">Andoid Frame animation outOfMemory问题解决</a>
             
           </div>
         </div>
@@ -222,8 +277,8 @@
     
       <div class="comments" id="comments">
         
-          <div class="ds-thread" data-thread-key="2015/01/23/2015-01-23-hello-md/"
-               data-title="Hello 2015" data-url="http://yishuihe.github.io/2015/01/23/2015-01-23-hello-md/">
+          <div class="ds-thread" data-thread-key="2015/08/05/2015-08-05-viewpager-animation/"
+               data-title="Andoid ViewPager animation" data-url="http://yishuihe.github.io/2015/08/05/2015-08-05-viewpager-animation/">
           </div>
         
       </div>
@@ -281,7 +336,7 @@
 
           <div class="site-state-item site-state-tags">
             <a href="/tags">
-              <span class="site-state-item-count">38</span>
+              <span class="site-state-item-count">39</span>
               <span class="site-state-item-name">tags</span>
               </a>
           </div>
@@ -323,7 +378,7 @@
           <div class="post-toc">
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#New_Journey"><span class="nav-text">New Journey</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Why_this_site?"><span class="nav-text">Why this site?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#The_goal"><span class="nav-text">The goal</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#原理"><span class="nav-text">原理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#应用"><span class="nav-text">应用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#你可以做的，其实可以更多"><span class="nav-text">你可以做的，其实可以更多</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference"><span class="nav-text">Reference</span></a></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator"></div>

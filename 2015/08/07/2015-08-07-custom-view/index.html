@@ -18,7 +18,7 @@
 
 
 
-  <meta name="keywords" content="android,cache,disk cache," />
+  <meta name="keywords" content="Android,custom view,viewgroup," />
 
 
 
@@ -39,7 +39,7 @@
   </script>
 
 
-  <title> Andoid Disk Cache // Zhixin Life@US </title>
+  <title> Andoid自定义view的创建 // Zhixin Life@US </title>
 </head>
 
 <body>
@@ -118,7 +118,7 @@
           
           
             
-              Andoid Disk Cache
+              Andoid自定义view的创建
             
           
         </h1>
@@ -126,7 +126,7 @@
 
       <div class="post-meta">
         <span class="post-time">
-          Posted on 2015-06-25
+          Posted on 2015-08-07
         </span>
 
         
@@ -146,8 +146,8 @@
           
             <span class="post-comments-count">
             &nbsp; | &nbsp;
-            <a href="/2015/06/25/2015-06-25-android-disk-cache/#comments" >
-              <span class="post-comments-count ds-thread-count" data-thread-key="2015/06/25/2015-06-25-android-disk-cache/"></span>
+            <a href="/2015/08/07/2015-08-07-custom-view/#comments" >
+              <span class="post-comments-count ds-thread-count" data-thread-key="2015/08/07/2015-08-07-custom-view/"></span>
             </a>
           </span>
           
@@ -161,98 +161,150 @@
       
 
       
-        <p>在<a href="http://zhixinliu.com/2015/06/03/2015-06-03-android-lruchche/" target="_blank" rel="external">上一篇文章</a>中我们介绍了缓存的基本原理以及如何借助于LruCache类来实现一级缓存，也就是在内存中的缓存。但是由于内存空间的局限，我们不可能在一级缓存中放入太多的东西，那么聪明的你也一定想到了，没错，同电脑缓存一样，我们还可以记住外部存储在给应用做二级缓存，也就是缓存在磁盘之上。这样一来，我们就可以缓存更多的数据，但是二级缓存同样也有自身的局限性，比如性能相对于一级缓存要慢很多，另外对于缓存的网络上的内容还要考虑其实效性。</p>
+        <p>自定义View在android开发中总是难以避免，今天来看一下如何实现自定义的View。</p>
 <a id="more"></a>
-<h2 id="实现">实现</h2><p>不同于内存缓存，Android SDK中的并没有提供一个现成的disk的缓存类，但是<a href="https://github.com/JakeWharton/DiskLruCache" target="_blank" rel="external">Square的Jake Wharton提供了一个DiskLRUCache：JakeWharton/DiskLruCache</a>，并且已被Google认证并且使用于<a href="android.googlesource.com/platform/libcore/+/jb-mr2-release/luni/src/main/java/libcore/io/DiskLruCache.java">Android项目中</a>。顾名思义，该方案同样是机遇LRU的替换策略。所以对于我们开发者来说，直接拿过来就可以了。</p>
-<p>你可以简单地将代码拷贝到你的android工程当中，如果是采用Gradle，可以这样引用：</p>
-<pre><code><span class="keyword">compile</span> <span class="string">'com.jakewharton:disklrucache:2.0.2'</span>
-</code></pre><h2 id="使用">使用</h2><h3 id="open">open</h3><p>如果想要使用DiskLruCache，首先我们要通过其open方法创建一个DiskLruCache的实例，接口定义如下：</p>
-<pre><code><span class="keyword">public</span> <span class="keyword">static</span> DiskLruCache open(<span class="keyword">File</span> directory, <span class="keyword">int</span> appVersion, <span class="keyword">int</span> valueCount, <span class="keyword">long</span> maxSize)
-</code></pre><p>该方法需要四个参数，</p>
+<h2 id="引子">引子</h2><p>什么时候我们需要创建自定义的View？很简单，当androd平台系统提供的view不能满足我们的应用的需要的时候，我们就需要考虑来创建自定义的View了（当然，也可以先去github找一找 <em>_</em> 避免重复造轮子吗）。</p>
+<p>那么什么样的自定义view算一个比较合格的呢？需要满足以下要求：</p>
 <ul>
-<li>directory: 数据的缓存地址,一般存在应用的package-specific目录 <a href="http://zhixinliu.com/2015/01/28/2015-01-28-android-storage-story/" target="_blank" rel="external">如有疑问,可以参考这里</a></li>
-<li>appVersion: 当前应用程序的版本号</li>
-<li>valueCount: 指定同一个key可以对应多少个缓存文件，基本都是传1</li>
-<li>maxSize: 指定最多可以缓存多少字节的数据</li>
+<li>符合android规范</li>
+<li>能够通过layout来控制view的属性</li>
+<li>高性能</li>
+<li>可交互，也就是能够合理的处理用户的操作</li>
 </ul>
-<p>缓存地址前面已经说过了，通常都会存放在 /sdcard/Android/data/your.package.name/cache 这个路径下面，关于如何获取该路径，<a href="http://zhixinliu.com/2015/01/28/2015-01-28-android-storage-story/" target="_blank" rel="external">可以参考我的另外一篇文章</a>。</p>
-<p>关于应用程序版本号这个参数，需要注意的是，每当版本号改变，缓存路径下存储的所有数据都会被清除掉，所以在传入这个参数时需要慎重，除非你觉得需要更新cache，否则该参数不要该拜年。</p>
-<p>因此，open()方法就可以这样写：</p>
-<pre><code>DiskLruCache mDiskLruCache = <span class="keyword">null</span>;
-<span class="keyword">int</span> VERSION_CODE = <span class="number">1</span>;
-<span class="keyword">long</span> <span class="keyword">int</span> MAX_SIZE = <span class="number">10</span> * <span class="number">1024</span> * <span class="number">1024</span>; <span class="comment">//10M</span>
-<span class="keyword">try</span> {
-    <span class="keyword">File</span> cacheDir = getDiskCacheDir(context, <span class="string">"bitmap"</span>);<span class="comment">//自己定义的获取缓存目录函数</span>
-    <span class="keyword">if</span> (!cacheDir.exists()) {
-        cacheDir.mkdirs();
-    }
-    mDiskLruCache = DiskLruCache.open(cacheDir, VERSION_CODE, <span class="number">1</span>, MAX_SIZE);
-} <span class="keyword">catch</span> (IOException e) {
-    e.printStackTrace();
-}
-</code></pre><h3 id="写入缓存">写入缓存</h3><p>写入的操作是借助DiskLruCache.Editor这个类完成的。类似地，这个类也是不能new的，需要调用DiskLruCache的edit()方法来获取实例，接口如下所示：</p>
-<pre><code><span class="keyword">public</span> Editor edit(<span class="keyword">String</span> <span class="variable">key</span>) <span class="keyword">throws</span> IOException
-</code></pre><p>可以看到，edit()方法接收一个参数key，这个key将会成为缓存文件的文件名，并且必须要和图片的URL是一一对应的。那么怎样才能让key和图片的URL能够一一对应呢？直接使用URL来作为key？不太合适，因为图片URL中可能包含一些特殊字符，这些字符有可能在命名文件时是不合法的。其实最简单的做法就是将图片的URL进行MD5编码，编码后的字符串肯定是唯一的，并且只会包含0-F这样的字符，完全符合文件的命名规则</p>
-<p>那么我们就写一个方法用来将字符串进行MD5编码，代码如下所示：</p>
-<pre><code><span class="keyword">public</span> <span class="keyword">String</span> hashKeyForDisk(<span class="keyword">String</span> <span class="variable">key</span>) {
-    <span class="keyword">String</span> cacheKey;
-    <span class="keyword">try</span> {
-        <span class="keyword">final</span> MessageDigest mDigest = MessageDigest.getInstance(<span class="string">"MD5"</span>);
-        mDigest.update(<span class="variable">key</span>.getBytes());
-        cacheKey = bytesToHexString(mDigest.digest());
-    } <span class="keyword">catch</span> (NoSuchAlgorithmException e) {
-        cacheKey = <span class="keyword">String</span>.valueOf(<span class="variable">key</span>.hashCode());
-    }
-    <span class="keyword">return</span> cacheKey;
-}
+<h2 id="原理">原理</h2><p>在谈自定义View之前，让我们先了解一下View的绘制的三个步骤：</p>
+<ul>
+<li>Measure</li>
+</ul>
+<p>在View hierarchy被绘制之前，android的framework做的第一件事情就是measure。在这个view体系中的所有view都会被自上而下的测量到。从root view到各个child view。</p>
+<p>每一个view都会收到一个onMeasure的调用。所以每个view都应该将自己的size返给它的parent。而且这个尺寸应该要通过setMeasuredDimension来发送。</p>
+<p>接下里我们看看onMeasure方法的定义:</p>
+<pre><code><span class="keyword">protected</span> <span class="function"><span class="keyword">void</span> <span class="title">onMeasure</span><span class="params">(<span class="keyword">int</span> widthMeasureSpec, <span class="keyword">int</span> heightMeasureSpec)</span> </span>{}
+</code></pre><p>可以看到，有传递进来的两个参数是关于width和height的MeasureSpec，它们不是一般的尺寸数值，而是将模式和尺寸组合在一起的数值。我们需要通过</p>
+<pre><code>int mode = MeasureSpec.<span class="function"><span class="title">getMode</span><span class="params">(widthMeasureSpec)</span></span>得到模式，
 
-<span class="keyword">private</span> <span class="keyword">String</span> bytesToHexString(<span class="built_in">byte</span>[] bytes) {
-    StringBuilder sb = <span class="keyword">new</span> StringBuilder();
-    <span class="keyword">for</span> (<span class="built_in">int</span> i = <span class="number">0</span>; i &lt; bytes.length; i++) {
-        <span class="keyword">String</span> <span class="built_in">hex</span> = Integer.toHexString(<span class="number">0xFF</span> &amp; bytes[i]);
-        <span class="keyword">if</span> (<span class="built_in">hex</span>.length() == <span class="number">1</span>) {
-            sb.<span class="built_in">append</span>(<span class="string">'0'</span>);
-        }
-        sb.<span class="built_in">append</span>(<span class="built_in">hex</span>);
-    }
-    <span class="keyword">return</span> sb.toString();
+int size = MeasureSpec.<span class="function"><span class="title">getSize</span><span class="params">(widthMeasureSpec)</span></span>得到尺寸。
+</code></pre><p>MeasureSpec类是View类的一个内部静态类，它定义了三个常量UNSPECIFIED、AT_MOST、EXACTLY表示mode：</p>
+<p>MeasureSpec.EXACTLY是精确尺寸，当我们将控件的layout_width或layout_height指定为具体数值时如andorid:layout_width=”50dip”，或者为FILL_PARENT是，都是控件大小已经确定的情况，都是精确尺寸。</p>
+<p>MeasureSpec.AT_MOST是最大尺寸，当控件的layout_width或layout_height指定为WRAP_CONTENT时，控件大小一般随着控件的子空间或内容进行变化，此时控件尺寸只要不超过父控件允许的最大尺寸即可。因此，此时的mode是AT_MOST，size给出了父控件允许的最大尺寸。</p>
+<p>MeasureSpec.UNSPECIFIED是未指定尺寸，这种情况不多，一般都是父控件是AdapterView，通过measure方法传入的模式。</p>
+<p>因此，在重写onMeasure方法时要根据模式不同进行尺寸计算。下面代码就是一种比较典型的方式：</p>
+<pre><code>@Override  
+<span class="keyword">protected</span> <span class="keyword">void</span> onMeasure(<span class="built_in">int</span> widthMeasureSpec, <span class="built_in">int</span> heightMeasureSpec) {  
+    setMeasuredDimension(getMeasuredLength(widthMeasureSpec, <span class="keyword">true</span>),         getMeasuredLength(heightMeasureSpec, <span class="keyword">false</span>));  
+}  
+
+
+<span class="keyword">private</span> <span class="built_in">int</span> getMeasuredLength(<span class="built_in">int</span> length, <span class="built_in">boolean</span> isWidth) {  
+    <span class="built_in">int</span> specMode = MeasureSpec.getMode(length);  
+    <span class="built_in">int</span> specSize = MeasureSpec.getSize(length);  
+    <span class="built_in">int</span> <span class="built_in">size</span>;  
+    <span class="built_in">int</span> padding = isWidth ? getPaddingLeft() + getPaddingRight()  
+        : getPaddingTop() + getPaddingBottom();  
+    <span class="keyword">if</span> (specMode == MeasureSpec.EXACTLY) {  
+        <span class="built_in">size</span> = specSize;  
+    } <span class="keyword">else</span> {  
+        <span class="built_in">size</span> = isWidth ? padding + mWave.length / <span class="number">4</span> : DEFAULT_HEIGHT  
+                + padding;  
+        <span class="keyword">if</span> (specMode == MeasureSpec.AT_MOST) {  
+            <span class="built_in">size</span> = Math.<span class="built_in">min</span>(<span class="built_in">size</span>, specSize);  
+        }  
+    }  
+    <span class="keyword">return</span> <span class="built_in">size</span>;  
+}  
+</code></pre><p>另外，View类已经提供了一个基本的onMeasure实现，一起感受下：</p>
+<pre><code>protected <span class="type">void</span> onMeasure(<span class="type">int</span> widthMeasureSpec, <span class="type">int</span> heightMeasureSpec) {
+      setMeasuredDimension(getDefaultSize(getSuggestedMinimumWidth(), widthMeasureSpec),
+                           getDefaultSize(getSuggestedMinimumHeight(), heightMeasureSpec));
 }
-</code></pre><p>代码很简单，现在我们只需要调用一下hashKeyForDisk()方法，并把图片的URL传入到这个方法中，就可以得到对应的key了。<br>因此，现在就可以这样写来得到一个DiskLruCache.Editor的实例：</p>
-<pre><code><span class="keyword">String</span> imageUrl = <span class="string">"http://www.someweb.com/sample.jpg"</span>;
-<span class="keyword">String</span> <span class="variable">key</span> = hashKeyForDisk(imageUrl);
-DiskLruCache.Editor editor = mDiskLruCache.edit(<span class="variable">key</span>);
-</code></pre><h3 id="读取缓存">读取缓存</h3><p>缓存已经写入成功之后，接下来我们就该学习一下如何读取了。读取的方法要比写入简单一些，主要是借助DiskLruCache的get()方法实现的，接口如下所示：</p>
-<pre><code><span class="keyword">public</span> <span class="keyword">synchronized</span> Snapshot <span class="built_in">get</span>(<span class="keyword">String</span> <span class="variable">key</span>) <span class="keyword">throws</span> IOException
-</code></pre><p>很明显，get()方法要求传入一个key来获取到相应的缓存数据，而这个key毫无疑问就是将图片URL进行MD5编码后的值了，因此读取缓存数据的代码就可以这样写：</p>
-<pre><code><span class="keyword">String</span> imageUrl = <span class="string">"http://www.someweb.com/sample.jpg"</span>;
-<span class="keyword">String</span> <span class="variable">key</span> = hashKeyForDisk(imageUrl);
-DiskLruCache.Snapshot snapShot = mDiskLruCache.<span class="built_in">get</span>(<span class="variable">key</span>);
-</code></pre><p>很奇怪的是，这里获取到的是一个DiskLruCache.Snapshot对象，这个对象我们该怎么利用呢？很简单，只需要调用它的getInputStream()方法就可以得到缓存文件的输入流了。同样地，getInputStream()方法也需要传一个index参数，这里传入0就好。有了文件的输入流之后，想要把缓存图片显示到界面上就轻而易举了。所以，一段完整的读取缓存，并将图片加载到界面上的代码如下所示：</p>
-<pre><code><span class="keyword">try</span> {
-    <span class="built_in">String</span> imageUrl = <span class="string">"http://www.someweb.com/sample.jpg"</span>;
-    <span class="built_in">String</span> key = hashKeyForDisk(imageUrl);
-    DiskLruCache.Snapshot snapShot = mDiskLruCache.<span class="literal">get</span>(key);
-    <span class="keyword">if</span> (snapShot != <span class="keyword">null</span>) {
-        InputStream <span class="keyword">is</span> = snapShot.getInputStream(<span class="number">0</span>);
-        Bitmap bitmap = BitmapFactory.decodeStream(<span class="keyword">is</span>);
-        mImage.setImageBitmap(bitmap);
-    }
-} <span class="keyword">catch</span> (IOException e) {
-    e.printStackTrace();
+public <span class="keyword">static</span> <span class="type">int</span> getDefaultSize(<span class="type">int</span> size, <span class="type">int</span> measureSpec) {
+      <span class="type">int</span> <span class="literal">result</span> = size;
+      <span class="type">int</span> specMode = <span class="type">MeasureSpec</span>.getMode(measureSpec);
+      <span class="type">int</span> specSize = <span class="type">MeasureSpec</span>.getSize(measureSpec);
+
+      switch (specMode) {
+          <span class="keyword">case</span> <span class="type">MeasureSpec</span>.<span class="type">UNSPECIFIED</span>:
+              <span class="literal">result</span> = size;
+              <span class="keyword">break</span>;
+          <span class="keyword">case</span> <span class="type">MeasureSpec</span>.<span class="type">AT_MOST</span>:
+          <span class="keyword">case</span> <span class="type">MeasureSpec</span>.<span class="type">EXACTLY</span>:
+              <span class="literal">result</span> = specSize;
+              <span class="keyword">break</span>;
+      }
+      <span class="keyword">return</span> <span class="literal">result</span>;
 }
-</code></pre><p>我们使用了BitmapFactory的decodeStream()方法将文件流解析成Bitmap对象，然后把它设置到ImageView当中</p>
-<h3 id="移除缓存">移除缓存</h3><p>移除缓存主要是借助DiskLruCache的remove()方法实现的，接口如下所示：</p>
-<pre><code><span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="built_in">boolean</span> remove(<span class="keyword">String</span> <span class="variable">key</span>) <span class="keyword">throws</span> IOException
-</code></pre><p>看个例子：</p>
-<pre><code><span class="keyword">try</span> {
-    <span class="built_in">String</span> imageUrl = <span class="string">"http://www.someweb.com/sample.jpg"</span>;  
-    <span class="built_in">String</span> key = hashKeyForDisk(imageUrl);  
-    mDiskLruCache.remove(key);
-} <span class="keyword">catch</span> (IOException <span class="literal">e</span>) {
-    <span class="literal">e</span>.printStackTrace();
+</code></pre><ul>
+<li>Layout</li>
+</ul>
+<p>layout过程其实就是对子View的位置进行排列，onLayout方法给我一个机会，来按照我们想要的规则自定义子View排列<br>同样View给我们暴露了onLayout接口。</p>
+<pre><code><span class="keyword">protected</span> <span class="function"><span class="keyword">void</span> <span class="title">onLayout</span><span class="params">(<span class="keyword">boolean</span> changed, <span class="keyword">int</span> left, <span class="keyword">int</span> top, <span class="keyword">int</span> right, <span class="keyword">int</span> bottom)</span> </span>{
+</code></pre><p>}</p>
+<blockquote>
+<p>需要注意的是，如果我们仅仅是做一个自定义的View，如果其不包含子view，那就不用重写该方法。但是如果我们要创建一个自定义的ViewGroup，那么这个方法就是必须的了，因为在ViewGroup中，该方法是abstract的。</p>
+</blockquote>
+<pre><code><span class="keyword">protected</span> <span class="keyword">abstract</span> <span class="function"><span class="keyword">void</span> <span class="title">onLayout</span><span class="params">(<span class="keyword">boolean</span> changed,
+        <span class="keyword">int</span> l, <span class="keyword">int</span> t, <span class="keyword">int</span> r, <span class="keyword">int</span> b)</span></span>;
+</code></pre><ul>
+<li>Draw</li>
+</ul>
+<p>一个自定义View的首要任务就是画出自定义的内容来，这一部分就是在draw这一步实现的。View给我提供onDraw借口：</p>
+<pre><code>protected void <span class="function"><span class="title">onDraw</span><span class="params">(Canvas canvas)</span></span>
+</code></pre><p>在该接口中，提供了一个空的canvas供我们‘作画’。该canvas的大小以及位置取决于第一步中的measure。</p>
+<p>canvas提供了一系列方法来绘制各个形状以及颜色等。另外一个好消息是View提供了draw(Canvas)方法，而大部分的平台view，例如drawable，textlayout等都重写了该接口，所以在我们的自定义view的onDraw实现的时候，我们可以用系统view的draw方法来画相应的view。</p>
+<blockquote>
+<p>当我们要创建自定义的View的时候，onMeasure 和 onDraw是我们时常需要重写的两个重要接口。当然，如果你的view比较简单，或者你想在layout里面给你的view设置一个固定的值，那么只需要重写onDraw就可以了。</p>
+</blockquote>
+<p>另外，关于自己的绘制，View还提供了三个比较重要的方法：</p>
+<p>requestLayout：View重新调用一次layout过程。</p>
+<p>invalidate：View重新调用一次draw过程</p>
+<p>forceLayout：标识View在下一次重绘，需要重新调用layout过程。</p>
+<h2 id="View的自定义属性">View的自定义属性</h2><p>View已经有一些基本的属性，比如layout_width，layout_height，background等，我们往往需要定义自己的属性，那么具体可以这么做。</p>
+<p>在values文件夹下，打开attrs.xml，其实这个文件名称可以是任意的，写在这里更规范一点，表示里面放的全是view的属性。</p>
+<pre><code><span class="tag">&lt;<span class="title">resources</span>&gt;</span>
+       <span class="tag">&lt;<span class="title">declare-styleable</span> <span class="attribute">name</span>=<span class="value">"PieChart"</span>&gt;</span>
+       <span class="tag">&lt;<span class="title">attr</span> <span class="attribute">name</span>=<span class="value">"showText"</span> <span class="attribute">format</span>=<span class="value">"boolean"</span> /&gt;</span>
+       <span class="tag">&lt;<span class="title">attr</span> <span class="attribute">name</span>=<span class="value">"labelPosition"</span> <span class="attribute">format</span>=<span class="value">"enum"</span>&gt;</span>
+           <span class="tag">&lt;<span class="title">enum</span> <span class="attribute">name</span>=<span class="value">"left"</span> <span class="attribute">value</span>=<span class="value">"0"</span>/&gt;</span>
+           <span class="tag">&lt;<span class="title">enum</span> <span class="attribute">name</span>=<span class="value">"right"</span> <span class="attribute">value</span>=<span class="value">"1"</span>/&gt;</span>
+       <span class="tag">&lt;/<span class="title">attr</span>&gt;</span>
+       <span class="tag">&lt;/<span class="title">declare-styleable</span>&gt;</span>
+<span class="tag">&lt;/<span class="title">resources</span>&gt;</span>
+</code></pre><p>那么在自定义的view代码中如何读取并且使用这些自定义属性呢？</p>
+<pre><code><span class="function"><span class="keyword">public</span> <span class="title">PieChart</span><span class="params">(Context context, AttributeSet attrs)</span> </span>{
+       <span class="keyword">super</span>(context, attrs);
+       TypedArray a = context.getTheme().obtainStyledAttributes(
+        attrs,
+        R.styleable.PieChart,
+        <span class="number">0</span>, <span class="number">0</span>);
+
+       <span class="keyword">try</span> {
+          mShowText = a.getBoolean(R.styleable.PieChart_showText, <span class="keyword">false</span>);
+          mTextPos = a.getInteger(R.styleable.PieChart_labelPosition, <span class="number">0</span>);
+       } <span class="keyword">finally</span> {
+          a.recycle();
+       }
 }
-</code></pre><h2 id="后记">后记</h2><p>在了解了两级缓存的基本原理以及使用方法之后，接下来会通过一个具体的例子来演示如何在具体的项目中来使用二级缓存。</p>
-<h3 id="Reference">Reference</h3><p><a href="http://developer.android.com/training/displaying-bitmaps/cache-bitmap.html" target="_blank" rel="external">Displaying Bitmaps Efficiently</a></p>
+</code></pre><p>然后在用到自定义view的layout文件中设置属性：</p>
+<pre><code><span class="pi">&lt;?xml version="1.0" encoding="utf-8"?&gt;</span>
+<span class="tag">&lt;<span class="title">LinearLayout</span> <span class="attribute">xmlns:android</span>=<span class="value">"http://schemas.android.com/apk/res/android"</span>
+       <span class="attribute">xmlns:custom</span>=<span class="value">"http://schemas.android.com/apk/res／com.example.customviews"</span>&gt;</span>
+      <span class="tag">&lt;<span class="title">com.example.customviews.charting.PieChart</span>
+         <span class="attribute">custom:showText</span>=<span class="value">"true"</span>
+         <span class="attribute">custom:labelPosition</span>=<span class="value">"left"</span> /&gt;</span>
+<span class="tag">&lt;/<span class="title">LinearLayout</span>&gt;</span>
+</code></pre><h2 id="性能优化">性能优化</h2><p>在实现自定义的view的过程中，为了提供性能，需要注意以下几点：</p>
+<ul>
+<li>不要将大量的工作放在onDraw函数中。初始化工作需要提炼出来，放在初始化函数中。</li>
+<li>不要频繁触发onDraw函数，也就是避免不必要的invalidate调用。</li>
+<li>traversing layouts也是一个很耗时的操作。所以尽量减少自定义view(ViewGroup)的UI层次。</li>
+</ul>
+<h2 id="Reference">Reference</h2><ul>
+<li><p><a href="http://developer.android.com/guide/topics/ui/custom-components.html" target="_blank" rel="external">Custom Components</a></p>
+</li>
+<li><p><a href="http://developer.android.com/training/custom-views/custom-drawing.html" target="_blank" rel="external">creating custom views</a></p>
+</li>
+<li><a href="https://newcircle.com/s/post/1663/tutorial_enhancing_android_ui_with_custom_views_dave_smith_video" target="_blank" rel="external">Enhancing Android UI with Custom Views</a></li>
+<li><a href="http://www.jianshu.com/p/84cee705b0d3" target="_blank" rel="external">教你搞定Android自定义View</a></li>
+</ul>
 
       
     </div>
@@ -261,11 +313,11 @@ DiskLruCache.Snapshot snapShot = mDiskLruCache.<span class="built_in">get</span>
       
         <div class="post-tags">
           
-            <a href="/tags/android/"> #android </a>
+            <a href="/tags/Android/"> #Android </a>
           
-            <a href="/tags/cache/"> #cache </a>
+            <a href="/tags/custom-view/"> #custom view </a>
           
-            <a href="/tags/disk-cache/"> #disk cache </a>
+            <a href="/tags/viewgroup/"> #viewgroup </a>
           
         </div>
       
@@ -274,13 +326,11 @@ DiskLruCache.Snapshot snapShot = mDiskLruCache.<span class="built_in">get</span>
         <div class="post-nav">
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2015/07/01/2015-07-01-jni-register/">Andoid NDK编程 1 － 注册native函数</a>
-            
           </div>
 
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2015/06/18/2015-06-18-git-flow/">git branch实践总结</a>
+              <a href="/2015/08/05/2015-08-05-viewpager-animation/">Andoid ViewPager animation</a>
             
           </div>
         </div>
@@ -296,8 +346,8 @@ DiskLruCache.Snapshot snapShot = mDiskLruCache.<span class="built_in">get</span>
     
       <div class="comments" id="comments">
         
-          <div class="ds-thread" data-thread-key="2015/06/25/2015-06-25-android-disk-cache/"
-               data-title="Andoid Disk Cache" data-url="http://yishuihe.github.io/2015/06/25/2015-06-25-android-disk-cache/">
+          <div class="ds-thread" data-thread-key="2015/08/07/2015-08-07-custom-view/"
+               data-title="Andoid自定义view的创建" data-url="http://yishuihe.github.io/2015/08/07/2015-08-07-custom-view/">
           </div>
         
       </div>
@@ -397,7 +447,7 @@ DiskLruCache.Snapshot snapShot = mDiskLruCache.<span class="built_in">get</span>
           <div class="post-toc">
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#实现"><span class="nav-text">实现</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用"><span class="nav-text">使用</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#open"><span class="nav-text">open</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#写入缓存"><span class="nav-text">写入缓存</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#读取缓存"><span class="nav-text">读取缓存</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#移除缓存"><span class="nav-text">移除缓存</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#后记"><span class="nav-text">后记</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Reference"><span class="nav-text">Reference</span></a></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#引子"><span class="nav-text">引子</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#原理"><span class="nav-text">原理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#View的自定义属性"><span class="nav-text">View的自定义属性</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#性能优化"><span class="nav-text">性能优化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference"><span class="nav-text">Reference</span></a></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator"></div>

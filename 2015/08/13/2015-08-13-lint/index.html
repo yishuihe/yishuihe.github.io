@@ -18,7 +18,7 @@
 
 
 
-  <meta name="keywords" content="Android,jni,jni签名,ndk," />
+  <meta name="keywords" content="Android,lint," />
 
 
 
@@ -39,7 +39,7 @@
   </script>
 
 
-  <title> Andoid NDK编程 2 － JNI签名规则 // Zhixin Life@US </title>
+  <title> Andoid lint的使用 // Zhixin Life@US </title>
 </head>
 
 <body>
@@ -118,7 +118,7 @@
           
           
             
-              Andoid NDK编程 2 － JNI签名规则
+              Andoid lint的使用
             
           
         </h1>
@@ -126,7 +126,7 @@
 
       <div class="post-meta">
         <span class="post-time">
-          Posted on 2015-07-02
+          Posted on 2015-08-13
         </span>
 
         
@@ -146,8 +146,8 @@
           
             <span class="post-comments-count">
             &nbsp; | &nbsp;
-            <a href="/2015/07/02/2015-07-02-jni-rule/#comments" >
-              <span class="post-comments-count ds-thread-count" data-thread-key="2015/07/02/2015-07-02-jni-rule/"></span>
+            <a href="/2015/08/13/2015-08-13-lint/#comments" >
+              <span class="post-comments-count ds-thread-count" data-thread-key="2015/08/13/2015-08-13-lint/"></span>
             </a>
           </span>
           
@@ -161,173 +161,52 @@
       
 
       
-        <p>在<a href="http://zhixinliu.com/2015/07/01/2015-07-01-jni-register/" target="_blank" rel="external">上一篇文章</a>中我们探讨了如何注册JNI的native函数，分为静态和动态两种注册方法。而在讨论静态注册的时候提到了要注意由javah生成的native函数的签名。今天我们就来深入的看看其签名规则。</p>
+        <blockquote>
+<p>Lint的使用与配置</p>
+</blockquote>
 <a id="more"></a>
-<h2 id="JNI方法命名规则">JNI方法命名规则</h2><p>首先是JNI方法的命名规则，也就是用javah生成的native函数看起来是什么样子的？</p>
-<p>JNI方法名规范 :</p>
-<pre><code>返回值 + Java前缀 + 全路径类名 + 方法名 + 参数① JNIEnv + 参数② jobject + 其它参数;
-</code></pre><p>一些注意事项：</p>
-<ul>
-<li><p>注意分隔符 : Java前缀 与 类名 以及类名之间的包名 和 方法名之间 使用 “_” 进行分割;</p>
-</li>
-<li><p>如果在java中声明的是“静态”方法，则native方法也是static的。 否则不是。</p>
-</li>
-<li>如果你的jni的native方法不是通过‘静态注册’的方法声明的，则不需要符合此规范，可根据自己习惯随意命名。(关于‘静态注册’与‘动态注册’请参考<a href="http://zhixinliu.com/2015/07/01/2015-07-01-jni-register/" target="_blank" rel="external">上一篇文章</a>)</li>
+<h2 id="使用">使用</h2><p>Android studio默认已经集成了Lint，使用起来非常简单：</p>
+<pre><code><span class="constant">Analyze </span>-&gt; <span class="constant">Inspect Code</span>
+</code></pre><p>然后选择要检查的文件，或者整个project，或者某个module，或者某个文件。然后执行后，会在左下角出现检测到的问题列表，点击某个issue后，在右侧会出现具体的描述，以及潜在的解决方案。</p>
+<p>所以建议经常做lint检测，对我们的写代码能力的提高也很有帮助。</p>
+<h2 id="配置">配置</h2><p>在做lint检测的时候，检查哪些项目？某个具体的项目检测出来具体以warning的形式还是以error的形式呈现出来？这一系列的选择都是可以配置的：</p>
+<pre><code><span class="constant">File </span>-&gt; <span class="constant">Other </span>settings -&gt; <span class="constant">Default Settings </span>-&gt; <span class="constant">Editor </span>-&gt; <span class="constant">Code Style </span>-&gt; <span class="constant">Inspections</span>
+</code></pre><p>另外，可以在build.gradle里面做一些lint执行的相关配置，例如：</p>
+<pre><code>android {
+lintOptions {
+   // <span class="operator"><span class="keyword">set</span> <span class="keyword">to</span> <span class="literal">true</span> <span class="keyword">to</span> turn off analysis progress reporting <span class="keyword">by</span> lint
+   quiet <span class="literal">true</span>
+   // <span class="keyword">if</span> <span class="literal">true</span>, <span class="keyword">stop</span> the gradle build <span class="keyword">if</span> <span class="keyword">errors</span> <span class="keyword">are</span> <span class="keyword">found</span>
+   abortOnError <span class="literal">false</span>
+   // <span class="keyword">if</span> <span class="literal">true</span>, <span class="keyword">only</span> report <span class="keyword">errors</span>
+   ignoreWarnings <span class="literal">true</span>
+   }
+   ...
+}</span>
+</code></pre><h2 id="lint-xml">lint.xml</h2><p>当需要排除某些文件的lint的检测时，也就是为某些文件的某些lint问题申请赦免的时候，这个时候lint.xml就派上用场了，看看下面这个例子：</p>
+<pre><code><span class="pi">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</span>
+<span class="tag">&lt;<span class="title">lint</span>&gt;</span>
+    <span class="comment">&lt;!-- Disable the given check in this project --&gt;</span>
+    <span class="tag">&lt;<span class="title">issue</span> <span class="attribute">id</span>=<span class="value">"IconMissingDensityFolder"</span> <span class="attribute">severity</span>=<span class="value">"ignore"</span> /&gt;</span>
+
+    <span class="comment">&lt;!-- Ignore the ObsoleteLayoutParam issue in the specified files --&gt;</span>
+    <span class="tag">&lt;<span class="title">issue</span> <span class="attribute">id</span>=<span class="value">"ObsoleteLayoutParam"</span>&gt;</span>
+        <span class="tag">&lt;<span class="title">ignore</span> <span class="attribute">path</span>=<span class="value">"res/layout/activation.xml"</span> /&gt;</span>
+        <span class="tag">&lt;<span class="title">ignore</span> <span class="attribute">path</span>=<span class="value">"res/layout-xlarge/activation.xml"</span> /&gt;</span>
+        <span class="tag">&lt;/<span class="title">issue</span>&gt;</span>
+
+    <span class="comment">&lt;!-- Ignore the UselessLeaf issue in the specified file --&gt;</span>
+    <span class="tag">&lt;<span class="title">issue</span> <span class="attribute">id</span>=<span class="value">"UselessLeaf"</span>&gt;</span>
+        <span class="tag">&lt;<span class="title">ignore</span> <span class="attribute">path</span>=<span class="value">"res/layout/main.xml"</span> /&gt;</span>
+    <span class="tag">&lt;/<span class="title">issue</span>&gt;</span>
+
+    <span class="comment">&lt;!-- Change the severity of hardcoded strings to "error" --&gt;</span>
+    <span class="tag">&lt;<span class="title">issue</span> <span class="attribute">id</span>=<span class="value">"HardcodedText"</span> <span class="attribute">severity</span>=<span class="value">"error"</span> /&gt;</span>
+<span class="tag">&lt;/<span class="title">lint</span>&gt;</span>
+</code></pre><h2 id="Reference">Reference</h2><ul>
+<li><a href="https://www.youtube.com/watch?v=Z_huaXCsYyw&amp;list=PLWz5rJ2EKKc9CBxr3BVjPTPoDPLdPIFCE&amp;index=20" target="_blank" rel="external">Using LINT for Performance Tips </a></li>
+<li><a href="http://developer.android.com/tools/debugging/improving-w-lint.html" target="_blank" rel="external">Improving Your Code with lint</a></li>
 </ul>
-<h2 id="JNI方法签名规则">JNI方法签名规则</h2><p>当java层调用jni函数的时候，JNI是如何识别Java方法的呢？</p>
-<p>JNI依靠函数名和方法签名来识别方法, 函数名是不能唯一识别一个方法的, 因为方法可以重载, 类型签名包括了函数的参数和它的返回值;</p>
-<p>而JNI函数的具体签名规则是：</p>
-<pre><code><span class="comment">(参数1类型签名参数2类型签名参数3类型签名参数N类型签名...)</span>返回值类型签名
-</code></pre><p>注意参数列表中没有任何间隔。</p>
-<p>那么函数中的参数或者返回值类型在jni签名中该如何表示呢？请看下表：（注意 boolean 与 long 不是大写首字母, 分别是 Z 与 J,  类是L全限定类名, 数组是[元素类型签名，而其他类型则是其大写首字母）</p>
-<table>
-<thead>
-<tr>
-<th>字符</th>
-<th style="text-align:center">Java类型</th>
-<th style="text-align:right">C/C++类型</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>V</td>
-<td style="text-align:center">void</td>
-<td style="text-align:right">void</td>
-</tr>
-<tr>
-<td>Z</td>
-<td style="text-align:center">jboolean</td>
-<td style="text-align:right">boolean</td>
-</tr>
-<tr>
-<td>I</td>
-<td style="text-align:center">jint</td>
-<td style="text-align:right">int</td>
-</tr>
-<tr>
-<td>J</td>
-<td style="text-align:center">jlong</td>
-<td style="text-align:right">long</td>
-</tr>
-<tr>
-<td>D</td>
-<td style="text-align:center">jdouble</td>
-<td style="text-align:right">doube</td>
-</tr>
-<tr>
-<td>F</td>
-<td style="text-align:center">jfloat</td>
-<td style="text-align:right">float</td>
-</tr>
-<tr>
-<td>B</td>
-<td style="text-align:center">jbyte</td>
-<td style="text-align:right">byte</td>
-</tr>
-<tr>
-<td>C</td>
-<td style="text-align:center">jchar</td>
-<td style="text-align:right">char</td>
-</tr>
-<tr>
-<td>S</td>
-<td style="text-align:center">jshort</td>
-<td style="text-align:right">short</td>
-</tr>
-</tbody>
-</table>
-<p>数组则以”[“开始，用两个字符表示：</p>
-<table>
-<thead>
-<tr>
-<th>字符</th>
-<th style="text-align:center">Java类型</th>
-<th style="text-align:right">C/C++类型</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>[Z</td>
-<td style="text-align:center">jbooleanArray</td>
-<td style="text-align:right">boolean[]</td>
-</tr>
-<tr>
-<td>[I</td>
-<td style="text-align:center">jintArray</td>
-<td style="text-align:right">int[]</td>
-</tr>
-<tr>
-<td>[J</td>
-<td style="text-align:center">jlongArray</td>
-<td style="text-align:right">long[]</td>
-</tr>
-<tr>
-<td>[D</td>
-<td style="text-align:center">jdoubleArray</td>
-<td style="text-align:right">doube[]</td>
-</tr>
-<tr>
-<td>[F</td>
-<td style="text-align:center">jfloatArray</td>
-<td style="text-align:right">float[]</td>
-</tr>
-<tr>
-<td>[B</td>
-<td style="text-align:center">jbyteArray</td>
-<td style="text-align:right">byte[]</td>
-</tr>
-<tr>
-<td>[C</td>
-<td style="text-align:center">jcharArray</td>
-<td style="text-align:right">char[]</td>
-</tr>
-<tr>
-<td>[S</td>
-<td style="text-align:center">jshortArray</td>
-<td style="text-align:right">short[]</td>
-</tr>
-</tbody>
-</table>
-<p>上面的都是基本类型，如果参数是Java类，则以”L”开头，以”;”结尾，中间是用”/“隔开包及类名，而其对应的C函数的参数则为jobject，一个例外是String类，它对应C类型jstring，例如：Ljava/lang /String; 、Ljava/net/Socket; 等，如果JAVA函数位于一个嵌入类（也被称为内部类），则用$作为类名间的分隔符，例如：</p>
-<pre><code><span class="string">"Landroid/os/FileUtils<span class="variable">$FileStatus</span>;"</span>。
-</code></pre><p>注意事项：</p>
-<ul>
-<li><p>类的签名规则:L + 全限定名 + ;三部分, 全限定类名以 / 分割;</p>
-<p>  eg. long function(int n, String str, int[] arr);</p>
-<p> 该方法的签名: (ILjava/lang/String;[I)J</p>
-</li>
-</ul>
-<p>接下来我们看几个具体的例子，来对JNI的签名有个更为直观的认识。</p>
-<p>首先，在java代码中声明以下native函数：</p>
-<pre><code><span class="keyword">private</span> <span class="keyword">native</span> <span class="function"><span class="keyword">long</span> <span class="title">nativeFun1</span><span class="params">(<span class="keyword">long</span> arg1, <span class="keyword">int</span> arg2)</span></span>;
-<span class="keyword">private</span> <span class="keyword">native</span> <span class="function"><span class="keyword">boolean</span> <span class="title">nativeFun2</span><span class="params">(<span class="keyword">long</span> arg1, <span class="keyword">long</span> arg2)</span></span>;
-<span class="keyword">private</span> <span class="keyword">native</span> <span class="function"><span class="keyword">float</span> <span class="title">nativeFunc3</span><span class="params">(<span class="keyword">long</span> arg1, <span class="keyword">int</span> arg2, <span class="keyword">int</span> arg3, <span class="keyword">int</span> arg4)</span></span>;
-<span class="keyword">static</span> <span class="keyword">private</span> <span class="keyword">native</span> <span class="function"><span class="keyword">void</span>  <span class="title">nativeFun4</span><span class="params">(<span class="keyword">long</span> handle)</span></span>;
-<span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">native</span> <span class="function"><span class="keyword">long</span> <span class="title">nativeFunc5</span><span class="params">(<span class="keyword">long</span> arg1, ByteBuffer arg2)</span></span>;
-</code></pre><p>那么这些函数在JNI层的函数映射表中对应的签名如下：</p>
-<pre><code><span class="keyword">static</span> JNINativeMethod native_functions_table[] = {
-    {<span class="string">"nativeFun1"</span>, <span class="string">"(JI)J"</span>, (<span class="keyword">void</span>*)Jni_fun1 },
-    {<span class="string">"nativeFun2"</span>,<span class="string">"(J)V"</span>,  (<span class="keyword">void</span>*) Jni_fun2 },
-    {<span class="string">"nativeFun3"</span>,<span class="string">"(JIII)F"</span>,(<span class="keyword">void</span>*) Jni_fun3},
-    {<span class="string">"nativeFun4"</span>,<span class="string">"(J)V"</span>, (<span class="keyword">void</span>*) Jni_fun4 },
-    {<span class="string">"nativeFun5"</span>, <span class="string">"(JLjava/nio/ByteBuffer;)J"</span>, (<span class="keyword">void</span> *) Jni_fun5 }
-｝
-</code></pre><h2 id="JNI函数的参数">JNI函数的参数</h2><p>讲完了函数的签名规则，最后我们来看看函数里面的参数。</p>
-<p>细心的你可能已经从你的jni函数的参数里面发现了：每个函数的前两个参数都默认加上的，也就是即便你的java函数中声明的native函数没有参数，但是对应生成的jni函数里面也有两个参数：JNIEnv* 以及 jobject。接下来说一说这俩参数是做什么用的：</p>
-<ul>
-<li><p>JNIEnv: 该参数代表Java环境, 通过这个环境可以调用Java中的方法; 这些函数可以在jni.h中查询到,通过这些函数可以实现 Java层 与 JNI层的交互 , 通过JNIEnv 调用JNI函数 可以访问java虚拟机, 操作java对象;</p>
-</li>
-<li><p>jobject: 该参数代表调用jni方法的Java类或者对象, 如果Native方法是非静态的, 那么第这个参数就是对Java对象的引用, 如果Native方法是静态的, 那么这个参数就是对Java类的Class对象的引用;</p>
-</li>
-</ul>
-<p>另外关于JNIEnv，还有一些注意事项：</p>
-<ul>
-<li><p>JNI线程相关性 : JNIEnv只在当前的线程有效,JNIEnv不能跨线程传递, 相同的Java线程调用本地方法, 所使用的JNIEnv是相同的, 一个Native方法不能被不同的Java线程调用;</p>
-</li>
-<li><p>JNIEnv结构体系 : JNIEnv指针指向一个线程相关的结构,线程相关结构指向一个指针数组,指针数组中的每个元素最终指向一个JNI函数.</p>
-</li>
-</ul>
-<h2 id="后续">后续</h2><p>JNI的签名相关的内容就到了，接下来我们会继续学习JNI，讨论关于JNI与java交互的具体实现方法。</p>
 
       
     </div>
@@ -338,11 +217,7 @@
           
             <a href="/tags/Android/"> #Android </a>
           
-            <a href="/tags/jni/"> #jni </a>
-          
-            <a href="/tags/jni签名/"> #jni签名 </a>
-          
-            <a href="/tags/ndk/"> #ndk </a>
+            <a href="/tags/lint/"> #lint </a>
           
         </div>
       
@@ -351,13 +226,11 @@
         <div class="post-nav">
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2015/07/07/2015-07-07-clean-architecture/">整洁架构</a>
-            
           </div>
 
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2015/07/01/2015-07-01-jni-register/">Andoid NDK编程 1 － 注册native函数</a>
+              <a href="/2015/08/07/2015-08-07-custom-view/">Andoid自定义view的创建</a>
             
           </div>
         </div>
@@ -373,8 +246,8 @@
     
       <div class="comments" id="comments">
         
-          <div class="ds-thread" data-thread-key="2015/07/02/2015-07-02-jni-rule/"
-               data-title="Andoid NDK编程 2 － JNI签名规则" data-url="http://yishuihe.github.io/2015/07/02/2015-07-02-jni-rule/">
+          <div class="ds-thread" data-thread-key="2015/08/13/2015-08-13-lint/"
+               data-title="Andoid lint的使用" data-url="http://yishuihe.github.io/2015/08/13/2015-08-13-lint/">
           </div>
         
       </div>
@@ -474,7 +347,7 @@
           <div class="post-toc">
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#JNI方法命名规则"><span class="nav-text">JNI方法命名规则</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#JNI方法签名规则"><span class="nav-text">JNI方法签名规则</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#JNI函数的参数"><span class="nav-text">JNI函数的参数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#后续"><span class="nav-text">后续</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#使用"><span class="nav-text">使用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#配置"><span class="nav-text">配置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#lint-xml"><span class="nav-text">lint.xml</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference"><span class="nav-text">Reference</span></a></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator"></div>

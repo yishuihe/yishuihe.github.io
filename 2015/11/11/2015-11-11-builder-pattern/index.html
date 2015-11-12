@@ -18,7 +18,7 @@
 
 
 
-  <meta name="keywords" content="android,http," />
+  <meta name="keywords" content="android,builder,pattern," />
 
 
 
@@ -39,7 +39,7 @@
   </script>
 
 
-  <title> HttpClient Vs. HttpURLConnection // Zhixin Life@US </title>
+  <title> Builder模式在Android中的应用 // Zhixin Life@US </title>
 </head>
 
 <body>
@@ -118,7 +118,7 @@
           
           
             
-              HttpClient Vs. HttpURLConnection
+              Builder模式在Android中的应用
             
           
         </h1>
@@ -126,7 +126,7 @@
 
       <div class="post-meta">
         <span class="post-time">
-          Posted on 2015-06-09
+          Posted on 2015-11-11
         </span>
 
         
@@ -146,8 +146,8 @@
           
             <span class="post-comments-count">
             &nbsp; | &nbsp;
-            <a href="/2015/06/09/2015-06-09-httpclient-httpurlconnection/#comments" >
-              <span class="post-comments-count ds-thread-count" data-thread-key="2015/06/09/2015-06-09-httpclient-httpurlconnection/"></span>
+            <a href="/2015/11/11/2015-11-11-builder-pattern/#comments" >
+              <span class="post-comments-count ds-thread-count" data-thread-key="2015/11/11/2015-11-11-builder-pattern/"></span>
             </a>
           </span>
           
@@ -161,39 +161,130 @@
       
 
       
-        <p>Android SDK为我们提供了两个现成的Http客户端类：HttpClient以及HttpURLConnection，二者都提供了丰富的API，都能满足我们开发的需要，那么我们在使用的时候究竟该如何选择呢？</p>
+        <p>盘点Builder模式在Android中的应用。</p>
 <a id="more"></a>
-<h2 id="差异">差异</h2><p>HttpClient<br>DefaultHttpClient/AndroidHttpClient都是HttpClient具体的实现类，它们都拥有众多的API，而且实现比较稳定，bug数量也很少。但是，正所谓成也萧何，败也萧何，同样也正是因为HttpClient的API数量过多，使得我们很难在不破坏兼容性的情况下对它进行升级和扩展，所以导致Android团队在提升和优化HttpClient方面的工作并不是很活跃。</p>
-<p>HttpURLConnection<br>HttpURLConnection是一种多用途、轻量极的HTTP客户端，使用它来进行HTTP操作可以适用于大多数的应用程序。虽然HttpURLConnection的API提供的比较简单，但是同时这也使得Android团队可以更加容易地去使用和扩展它。不过在Android 2.2版本之前，HttpURLConnection一直存在着一些令人厌烦的bug。</p>
-<h2 id="选择">选择</h2><p>那么在具体的开发中我们究竟该如何选择呢？基于上述分析，我们不难得出结论：</p>
-<p>－ 在Android 2.2版本之前，HttpClient拥有较少的bug，因此使用它是最好的选择。</p>
-<p>－ 而在Android 2.3版本及以后，HttpURLConnection则是最佳的选择。它的API简单，体积较小，因而非常适用于Android项目。压缩和缓存机制可以有效地减少网络访问的流量，在提升速度和省电方面也起到了较大的作用。对于新的应用程序应该更加偏向于使用HttpURLConnection，因为在以后的工作当中Google Android团队也会将更多的时间放在优化HttpURLConnection上面。</p>
-<h3 id="一个例子：">一个例子：</h3><p>下面这段代码来自于Google的Volley library，实现了在做http连接的时候的选择策略：</p>
-<pre><code><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> RequestQueue <span class="title">newRequestQueue</span><span class="params">(Context context, HttpStack <span class="built_in">stack</span>)</span> </span>{
-    File cacheDir = <span class="keyword">new</span> File(context.getCacheDir(), DEFAULT_CACHE_DIR);
-    String userAgent = <span class="string">"volley/0"</span>;
-    <span class="keyword">try</span> {
-        String packageName = context.getPackageName();
-        PackageInfo info = context.getPackageManager().getPackageInfo(packageName, <span class="number">0</span>);
-        userAgent = packageName + <span class="string">"/"</span> + info.versionCode;
-    } <span class="keyword">catch</span> (NameNotFoundException e) {
-    }
-    <span class="keyword">if</span> (<span class="built_in">stack</span> == null) {
-        <span class="keyword">if</span> (Build.VERSION.SDK_INT &gt;= <span class="number">9</span>) {
-            <span class="built_in">stack</span> = <span class="keyword">new</span> HurlStack();
-        } <span class="keyword">else</span> {
-            <span class="built_in">stack</span> = <span class="keyword">new</span> HttpClientStack(AndroidHttpClient.newInstance(userAgent));
-        }
-    }
-    Network network = <span class="keyword">new</span> BasicNetwork(<span class="built_in">stack</span>);
-    RequestQueue <span class="built_in">queue</span> = <span class="keyword">new</span> RequestQueue(<span class="keyword">new</span> DiskBasedCache(cacheDir), network);
-    <span class="built_in">queue</span>.start();
-    <span class="keyword">return</span> <span class="built_in">queue</span>;
-} 
-</code></pre><p>这里会判断如果手机系统版本号是大于9（Android 2.3）的，则创建一个HurlStack的实例，否则就创建一个HttpClientStack的实例。实际上HurlStack的内部就是使用HttpURLConnection进行网络通讯的，而HttpClientStack的内部则是使用HttpClient进行网络通讯的。</p>
-<h2 id="Reference">Reference</h2><ul>
-<li><a href="http://android-developers.blogspot.com/2011/09/androids-http-clients.html" target="_blank" rel="external">android blog</a></li>
+<h2 id="Builder_Pattern_Review">Builder Pattern Review</h2><p>Builder模式用来将一个复杂对象的构建与它的表示分离，使得同样的构建过程可以创建不同的表示。</p>
+<p>值得注意的是，这个构建的过程是统一的、固定不变的，变化的部分放到生成器部分了，只要配置不同的生成器，那么同样的构建过程，就能构建出不同的产品来。</p>
+<h3 id="Pattern架构">Pattern架构</h3><p><img src="/images/2015-11-11-Builder.jpg" alt=" "></p>
+<ul>
+<li>Builder：生成器接口，定义创建一个Product对象所需要的各个部件的操作。</li>
+<li>ConcreteBuilder：具体的生成器实现，实现各个部件的创建，并负责组装Product对象的各个部件，同时还提供一个让用户获取组装完成后的产品对象的方法。</li>
+<li>Director：指导者，也被称导向者，主要用来使用Builder接口，以一个统一的过程来构建所需要的Product对象。</li>
+<li>Product：产品，表示被生成器构建的复杂对象，包含多个部件。</li>
 </ul>
+<h3 id="生成器模式的优点">生成器模式的优点</h3><ul>
+<li><p>松散耦合: 生成器模式可以用同一个构建算法构建出表现上完全不同的产品，实现产品构建和产品表现上的分离。生成器模式正是把产品构建的过程独立出来，使它和具体产品的表现分松散耦合，从而使得构建算法可以复用，而具体产品表现也可以很灵活地、方便地扩展和切换。</p>
+</li>
+<li><p>可以很容易的改变产品的内部表示: 在生成器模式中，由于Builder对象只是提供接口给Director使用，那么具体部件创建和装配方式是被Builder接口隐藏了的，Director并不知道这些具体的实现细节。这样一来，要想改变产品的内部表示，只需要切换Builder接口的具体实现即可，不用管Director，因此变得很容易。</p>
+</li>
+<li><p>更好的复用性: 生成器模式很好的实现构建算法和具体产品实现的分离。这样一来，使得构建产品的算法可以复用。同样的道理，具体产品的实现也可以复用，同一个产品的实现，可以配合不同的构建算法使用。</p>
+</li>
+</ul>
+<h2 id="该在什么场景下用Builder？">该在什么场景下用Builder？</h2><p>当构造一个对象需要很多参数的时候，并且参数的个数或者类型不固定的时候，Builder是一个很好的选择。例如考虑下面这个例子：</p>
+<p><a href="http://stackoverflow.com/questions/328496/when-would-you-use-the-builder-pattern" target="_blank" rel="external">http://stackoverflow.com/questions/328496/when-would-you-use-the-builder-pattern</a></p>
+<p>对于这样的类，应该用哪种构造器或者静态方法来编写呢？通常的方法是采用重叠构造器模式(telescoping constructor)。在这种模式下，你提供第一个挚友必要参数的构造器，第二个构造函数加一个可选参数，第二个加两个。。。以此类推。最后一个构造函数包含所有的可选参数。</p>
+<pre><code>Pizza(<span class="keyword">int</span> <span class="keyword">size</span>) { ... }        
+Pizza(<span class="keyword">int</span> <span class="keyword">size</span>, <span class="keyword">boolean</span> cheese) { ... }    
+Pizza(<span class="keyword">int</span> <span class="keyword">size</span>, <span class="keyword">boolean</span> cheese, <span class="keyword">boolean</span> pepperoni) { ... }    
+Pizza(<span class="keyword">int</span> <span class="keyword">size</span>, <span class="keyword">boolean</span> cheese, <span class="keyword">boolean</span> pepperoni, <span class="keyword">boolean</span> bacon) { ... }
+</code></pre><p>当参数比较多的时候，这种方法会显得很乱，而且一不小心弄反两个参数的顺序，而这两个参数巧合类型相同，那么产生的错误很难发现。一种可以替代的方法是采用JavaBean模式。调用一个无参数的构造来创建对象，然后调用setter函数来设置必要的参数：</p>
+<pre><code>Pizza pizza = <span class="keyword">new</span> Pizza(<span class="number">12</span>);
+pizza.setCheese(<span class="literal">true</span>);
+pizza.setPepperoni(<span class="literal">true</span>);
+pizza.setBacon(<span class="literal">true</span>);
+</code></pre><p>但是这种方法也有问题：由于构造过程分在了几个调用中，在构造过程中JavaBean可能处于不一致的状态，类无法仅仅通过检验构造器参数的有效性来保证一致性。</p>
+<p>幸运的是，我们有第三种方法 －－ Builder：</p>
+<pre><code><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Pizza</span> </span>{
+  <span class="keyword">private</span> <span class="keyword">int</span> size;
+  <span class="keyword">private</span> <span class="keyword">boolean</span> cheese;
+   <span class="keyword">private</span> <span class="keyword">boolean</span> pepperoni;
+   <span class="keyword">private</span> <span class="keyword">boolean</span> bacon;
+
+    <span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Builder</span> </span>{
+       <span class="comment">//required</span>
+      <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">int</span> size;
+
+      <span class="comment">//optional</span>
+       <span class="keyword">private</span> <span class="keyword">boolean</span> cheese = <span class="keyword">false</span>;
+      <span class="keyword">private</span> <span class="keyword">boolean</span> pepperoni = <span class="keyword">false</span>;
+         <span class="keyword">private</span> <span class="keyword">boolean</span> bacon = <span class="keyword">false</span>;
+
+      <span class="function"><span class="keyword">public</span> <span class="title">Builder</span><span class="params">(<span class="keyword">int</span> size)</span> </span>{
+         <span class="keyword">this</span>.size = size;
+         }
+
+      <span class="function"><span class="keyword">public</span> Builder <span class="title">cheese</span><span class="params">(<span class="keyword">boolean</span> value)</span> </span>{
+            cheese = value;
+            <span class="keyword">return</span> <span class="keyword">this</span>;
+      }
+
+      <span class="function"><span class="keyword">public</span> Builder <span class="title">pepperoni</span><span class="params">(<span class="keyword">boolean</span> value)</span> </span>{
+            pepperoni = value;
+            <span class="keyword">return</span> <span class="keyword">this</span>;
+      }
+
+      <span class="function"><span class="keyword">public</span> Builder <span class="title">bacon</span><span class="params">(<span class="keyword">boolean</span> value)</span> </span>{
+            bacon = value;
+            <span class="keyword">return</span> <span class="keyword">this</span>;
+      }
+
+         <span class="function"><span class="keyword">public</span> Pizza <span class="title">build</span><span class="params">()</span> </span>{
+          <span class="keyword">return</span> <span class="keyword">new</span> Pizza(<span class="keyword">this</span>);
+         }
+  }
+
+  <span class="function"><span class="keyword">private</span> <span class="title">Pizza</span><span class="params">(Builder builder)</span> </span>{
+      size = builder.size;
+      cheese = builder.cheese;
+         pepperoni = builder.pepperoni;
+      bacon = builder.bacon;
+     }
+}
+</code></pre><p>Note that Pizza is immutable and that parameter values are all in a single location. Because the Builder’s setter methods return the Builder object they are able to be chained.</p>
+<p>现在Pizza变得immutable，因为所有的参数都存放在了一个单独的地方builder之中，并且Builder所有的setter方法都返回一个Builder对象，这样我们就可以进行链式调用了，如下：</p>
+<pre><code><span class="type">Pizza</span> pizza = <span class="keyword">new</span> <span class="type">Pizza</span>.<span class="type">Builder</span>(<span class="number">12</span>)
+                   .cheese(<span class="literal">true</span>)
+                   .pepperoni(<span class="literal">true</span>)
+                   .bacon(<span class="literal">true</span>)
+                   .build<span class="literal">()</span>;
+</code></pre><p>这样的代码变的易写易读，而且容易理解。而且这种模式非常灵活，可以很简单的应对参数的增减。</p>
+<h2 id="Builder模式在Android中的应用">Builder模式在Android中的应用</h2><p>翻看Android系统的源码，会发现Builder模式出现了很多次。比较典型的一个就是我们常用的AlertDialog.Builder, 其用法如下：</p>
+<p>AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(<br>                context);</p>
+<pre><code><span class="comment">// set title</span>
+alertDialogBuilder.setTitle(<span class="string">"Your Title"</span>);
+
+<span class="comment">// set dialog message</span>
+alertDialogBuilder
+    .setMessage(<span class="string">"Click yes to exit!"</span>)
+    .setCancelable(<span class="keyword">false</span>)
+    .setPositiveButton(<span class="string">"Yes"</span>,<span class="keyword">new</span> DialogInterface.OnClickListener() {
+        <span class="keyword">public</span> <span class="function"><span class="keyword">void</span> <span class="title">onClick</span><span class="params">(DialogInterface dialog,<span class="keyword">int</span> id)</span> </span>{
+            <span class="comment">// if this button is clicked, close</span>
+            <span class="comment">// current activity</span>
+            MainActivity.<span class="keyword">this</span>.finish();
+        }
+      })
+    .setNegativeButton(<span class="string">"No"</span>,<span class="keyword">new</span> DialogInterface.OnClickListener() {
+        <span class="keyword">public</span> <span class="function"><span class="keyword">void</span> <span class="title">onClick</span><span class="params">(DialogInterface dialog,<span class="keyword">int</span> id)</span> </span>{
+            <span class="comment">// if this button is clicked, just close</span>
+            <span class="comment">// the dialog box and do nothing</span>
+            dialog.cancel();
+        }
+    });
+
+    <span class="comment">// create alert dialog</span>
+    AlertDialog alertDialog = alertDialogBuilder.create();
+
+    <span class="comment">// show it</span>
+    alertDialog.show();
+ }
+});
+</code></pre><p>进一步查看AlertDialog的源码，会发现其实现方式和我们上面用Builder模式实现的Pizza类完全一致。</p>
+<p>另外，Android源码中，类似的Builder类还有很多，比如：</p>
+<pre><code><span class="built_in">Uri</span>.Builder; 
+Notification.Builder;
+ContentProviderOperation.Builder;
+</code></pre><p>等等，有兴趣的话可以去翻看源码。</p>
 
       
     </div>
@@ -204,7 +295,9 @@
           
             <a href="/tags/android/"> #android </a>
           
-            <a href="/tags/http/"> #http </a>
+            <a href="/tags/builder/"> #builder </a>
+          
+            <a href="/tags/pattern/"> #pattern </a>
           
         </div>
       
@@ -213,13 +306,11 @@
         <div class="post-nav">
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2015/06/16/2015-06-16-english-intonation/">英语语调笔记</a>
-            
           </div>
 
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2015/06/04/2015-06-04-SFO-summer/">最冷的冬天</a>
+              <a href="/2015/11/06/2015-11_06_android_traceview/">Android应用性能检测工具之CPU篇</a>
             
           </div>
         </div>
@@ -235,8 +326,8 @@
     
       <div class="comments" id="comments">
         
-          <div class="ds-thread" data-thread-key="2015/06/09/2015-06-09-httpclient-httpurlconnection/"
-               data-title="HttpClient Vs. HttpURLConnection" data-url="http://yishuihe.github.io/2015/06/09/2015-06-09-httpclient-httpurlconnection/">
+          <div class="ds-thread" data-thread-key="2015/11/11/2015-11-11-builder-pattern/"
+               data-title="Builder模式在Android中的应用" data-url="http://yishuihe.github.io/2015/11/11/2015-11-11-builder-pattern/">
           </div>
         
       </div>
@@ -336,7 +427,7 @@
           <div class="post-toc">
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#差异"><span class="nav-text">差异</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#选择"><span class="nav-text">选择</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#一个例子："><span class="nav-text">一个例子：</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference"><span class="nav-text">Reference</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Builder_Pattern_Review"><span class="nav-text">Builder Pattern Review</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Pattern架构"><span class="nav-text">Pattern架构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#生成器模式的优点"><span class="nav-text">生成器模式的优点</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#该在什么场景下用Builder？"><span class="nav-text">该在什么场景下用Builder？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Builder模式在Android中的应用"><span class="nav-text">Builder模式在Android中的应用</span></a></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator"></div>

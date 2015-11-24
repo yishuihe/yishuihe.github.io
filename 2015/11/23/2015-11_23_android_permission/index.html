@@ -18,7 +18,7 @@
 
 
 
-  <meta name="keywords" content="android,http," />
+  <meta name="keywords" content="Android,permission," />
 
 
 
@@ -39,7 +39,7 @@
   </script>
 
 
-  <title> HttpClient Vs. HttpURLConnection // Zhixin Life@US </title>
+  <title> Android permissions最佳实践 // Zhixin Life@US </title>
 </head>
 
 <body>
@@ -118,7 +118,7 @@
           
           
             
-              HttpClient Vs. HttpURLConnection
+              Android permissions最佳实践
             
           
         </h1>
@@ -126,7 +126,7 @@
 
       <div class="post-meta">
         <span class="post-time">
-          Posted on 2015-06-09
+          Posted on 2015-11-23
         </span>
 
         
@@ -146,8 +146,8 @@
           
             <span class="post-comments-count">
             &nbsp; | &nbsp;
-            <a href="/2015/06/09/2015-06-09-httpclient-httpurlconnection/#comments" >
-              <span class="post-comments-count ds-thread-count" data-thread-key="2015/06/09/2015-06-09-httpclient-httpurlconnection/"></span>
+            <a href="/2015/11/23/2015-11_23_android_permission/#comments" >
+              <span class="post-comments-count ds-thread-count" data-thread-key="2015/11/23/2015-11_23_android_permission/"></span>
             </a>
           </span>
           
@@ -161,38 +161,67 @@
       
 
       
-        <p>Android SDK为我们提供了两个现成的Http客户端类：HttpClient以及HttpURLConnection，二者都提供了丰富的API，都能满足我们开发的需要，那么我们在使用的时候究竟该如何选择呢？</p>
-<a id="more"></a>
-<h2 id="差异">差异</h2><p>HttpClient<br>DefaultHttpClient/AndroidHttpClient都是HttpClient具体的实现类，它们都拥有众多的API，而且实现比较稳定，bug数量也很少。但是，正所谓成也萧何，败也萧何，同样也正是因为HttpClient的API数量过多，使得我们很难在不破坏兼容性的情况下对它进行升级和扩展，所以导致Android团队在提升和优化HttpClient方面的工作并不是很活跃。</p>
-<p>HttpURLConnection<br>HttpURLConnection是一种多用途、轻量极的HTTP客户端，使用它来进行HTTP操作可以适用于大多数的应用程序。虽然HttpURLConnection的API提供的比较简单，但是同时这也使得Android团队可以更加容易地去使用和扩展它。不过在Android 2.2版本之前，HttpURLConnection一直存在着一些令人厌烦的bug。</p>
-<h2 id="选择">选择</h2><p>那么在具体的开发中我们究竟该如何选择呢？基于上述分析，我们不难得出结论：</p>
-<p>－ 在Android 2.2版本之前，HttpClient拥有较少的bug，因此使用它是最好的选择。</p>
-<p>－ 而在Android 2.3版本及以后，HttpURLConnection则是最佳的选择。它的API简单，体积较小，因而非常适用于Android项目。压缩和缓存机制可以有效地减少网络访问的流量，在提升速度和省电方面也起到了较大的作用。对于新的应用程序应该更加偏向于使用HttpURLConnection，因为在以后的工作当中Google Android团队也会将更多的时间放在优化HttpURLConnection上面。</p>
-<h3 id="一个例子：">一个例子：</h3><p>下面这段代码来自于Google的Volley library，实现了在做http连接的时候的选择策略：</p>
-<pre><code><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> RequestQueue <span class="title">newRequestQueue</span><span class="params">(Context context, HttpStack <span class="built_in">stack</span>)</span> </span>{
-    File cacheDir = <span class="keyword">new</span> File(context.getCacheDir(), DEFAULT_CACHE_DIR);
-    String userAgent = <span class="string">"volley/0"</span>;
-    <span class="keyword">try</span> {
-        String packageName = context.getPackageName();
-        PackageInfo info = context.getPackageManager().getPackageInfo(packageName, <span class="number">0</span>);
-        userAgent = packageName + <span class="string">"/"</span> + info.versionCode;
-    } <span class="keyword">catch</span> (NameNotFoundException e) {
-    }
-    <span class="keyword">if</span> (<span class="built_in">stack</span> == null) {
-        <span class="keyword">if</span> (Build.VERSION.SDK_INT &gt;= <span class="number">9</span>) {
-            <span class="built_in">stack</span> = <span class="keyword">new</span> HurlStack();
-        } <span class="keyword">else</span> {
-            <span class="built_in">stack</span> = <span class="keyword">new</span> HttpClientStack(AndroidHttpClient.newInstance(userAgent));
-        }
-    }
-    Network network = <span class="keyword">new</span> BasicNetwork(<span class="built_in">stack</span>);
-    RequestQueue <span class="built_in">queue</span> = <span class="keyword">new</span> RequestQueue(<span class="keyword">new</span> DiskBasedCache(cacheDir), network);
-    <span class="built_in">queue</span>.start();
-    <span class="keyword">return</span> <span class="built_in">queue</span>;
-} 
-</code></pre><p>这里会判断如果手机系统版本号是大于9（Android 2.3）的，则创建一个HurlStack的实例，否则就创建一个HttpClientStack的实例。实际上HurlStack的内部就是使用HttpURLConnection进行网络通讯的，而HttpClientStack的内部则是使用HttpClient进行网络通讯的。</p>
+        <p>Android M中的permission介绍以及最佳实践。<br><a id="more"></a></p>
+<p>众所周知，Android Mashmallow重新设计了应用的permission机制，在安装apk的时候，不再显示应用所需要申请的permission，取而代之的是在应用运行期间用到某个permission的时候再向用户申请，用户可以授权或者拒绝，所以对于开发者来说在开发应用的时候需要格外注意。这篇文章算是一篇实践建议，大部分内容来自于Android dev summit的lecture。</p>
+<h2 id="Permission申请的UX设计">Permission申请的UX设计</h2><p>首先来看看permission的UX设计，根据permission对于应用的重要程度，以及紧密程度，我们可以将pemission大致分为4个pattern，如下图：</p>
+<p><img src="/images/201511_ask_for_permission.png" alt=" "></p>
+<p>其中pattern 1&amp;2是对于应用比较重要的permission，例如CAMERA permission对于一个Camera应用来说就是非常重要的。Pattern 2&amp;3是很容易让用户理解的permission，例如给camera应用申请camera permission，或者CALL_PHONE之与打电话的应用。</p>
+<p>那么针对不同类型的permission，我们该如何设计申请permission的UX呢？</p>
+<p>Pattern 1: 由于其及其重要但是用户又很难理解，所以建议尽早的让用户明了其重要性，例如在welcome的页面中给用户相关信息。我们称之为‘educate up-front’。</p>
+<p>Pattern 2: 非常重要而且又易于理解，所以采用‘ask up-front‘策略，可以程序第一次启动时就进行申请。</p>
+<p>Pattern 3: 对于这种显而易见但又不是很重要的权限，可以“Ask in Context”，也就是在用到的时候再去申请。</p>
+<p>Pattern 4: 不是重要而且用户难以理解的权限，可以采用‘educate in Context’的策略。也就是在用到的时候先向用户展示该permission的含义以及为什么你的应用需要它，然后再去申请，避免用户直接拒绝授权。Android提供了一个API用来给用户该permission的含义：</p>
+<pre><code><span class="function"><span class="title">shouldShowRequestPermissionRationale</span><span class="params">(Activity activity, String permission)</span></span>
+</code></pre><h2 id="Permission_API">Permission API</h2><p>以下是申请permission时可能用到的api：</p>
+<pre><code>int Context<span class="variable">#checkSelfPermission</span>(Sring);
+<span class="literal">void</span> Activity/Fragment<span class="variable">#requestPermissions</span>(<span class="attribute">...</span>);
+<span class="literal">void</span> Activity/Fragment<span class="variable">#onRequestPermissoinResult</span>(<span class="attribute">...</span>);
+<span class="built_in">boolean</span> Activity/Fragment<span class="variable">#shouldShowRequestPermissionRationale</span>(<span class="attribute">...</span>);
+<span class="built_in">boolean</span> PackageManager<span class="variable">#isPermissionRevokedByPolicy</span>(<span class="attribute">...</span>);
+</code></pre><p>下面的代码是一个申请permission的典型模式：</p>
+<p><img src="/images/201511_request_permission.png" alt=" "></p>
+<h3 id="command_line_tool数据">command line tool数据</h3><p>除了上面提到的API之外，Android提供了一些adb shell命令来操纵permission：</p>
+<ul>
+<li><p>应用运行期间授权或者取消授权</p>
+<pre><code>adb shell pm grant/revoke my<span class="class">.package</span><span class="class">.name</span> some<span class="class">.permission</span><span class="class">.name</span>
+</code></pre></li>
+</ul>
+<ul>
+<li><p>在安装apk的时候将用到的所有的permission都进行授权</p>
+<pre><code>adb shell install -g com<span class="class">.package</span><span class="class">.name</span>
+</code></pre></li>
+<li><p>Dump应用的permission授权状态</p>
+<pre><code>adb shell dumpsys <span class="keyword">package</span> <span class="keyword">my</span>.<span class="keyword">package</span>.name
+</code></pre></li>
+</ul>
+<h3 id="尽量减少permission的使用">尽量减少permission的使用</h3><p>实现应用的某些功能，有些时候我们不是必须要通过申请permission进而调用相应的api来实现。看了以下几个例子相信你就会心中有数：</p>
+<ul>
+<li>READ_PHONE_STATUE</li>
+</ul>
+<p>大多数的时候，在应用中申请这个权限主要是想的到手机的IMEI进而用来区别不同的设备。事实上这样做是有风险的，比如有些设备本身就没有IMEI号。另外从减少permission申请的角度来说，我们还有其他的方法可以实现该功能，比如使用java的UUID或者<a href="https://developers.google.com/instance-id" target="_blank" rel="external">instance id</a>。</p>
+<p>另外，如果你申请READ_PHONE_STATUE是用来管理应用的license，建议你可以使用google的license，详情可以<a href="http://developer.android.com/google/play/licensing" target="_blank" rel="external">看看这里</a>.</p>
+<ul>
+<li>CAMERA</li>
+</ul>
+<p>如果只是想在你的应用中拍一张照片或者视频可以使用intent MediaStore.ACTION_IMAGE_CAPTUE, MediaStore.ACTION_VIDEO_CAPTURE，从而不用申请CAMERA permission。</p>
+<ul>
+<li>CALL_PHONE</li>
+</ul>
+<p>这也是一个可以避免申请的permission就是CALL_PHONE，我们可以避免直接使用intent.ACTION_DIAL, 而用Intent.ACTION_DIAL来代替。</p>
+<ul>
+<li>READ_CONTACT WRITE_CONTACT</li>
+</ul>
+<p>可以分别使用Intent ACTION_PICK以及SHOW_OR_CREATE_CONTACT来代替。</p>
+<h3 id="总结">总结</h3><p>在基于Android Mashmallow开发应用的时候，关于permission时刻记住以下几点：</p>
+<ul>
+<li>使用permission相关的API时先检查是否用户已经授权了该permission</li>
+<li>根据permisson的重要性以及用户的接纳认可的不同，采取不同的申请策略。</li>
+<li>申请permission后，要检查callback结果，看用户是否已经授权。</li>
+<li>Permission很强大，但是现在用户有权来拒绝授权给你了。</li>
+<li>尽量避免申请不必要的permission，要考虑是否有替代策略。</li>
+</ul>
 <h2 id="Reference">Reference</h2><ul>
-<li><a href="http://android-developers.blogspot.com/2011/09/androids-http-clients.html" target="_blank" rel="external">android blog</a></li>
+<li><a href="https://www.youtube.com/watch?v=YYin_N6xXxQ" target="_blank" rel="external">Android Dev Summit</a></li>
 </ul>
 
       
@@ -202,9 +231,9 @@
       
         <div class="post-tags">
           
-            <a href="/tags/android/"> #android </a>
+            <a href="/tags/Android/"> #Android </a>
           
-            <a href="/tags/http/"> #http </a>
+            <a href="/tags/permission/"> #permission </a>
           
         </div>
       
@@ -213,13 +242,11 @@
         <div class="post-nav">
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2015/06/16/2015-06-16-english-intonation/">英语语调笔记</a>
-            
           </div>
 
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2015/06/04/2015-06-04-SFO-summer/">最冷的冬天</a>
+              <a href="/2015/11/11/2015-11-11-builder-pattern/">Builder模式在Android中的应用</a>
             
           </div>
         </div>
@@ -235,8 +262,8 @@
     
       <div class="comments" id="comments">
         
-          <div class="ds-thread" data-thread-key="2015/06/09/2015-06-09-httpclient-httpurlconnection/"
-               data-title="HttpClient Vs. HttpURLConnection" data-url="http://yishuihe.github.io/2015/06/09/2015-06-09-httpclient-httpurlconnection/">
+          <div class="ds-thread" data-thread-key="2015/11/23/2015-11_23_android_permission/"
+               data-title="Android permissions最佳实践" data-url="http://yishuihe.github.io/2015/11/23/2015-11_23_android_permission/">
           </div>
         
       </div>
@@ -336,7 +363,7 @@
           <div class="post-toc">
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#差异"><span class="nav-text">差异</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#选择"><span class="nav-text">选择</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#一个例子："><span class="nav-text">一个例子：</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference"><span class="nav-text">Reference</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Permission申请的UX设计"><span class="nav-text">Permission申请的UX设计</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Permission_API"><span class="nav-text">Permission API</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#command_line_tool数据"><span class="nav-text">command line tool数据</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#尽量减少permission的使用"><span class="nav-text">尽量减少permission的使用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#总结"><span class="nav-text">总结</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference"><span class="nav-text">Reference</span></a></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator"></div>

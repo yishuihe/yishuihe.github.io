@@ -1,0 +1,872 @@
+<!doctype html>
+<html class="theme-next  theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.2"/>
+
+
+
+
+  <meta name="keywords" content="java, thread, sychronized," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.2" />
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?7c4928b8493b1f6aa6ce268029b94e99";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  <title> Java线程同步 - synchronized机制 // Zhixin Life@US </title>
+</head>
+
+<body>
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <div id="header" class="header">
+      <div class="header-inner">
+        <h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand">
+      <span class="logo">
+        <i class="icon-logo"></i>
+      </span>
+      <span class="site-title">Zhixin Life@US</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+
+  <ul id="menu" class="menu">
+     
+    
+      
+      <li class="menu-item menu-item-home">
+        <a href="/">
+          <i class="menu-item-icon icon-home"></i> <br />
+          Home
+        </a>
+      </li>
+    
+      
+      <li class="menu-item menu-item-archives">
+        <a href="/archives">
+          <i class="menu-item-icon icon-archives"></i> <br />
+          Archives
+        </a>
+      </li>
+    
+      
+      <li class="menu-item menu-item-tags">
+        <a href="/tags">
+          <i class="menu-item-icon icon-tags"></i> <br />
+          Tags
+        </a>
+      </li>
+    
+      
+      <li class="menu-item menu-item-about">
+        <a href="/about">
+          <i class="menu-item-icon icon-about"></i> <br />
+          About
+        </a>
+      </li>
+    
+  </ul>
+
+
+      </div>
+    </div>
+
+    <div id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content">
+          
+
+  <div id="posts" class="posts-expand">
+    
+
+  <div class="post post-type-normal ">
+    <div class="post-header">
+
+      
+      
+        <h1 class="post-title">
+          
+          
+            
+              Java线程同步 - synchronized机制
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          Posted on 2015-12-12
+        </span>
+
+        
+          <span class="post-category">
+            &nbsp; | &nbsp; In
+            
+              <a href="/categories/blog/">blog</a>
+
+              
+              
+
+            
+          </span>
+        
+
+        
+          
+            <span class="post-comments-count">
+            &nbsp; | &nbsp;
+            <a href="/2015/12/11/2015-12-11-java-synchronized/#comments" >
+              <span class="post-comments-count ds-thread-count" data-thread-key="2015/12/11/2015-12-11-java-synchronized/"></span>
+            </a>
+          </span>
+          
+        
+      </div>
+    </div>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <p>在JDK5之前，Java的多线程(包括它的性能)一直是个软肋，只有synchronized、Thread.sleep()、Object.wait/notify这样有限的方法，而synchronized的效率还特别地低，开销比较大。JDK5在多线程上有了彻底的提高，其引进了并发编程大师Doug Lea的java.util.concurrent包，支持了现代CPU的CAS原语，不仅在性能上有了很大提升，在自由度上也有了更多的选择，此时J.U.C的效率在高并发环境下的效率远优于synchronized。但JDK6中对synchronized的内在机制做了大量显著的优化，加入了CAS的概念以及偏向锁、轻量级锁，使得synchronized的效率与J.U.C不相上下，并且官方说后面该关键字还有继续优化的空间，所以在现在JDK7的时代，synchronized已经成为一般情况下的首选，在某些特殊场景——如可中断的锁、条件锁、等待获得锁一段时间如果失败则停止——下，J.U.C是适用的，所以对于多线程研究来说，了解其原理以及各自的适用场景是必要的。</p>
+<p>所以现在的状况是两者效率相差无几，而synchronized使用更简单、更不容易出错，所以其是专家组推荐的首选，除非需要用到J.U.C的特殊功能(可以参考我的<a href="http://zhixinliu.com/2015/12/08/2015-12_08_java_blocking_queue/" target="_blank" rel="external">上一篇文章</a>)。</p>
+<p>既然这样，那么我们就一起来看一下synchronized机制的一些要点。</p>
+<a id="more"></a>
+<p>首先需要明确的是Java中的多线程同步是通过锁的概念来体现。锁不是一个对象、不是一个具体的东西，而是一种机制的名称。锁机制需要保证如下两种特性：</p>
+<ul>
+<li><p>互斥性：即在同一时间只允许一个线程持有某个对象锁，通过这种特性来实现多线程中的协调机制，这样在同一时间只有一个线程对需同步的代码块(复合操作)进行访问。互斥性我们也往往称为操作的原子性。</p>
+</li>
+<li><p>可见性：必须确保在锁被释放之前，对共享变量所做的修改，对于随后获得该锁的另一个线程是可见的(即在获得锁时应获得最新共享变量的值)，否则另一个线程可能是在本地缓存的某个副本上继续操作从而引起不一致。</p>
+</li>
+</ul>
+<h2 id="基本概念及方法">基本概念及方法</h2><p>下面谈一谈sychronized机制下的一些常用的方法:</p>
+<pre><code><span class="function">wait</span>()是使持有对象锁的线程释放锁;
+<span class="function">wait</span>(long)是使持有对象锁的线程释放锁时间为<span class="function">long</span>(毫秒)后,再次获得锁,<span class="function">wait</span>()和<span class="function">wait</span>(0)等价;
+<span class="function">notify</span>()是唤醒一个正在等待该对象锁的线程,如果等待的线程不止一个,那么被唤醒的线程由jvm确定;
+notifyAll是唤醒所有正在等待该对象锁的线程.
+
+对于上述方法,只有在当前线程中才能使用,否则报运行时错误java<span class="class">.lang</span><span class="class">.IllegalMonitorStateException</span><span class="value">: current thread not owner.</span>
+</code></pre><p>另外还有一个关键字：sychronized:</p>
+<p>synchronized(b){…}；的意思是定义一个同步块,使用b作为资源锁。b.wait();的意思是临时释放锁，并阻塞当前线程,好让其他使用同一把锁的线程有机会执行,在这里要用同一把锁的就是b线程本身.这个线程在执行到一定地方后用notify()通知wait的线程,锁已经用完,待notify()所在的同步块运行完之后,wait所在的线程就可以继续执行.</p>
+<p>关于使用这些方法一些需要注意的概念是：</p>
+<ul>
+<li>调用obj的wait(), notify()方法前，必须获得obj锁，也就是必须写在synchronized(obj) {…} 代码段内。</li>
+</ul>
+<ul>
+<li><p>调用obj.wait()后，线程A就释放了obj的锁，否则线程B无法获得obj锁，也就无法在synchronized(obj) {…} 代码段内唤醒A。</p>
+</li>
+<li><p>当obj.wait()方法返回后，线程A需要再次获得obj锁，才能继续执行。<br>如果A1,A2,A3都在obj.wait()，则B调用obj.notify()只能唤醒A1,A2,A3中的一个（具体哪一个由JVM决定）。</p>
+</li>
+<li><p>obj.notifyAll()则能全部唤醒A1,A2,A3，但是要继续执行obj.wait()的下一条语句，必须获得obj锁，因此，A1,A2,A3只有一个有机会获得锁继续执行，例如A1，其余的需要等待A1释放obj锁之后才能继续执行。</p>
+</li>
+<li><p>当B调用obj.notify/notifyAll的时候，B正持有obj锁，因此，A1,A2,A3虽被唤醒，但是仍无法获得obj锁。直到B退出synchronized块，释放obj锁后，A1,A2,A3中的一个才有机会获得锁继续执行。</p>
+</li>
+</ul>
+<p>接下来是synchronized和wait()、notify()之间的关系:</p>
+<ul>
+<li><p>有synchronized的地方不一定有wait,notify</p>
+</li>
+<li><p>有wait,notify的地方必有synchronized.这是因为wait和notify不是属于线程类，而是每一个对象都具有的方法，而且，这两个方法都和对象锁有关，有锁的地方，必有synchronized。</p>
+</li>
+<li><p>另外，请注意一点：如果要把notify和wait方法放在一起用的话，必须先调用notify后调用wait，因为如果调用完wait，该线程就已经不是current thread了。如下例：</p>
+</li>
+</ul>
+<h2 id="例子">例子</h2><p>最好以一个生产者／消费者的例子来演示一下synchronized的使用方法</p>
+<p>Producer:</p>
+<pre><code><span class="keyword">class</span> Producer <span class="keyword">implements</span> Runnable {
+       <span class="keyword">private</span> <span class="keyword">final</span> List&lt;Integer&gt; taskQueue;
+       <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">int</span>           MAX_CAPACITY;
+
+       <span class="keyword">public</span> Producer(List&lt;Integer&gt; sharedQueue, <span class="keyword">int</span> <span class="keyword">size</span>) {
+          <span class="keyword">this</span>.taskQueue = sharedQueue;
+          <span class="keyword">this</span>.MAX_CAPACITY = <span class="keyword">size</span>;
+       }
+
+       @Override
+       <span class="keyword">public</span> <span class="keyword">void</span> run(){
+          <span class="keyword">int</span> counter = <span class="number">0</span>;
+          <span class="keyword">while</span> (<span class="keyword">true</span>){
+             <span class="keyword">try</span> {
+                produce(counter++);
+             } <span class="keyword">catch</span> (InterruptedException ex) {
+                ex.printStackTrace();
+             }
+          }
+       }
+
+       <span class="keyword">private</span> <span class="keyword">void</span> produce(<span class="keyword">int</span> i) <span class="keyword">throws</span> InterruptedException {
+          <span class="keyword">synchronized</span> (taskQueue) {
+             <span class="keyword">while</span> (taskQueue.<span class="keyword">size</span>() == MAX_CAPACITY) {
+                System.out.<span class="keyword">println</span>(<span class="string">"Queue is full "</span> + Thread.currentThread().getName() + <span class="string">" is waiting , size: "</span> + taskQueue.<span class="keyword">size</span>());
+                taskQueue.wait();
+             }
+
+             Thread.sleep(<span class="number">1000</span>);
+             taskQueue.add(i);
+             System.out.<span class="keyword">println</span>(<span class="string">"Produced: "</span> + i);
+             taskQueue.notifyAll();
+          }
+       }
+}
+</code></pre><p>Consumer:</p>
+<pre><code><span class="class"><span class="keyword">class</span> <span class="title">Consumer</span> <span class="keyword">implements</span> <span class="title">Runnable</span> </span>{
+       <span class="keyword">private</span> <span class="keyword">final</span> List&lt;Integer&gt; taskQueue;
+
+       <span class="function"><span class="keyword">public</span> <span class="title">Consumer</span><span class="params">(List&lt;Integer&gt; sharedQueue)</span> </span>{
+          <span class="keyword">this</span>.taskQueue = sharedQueue;
+       }
+
+       <span class="annotation">@Override</span>
+       <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>{
+          <span class="keyword">while</span> (<span class="keyword">true</span>) {
+             <span class="keyword">try</span> {
+                consume();
+            } <span class="keyword">catch</span> (InterruptedException ex) {
+                ex.printStackTrace();
+             }
+          }
+       }
+
+       <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">consume</span><span class="params">()</span> <span class="keyword">throws</span> InterruptedException </span>{
+          <span class="keyword">synchronized</span> (taskQueue) {
+             <span class="keyword">while</span> (taskQueue.isEmpty()) {
+                System.out.println(<span class="string">"Queue is empty "</span> + Thread.currentThread().getName() + <span class="string">" is waiting , size: "</span> + taskQueue.size());
+                taskQueue.wait();
+             }
+             Thread.sleep(<span class="number">1000</span>);
+             <span class="keyword">int</span> i = (Integer) taskQueue.remove(<span class="number">0</span>);
+             System.out.println(<span class="string">"Consumed: "</span> + i);
+             taskQueue.notifyAll();
+          }
+       }
+}
+</code></pre><p>Test program:</p>
+<pre><code><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">ProducerConsumerExampleWithWaitAndNotify</span> {
+       <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>{
+          List&lt;Integer&gt; taskQueue = <span class="keyword">new</span> ArrayList&lt;Integer&gt;();
+          <span class="keyword">int</span> MAX_CAPACITY = <span class="number">5</span>;
+          Thread tProducer = <span class="keyword">new</span> Thread(<span class="keyword">new</span> Producer(taskQueue, MAX_CAPACITY), <span class="string">"Producer"</span>);
+          Thread tConsumer = <span class="keyword">new</span> Thread(<span class="keyword">new</span> Consumer(taskQueue), <span class="string">"Consumer"</span>);
+          tProducer.start();
+          tConsumer.start();
+       }
+}
+</code></pre><h2 id="Reference:">Reference:</h2><ul>
+<li><a href="http://ifeve.com/locks/" target="_blank" rel="external">http://ifeve.com/locks/</a> </li>
+<li><a href="http://www.cnblogs.com/mengheng/p/3490693.html" target="_blank" rel="external">http://www.cnblogs.com/mengheng/p/3490693.html</a></li>
+<li><a href="http://blog.csdn.net/vking_wang/article/details/9952063" target="_blank" rel="external">http://blog.csdn.net/vking_wang/article/details/9952063</a></li>
+</ul>
+
+      
+    </div>
+
+    <div class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/java-thread-sychronized/"> #java, thread, sychronized </a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/12/23/2015-12_23-object-pool/">Android对象池</a>
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/12/08/2015-12_08_java_blocking_queue/">Android多线程开发 － BlockingQueue</a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </div>
+  </div>
+
+
+
+    
+      <div class="comments" id="comments">
+        
+          <div class="ds-thread" data-thread-key="2015/12/11/2015-12-11-java-synchronized/"
+               data-title="Java线程同步 - synchronized机制" data-url="http://yishuihe.github.io/2015/12/11/2015-12-11-java-synchronized/">
+          </div>
+        
+      </div>
+    
+  </div>
+
+
+        </div>
+      </div>
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table Of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Overview
+          </li>
+        </ul>
+      
+
+      <div class="site-overview">
+        <div class="site-author motion-element">
+          <img class="site-author-image" src="/images/default_avatar.jpg" alt="Zhixin Liu" />
+          <p class="site-author-name">Zhixin Liu</p>
+        </div>
+        <p class="site-description motion-element"></p>
+        <div class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">33</span>
+              <span class="site-state-item-name">posts</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            
+              <span class="site-state-item-count">5</span>
+              <span class="site-state-item-name">categories</span>
+              
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">53</span>
+              <span class="site-state-item-name">tags</span>
+              </a>
+          </div>
+
+        </div>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+              <a href="https://www.linkedin.com/in/zhixinliu" target="_blank">linkedin</a>
+            </span>
+            
+              <span class="links-of-author-item">
+              <a href="https://github.com/yishuihe" target="_blank">github</a>
+            </span>
+            
+              <span class="links-of-author-item">
+              <a href="https://twitter.com/yishuihe" target="_blank">twitter</a>
+            </span>
+            
+              <span class="links-of-author-item">
+              <a href="http://weibo.com/zhixin" target="_blank">weibo</a>
+            </span>
+            
+          
+        </div>
+
+        
+        
+
+      </div>
+
+      
+        <div class="post-toc-wrap sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#基本概念及方法"><span class="nav-text">基本概念及方法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#例子"><span class="nav-text">例子</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference:"><span class="nav-text">Reference:</span></a></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </div>
+      
+
+    </div>
+  </div>
+
+
+    </div>
+
+    <div id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy; &nbsp; 
+  2015
+  <span class="with-love">
+    <i class="icon-heart"></i>
+  </span>
+  <span class="author">Zhixin Liu</span>
+</div>
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="http://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+
+      </div>
+    </div>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript">
+    $(document).ready(function() {
+      $('.content img').each(function () {
+        var $image = $(this);
+        var $imageWrapLink = $image.parent('a');
+
+        if ($imageWrapLink.size() < 1) {
+          $imageWrapLink = $image.wrap('<a href="' + this.getAttribute('src') + '"></a>').parent('a');
+        }
+        $imageWrapLink.addClass('fancybox');
+      });
+    });
+    $('.fancybox').fancybox({
+      helpers: {
+        overlay: {
+          locked: false
+        }
+      }
+    });
+  </script>
+
+
+  <script type="text/javascript">
+  function hasMobileUA () {
+    var nav = window.navigator;
+    var ua = nav.userAgent;
+    var pa = /iPad|iPhone|Android|Opera Mini|BlackBerry|webOS|UCWEB|Blazer|PSP|IEMobile|Symbian/g;
+
+    return pa.test(ua);
+  }
+
+  function isDesktop () {
+    return screen.width > 991 && !hasMobileUA();
+  }
+
+  function isTablet () {
+    return screen.width < 992 && screen.width > 767 && hasMobileUA();
+  }
+
+  function isMobile () {
+    return screen.width < 767 && hasMobileUA();
+  }
+
+  function escapeSelector (selector) {
+    return selector.replace(/[!"$%&'()*+,.\/:;<=>?@[\\\]^`{|}~]/g, "\\$&")
+  }
+</script>
+
+  
+
+  <script type="text/javascript" id="motion.fallback">
+  $(document).ready(function () {
+    var isSidebarVisible;
+    var DURATION = 300;
+    var SIDEBAR_WIDTH = 320;
+
+    sidebar();
+    backToTop();
+
+    function sidebar() {
+      $('.sidebar-toggle').on('click', function () {
+        var sidebarWidth = isSidebarVisible ? 0 : SIDEBAR_WIDTH;
+        $('.sidebar').animate({
+          width: sidebarWidth
+        }, DURATION);
+        isSidebarVisible = !isSidebarVisible;
+      });
+    }
+
+    function backToTop() {
+      $('.back-to-top').on('click', function () {
+        $('html, body').animate({
+          scrollTop: 0
+        }, DURATION);
+      });
+    }
+
+  });
+</script>
+
+
+
+
+
+  
+  
+<script type="text/javascript" id="bootstrap.scrollspy.custom">
+  /* ========================================================================
+  * Bootstrap: scrollspy.js v3.3.2
+  * http://getbootstrap.com/javascript/#scrollspy
+  * ========================================================================
+  * Copyright 2011-2015 Twitter, Inc.
+  * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
+  * ======================================================================== */
+
+  /**
+   * Custom by iissnan
+   *
+   * - Add a `clear.bs.scrollspy` event.
+   * - Esacpe targets selector.
+   */
+
+
+  +function ($) {
+    'use strict';
+
+    // SCROLLSPY CLASS DEFINITION
+    // ==========================
+
+    function ScrollSpy(element, options) {
+      this.$body          = $(document.body)
+      this.$scrollElement = $(element).is(document.body) ? $(window) : $(element)
+      this.options        = $.extend({}, ScrollSpy.DEFAULTS, options)
+      this.selector       = (this.options.target || '') + ' .nav li > a'
+      this.offsets        = []
+      this.targets        = []
+      this.activeTarget   = null
+      this.scrollHeight   = 0
+
+      this.$scrollElement.on('scroll.bs.scrollspy', $.proxy(this.process, this))
+      this.refresh()
+      this.process()
+    }
+
+    ScrollSpy.VERSION  = '3.3.2'
+
+    ScrollSpy.DEFAULTS = {
+      offset: 10
+    }
+
+    ScrollSpy.prototype.getScrollHeight = function () {
+      return this.$scrollElement[0].scrollHeight || Math.max(this.$body[0].scrollHeight, document.documentElement.scrollHeight)
+    }
+
+    ScrollSpy.prototype.refresh = function () {
+      var that          = this
+      var offsetMethod  = 'offset'
+      var offsetBase    = 0
+
+      this.offsets      = []
+      this.targets      = []
+      this.scrollHeight = this.getScrollHeight()
+
+      if (!$.isWindow(this.$scrollElement[0])) {
+        offsetMethod = 'position'
+        offsetBase   = this.$scrollElement.scrollTop()
+      }
+
+      this.$body
+        .find(this.selector)
+        .map(function () {
+          var $el   = $(this)
+          var href  = $el.data('target') || $el.attr('href')
+          var $href = /^#./.test(href) && $(escapeSelector(href)) // Need to escape selector.
+
+          return ($href
+            && $href.length
+            && $href.is(':visible')
+            && [[$href[offsetMethod]().top + offsetBase, href]]) || null
+        })
+        .sort(function (a, b) { return a[0] - b[0] })
+        .each(function () {
+          that.offsets.push(this[0])
+          that.targets.push(this[1])
+        })
+
+
+    }
+
+    ScrollSpy.prototype.process = function () {
+      var scrollTop    = this.$scrollElement.scrollTop() + this.options.offset
+      var scrollHeight = this.getScrollHeight()
+      var maxScroll    = this.options.offset + scrollHeight - this.$scrollElement.height()
+      var offsets      = this.offsets
+      var targets      = this.targets
+      var activeTarget = this.activeTarget
+      var i
+
+      if (this.scrollHeight != scrollHeight) {
+        this.refresh()
+      }
+
+      if (scrollTop >= maxScroll) {
+        return activeTarget != (i = targets[targets.length - 1]) && this.activate(i)
+      }
+
+      if (activeTarget && scrollTop < offsets[0]) {
+        $(this.selector).trigger('clear.bs.scrollspy')  // Add a custom event.
+        this.activeTarget = null
+        return this.clear()
+      }
+
+      for (i = offsets.length; i--;) {
+        activeTarget != targets[i]
+          && scrollTop >= offsets[i]
+          && (!offsets[i + 1] || scrollTop <= offsets[i + 1])
+          && this.activate(targets[i])
+      }
+    }
+
+    ScrollSpy.prototype.activate = function (target) {
+      this.activeTarget = target
+
+      this.clear()
+
+      var selector = this.selector +
+        '[data-target="' + target + '"],' +
+        this.selector + '[href="' + target + '"]'
+
+      var active = $(selector)
+        .parents('li')
+        .addClass('active')
+
+      if (active.parent('.dropdown-menu').length) {
+        active = active
+          .closest('li.dropdown')
+          .addClass('active')
+      }
+
+      active.trigger('activate.bs.scrollspy')
+    }
+
+    ScrollSpy.prototype.clear = function () {
+      $(this.selector)
+        .parentsUntil(this.options.target, '.active')
+        .removeClass('active')
+    }
+
+
+    // SCROLLSPY PLUGIN DEFINITION
+    // ===========================
+
+    function Plugin(option) {
+      return this.each(function () {
+        var $this   = $(this)
+        var data    = $this.data('bs.scrollspy')
+        var options = typeof option == 'object' && option
+
+        if (!data) $this.data('bs.scrollspy', (data = new ScrollSpy(this, options)))
+        if (typeof option == 'string') data[option]()
+      })
+    }
+
+    var old = $.fn.scrollspy
+
+    $.fn.scrollspy             = Plugin
+    $.fn.scrollspy.Constructor = ScrollSpy
+
+
+    // SCROLLSPY NO CONFLICT
+    // =====================
+
+    $.fn.scrollspy.noConflict = function () {
+      $.fn.scrollspy = old
+      return this
+    }
+
+
+    // SCROLLSPY DATA-API
+    // ==================
+
+    $(window).on('load.bs.scrollspy.data-api', function () {
+      $('[data-spy="scroll"]').each(function () {
+        var $spy = $(this)
+        Plugin.call($spy, $spy.data())
+      })
+    })
+
+  }(jQuery);
+</script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var $sidebarInner = $('.sidebar-inner');
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.didShow', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+          var self = this;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      $(indicator).velocity('stop').velocity({
+        opacity: action === 'show' ? 0.4 : 0
+      }, { duration: 100 });
+    }
+
+  });
+</script>
+
+
+
+
+
+  
+
+  
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"yishuihe"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+
+
+  
+</body>
+</html>

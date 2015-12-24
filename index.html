@@ -120,6 +120,186 @@
           
           
             
+              <a class="post-title-link" href="/2015/12/23/2015-12_23-object-pool/">
+                Android对象池
+              </a>
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          Posted on 2015-12-23
+        </span>
+
+        
+          <span class="post-category">
+            &nbsp; | &nbsp; In
+            
+              <a href="/categories/Android/">Android</a>
+
+              
+              
+
+            
+          </span>
+        
+
+        
+          
+            <span class="post-comments-count">
+            &nbsp; | &nbsp;
+            <a href="/2015/12/23/2015-12_23-object-pool/#comments" >
+              <span class="post-comments-count ds-thread-count" data-thread-key="2015/12/23/2015-12_23-object-pool/"></span>
+            </a>
+          </span>
+          
+        
+      </div>
+    </div>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        
+          <p>对象池以及其在Android中的应用。</p>
+          <div class="post-more-link text-center">
+            <a class="btn" href="/2015/12/23/2015-12_23-object-pool/">
+              Read more &raquo;
+            </a>
+          </div>
+        
+      
+    </div>
+
+    <div class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/object-pool/"> #object pool </a>
+          
+            <a href="/tags/performance/"> #performance </a>
+          
+            <a href="/tags/pool/"> #pool </a>
+          
+        </div>
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </div>
+  </div>
+
+
+    
+      
+
+  <div class="post post-type-normal ">
+    <div class="post-header">
+
+      
+      
+        <h1 class="post-title">
+          
+          
+            
+              <a class="post-title-link" href="/2015/12/11/2015-12-11-java-synchronized/">
+                Java线程同步 - synchronized机制
+              </a>
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          Posted on 2015-12-12
+        </span>
+
+        
+          <span class="post-category">
+            &nbsp; | &nbsp; In
+            
+              <a href="/categories/blog/">blog</a>
+
+              
+              
+
+            
+          </span>
+        
+
+        
+          
+            <span class="post-comments-count">
+            &nbsp; | &nbsp;
+            <a href="/2015/12/11/2015-12-11-java-synchronized/#comments" >
+              <span class="post-comments-count ds-thread-count" data-thread-key="2015/12/11/2015-12-11-java-synchronized/"></span>
+            </a>
+          </span>
+          
+        
+      </div>
+    </div>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        
+          <p>在JDK5之前，Java的多线程(包括它的性能)一直是个软肋，只有synchronized、Thread.sleep()、Object.wait/notify这样有限的方法，而synchronized的效率还特别地低，开销比较大。JDK5在多线程上有了彻底的提高，其引进了并发编程大师Doug Lea的java.util.concurrent包，支持了现代CPU的CAS原语，不仅在性能上有了很大提升，在自由度上也有了更多的选择，此时J.U.C的效率在高并发环境下的效率远优于synchronized。但JDK6中对synchronized的内在机制做了大量显著的优化，加入了CAS的概念以及偏向锁、轻量级锁，使得synchronized的效率与J.U.C不相上下，并且官方说后面该关键字还有继续优化的空间，所以在现在JDK7的时代，synchronized已经成为一般情况下的首选，在某些特殊场景——如可中断的锁、条件锁、等待获得锁一段时间如果失败则停止——下，J.U.C是适用的，所以对于多线程研究来说，了解其原理以及各自的适用场景是必要的。</p>
+<p>所以现在的状况是两者效率相差无几，而synchronized使用更简单、更不容易出错，所以其是专家组推荐的首选，除非需要用到J.U.C的特殊功能(可以参考我的<a href="http://zhixinliu.com/2015/12/08/2015-12_08_java_blocking_queue/">上一篇文章</a>)。</p>
+<p>既然这样，那么我们就一起来看一下synchronized机制的一些要点。</p>
+          <div class="post-more-link text-center">
+            <a class="btn" href="/2015/12/11/2015-12-11-java-synchronized/">
+              Read more &raquo;
+            </a>
+          </div>
+        
+      
+    </div>
+
+    <div class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/java-thread-sychronized/"> #java, thread, sychronized </a>
+          
+        </div>
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </div>
+  </div>
+
+
+    
+      
+
+  <div class="post post-type-normal ">
+    <div class="post-header">
+
+      
+      
+        <h1 class="post-title">
+          
+          
+            
               <a class="post-title-link" href="/2015/12/08/2015-12_08_java_blocking_queue/">
                 Android多线程开发 － BlockingQueue
               </a>
@@ -832,188 +1012,6 @@
 
 
     
-      
-
-  <div class="post post-type-normal ">
-    <div class="post-header">
-
-      
-      
-        <h1 class="post-title">
-          
-          
-            
-              <a class="post-title-link" href="/2015/08/05/2015-08-05-viewpager-animation/">
-                Andoid ViewPager animation
-              </a>
-            
-          
-        </h1>
-      
-
-      <div class="post-meta">
-        <span class="post-time">
-          Posted on 2015-08-05
-        </span>
-
-        
-          <span class="post-category">
-            &nbsp; | &nbsp; In
-            
-              <a href="/categories/Android/">Android</a>
-
-              
-              
-
-            
-          </span>
-        
-
-        
-          
-            <span class="post-comments-count">
-            &nbsp; | &nbsp;
-            <a href="/2015/08/05/2015-08-05-viewpager-animation/#comments" >
-              <span class="post-comments-count ds-thread-count" data-thread-key="2015/08/05/2015-08-05-viewpager-animation/"></span>
-            </a>
-          </span>
-          
-        
-      </div>
-    </div>
-
-    <div class="post-body">
-
-      
-      
-
-      
-        
-          <p>ViewPager在Android应用开发中占据着很重要的地位，出现频率非常高。关于Viewpager的基本用法不在赘述。今天要说的是ViewPager切换时的动画。</p>
-          <div class="post-more-link text-center">
-            <a class="btn" href="/2015/08/05/2015-08-05-viewpager-animation/">
-              Read more &raquo;
-            </a>
-          </div>
-        
-      
-    </div>
-
-    <div class="post-footer">
-      
-        <div class="post-tags">
-          
-            <a href="/tags/Android/"> #Android </a>
-          
-            <a href="/tags/animation/"> #animation </a>
-          
-            <a href="/tags/viewpager/"> #viewpager </a>
-          
-        </div>
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </div>
-  </div>
-
-
-    
-      
-
-  <div class="post post-type-normal ">
-    <div class="post-header">
-
-      
-      
-        <h1 class="post-title">
-          
-          
-            
-              <a class="post-title-link" href="/2015/08/04/2015-08-04-frame-animation/">
-                Andoid Frame animation outOfMemory问题解决
-              </a>
-            
-          
-        </h1>
-      
-
-      <div class="post-meta">
-        <span class="post-time">
-          Posted on 2015-08-04
-        </span>
-
-        
-          <span class="post-category">
-            &nbsp; | &nbsp; In
-            
-              <a href="/categories/Android/">Android</a>
-
-              
-              
-
-            
-          </span>
-        
-
-        
-          
-            <span class="post-comments-count">
-            &nbsp; | &nbsp;
-            <a href="/2015/08/04/2015-08-04-frame-animation/#comments" >
-              <span class="post-comments-count ds-thread-count" data-thread-key="2015/08/04/2015-08-04-frame-animation/"></span>
-            </a>
-          </span>
-          
-        
-      </div>
-    </div>
-
-    <div class="post-body">
-
-      
-      
-
-      
-        
-          <p>Android Frame动画有时候会遇到恼人的outOfMemory问题，今天来记录下如何解决。</p>
-          <div class="post-more-link text-center">
-            <a class="btn" href="/2015/08/04/2015-08-04-frame-animation/">
-              Read more &raquo;
-            </a>
-          </div>
-        
-      
-    </div>
-
-    <div class="post-footer">
-      
-        <div class="post-tags">
-          
-            <a href="/tags/Android/"> #Android </a>
-          
-            <a href="/tags/Frame/"> #Frame </a>
-          
-            <a href="/tags/animation/"> #animation </a>
-          
-        </div>
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </div>
-  </div>
-
-
-    
   </div>
 
   
@@ -1049,21 +1047,21 @@
         <div class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">31</span>
+              <span class="site-state-item-count">33</span>
               <span class="site-state-item-name">posts</span>
             </a>
           </div>
 
           <div class="site-state-item site-state-categories">
             
-              <span class="site-state-item-count">4</span>
+              <span class="site-state-item-count">5</span>
               <span class="site-state-item-name">categories</span>
               
           </div>
 
           <div class="site-state-item site-state-tags">
             <a href="/tags">
-              <span class="site-state-item-count">50</span>
+              <span class="site-state-item-count">53</span>
               <span class="site-state-item-name">tags</span>
               </a>
           </div>

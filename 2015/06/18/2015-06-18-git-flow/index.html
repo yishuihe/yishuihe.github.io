@@ -185,7 +185,7 @@
 <pre><code>git checkout -<span class="tag">b</span> develop master
 </code></pre><p>merge回master：</p>
 <pre><code>git checkout master
-git <span class="built_in">merge</span> <span class="built_in">merge</span> <span class="comment">--no-ff develop</span>
+git <span class="built_in">merge</span> <span class="comment">--no-ff develop</span>
 </code></pre><h3 id="feature_分支">feature 分支</h3><p>特性分支（有时也被称作topic分支）是用来为下一发布版本开发新特性。特性分支的重点是，只要特性还在开发，该分支就会一直存在，不过它最终会被合并回develop分支（将该特性加入到发布版本中），或者被丢弃（如果试验的结果令人失望）。</p>
 <p>可能的分支来源：develop</p>
 <p>必须合并回：develop</p>
@@ -193,7 +193,7 @@ git <span class="built_in">merge</span> <span class="built_in">merge</span> <spa
 <pre><code>git checkout -<span class="tag">b</span> feature-name develop
 </code></pre><p>merge回develoop：</p>
 <pre><code>git checkout develop
-git <span class="keyword">merge</span> <span class="keyword">merge</span> --<span class="keyword">no</span>-ff feature-name 
+git <span class="keyword">merge</span> --<span class="keyword">no</span>-ff feature-name 
 git branch -<span class="keyword">d</span> feature－name <span class="comment">//删除该分支</span>
 git push origin develop
 </code></pre><h3 id="release_分支">release 分支</h3><p>发布分支为准备新的产品版本发布做支持。它允许你在最后时刻检查所有的细节。此外，它还允许你修复小bug以及准备版本发布的元数据（例如版本号，构建日期等等）。在发布分支做这些事情之后，develop分支就会显得比较干净，也方便为下一大版本发布接受特性。</p>
@@ -207,13 +207,13 @@ git push origin develop
 </code></pre><p>merge回master/develoop：</p>
 <p>当发布分支达到一个可以正式发布的状态时，我们就需要执行一些操作。首先，将发布分支合并至master（记住，我们之前定义master分支上的每一个commit都对应一个新版本）。接着，master分支上的commit必须被打上标签（tag），以方便将来寻找历史版本。最后，发布分支上的变更需要合并回develop，这样将来的版本也能包含相关的bug修复。</p>
 <pre><code>git checkout master
-git <span class="operator"><span class="keyword">merge</span> <span class="keyword">merge</span> <span class="comment">--no-ff release-1.0 </span>
+git <span class="operator"><span class="keyword">merge</span> <span class="comment">--no-ff release-1.0 </span>
 git tag -a <span class="keyword">release</span>-<span class="number">1.0</span>
 git push origin <span class="keyword">master</span>
 
 
 git checkout develop
-git <span class="keyword">merge</span> <span class="keyword">merge</span> <span class="comment">--no-ff release-1.0 </span>
+git <span class="keyword">merge</span> <span class="comment">--no-ff release-1.0 </span>
 git tag -a <span class="keyword">release</span>-<span class="number">1.0</span>
 git push origin develop</span>
 </code></pre><h3 id="hot_fix_分支">hot fix 分支</h3><p>热补丁分支和发布分支十分类似，它的目的也是发布一个新的产品版本，尽管是不在计划中的版本发布。当产品版本发现未预期的问题的时候，就需要理解着手处理，这个时候就要用到热补丁分支。当产品版本的重大bug需要立即解决的时候，我们从对应版本的标签创建出一个热补丁分支。</p>
@@ -308,21 +308,21 @@ git push origin develop</span>
         <div class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">31</span>
+              <span class="site-state-item-count">33</span>
               <span class="site-state-item-name">posts</span>
             </a>
           </div>
 
           <div class="site-state-item site-state-categories">
             
-              <span class="site-state-item-count">4</span>
+              <span class="site-state-item-count">5</span>
               <span class="site-state-item-name">categories</span>
               
           </div>
 
           <div class="site-state-item site-state-tags">
             <a href="/tags">
-              <span class="site-state-item-count">50</span>
+              <span class="site-state-item-count">53</span>
               <span class="site-state-item-name">tags</span>
               </a>
           </div>

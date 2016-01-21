@@ -18,7 +18,7 @@
 
 
 
-  <meta name="keywords" content="Android,AsyncTask," />
+  <meta name="keywords" content="Android,PriorityQueue," />
 
 
 
@@ -39,7 +39,7 @@
   </script>
 
 
-  <title> Andoid AsyncTask简明教程 // Zhixin Life@US </title>
+  <title> Java PriorityQueue // Zhixin Life@US </title>
 </head>
 
 <body>
@@ -118,7 +118,7 @@
           
           
             
-              Andoid AsyncTask简明教程
+              Java PriorityQueue
             
           
         </h1>
@@ -126,7 +126,7 @@
 
       <div class="post-meta">
         <span class="post-time">
-          Posted on 2015-08-03
+          Posted on 2016-01-18
         </span>
 
         
@@ -146,8 +146,8 @@
           
             <span class="post-comments-count">
             &nbsp; | &nbsp;
-            <a href="/2015/08/03/2015-08-03-asynctask/#comments" >
-              <span class="post-comments-count ds-thread-count" data-thread-key="2015/08/03/2015-08-03-asynctask/"></span>
+            <a href="/2016/01/18/2016-01-18-priority-queue/#comments" >
+              <span class="post-comments-count ds-thread-count" data-thread-key="2016/01/18/2016-01-18-priority-queue/"></span>
             </a>
           </span>
           
@@ -161,92 +161,59 @@
       
 
       
-        <p>AsyncTask是android异步开发中常用的两种模式之一(另外一种是Thread＋handler)，但是相比之下asyncTask使用起来更加方便。今天就对其做个简要整理。</p>
+        <p>PriorityQueue的介绍以及应用。</p>
 <a id="more"></a>
-<p>AsyncTask是Android为了简化异步编程开发工作，对thread和handler做的一个封装，其本质上是一个封装好的帮助类。但是它的最佳使用的场景是异步执行一段时间比较短的工作，最好在数秒钟之内。如果你的后台工作需要执行很长时间，那么你就需要考虑一下java.util.concurrent包中提供的其他类了，例如Executor，ThreadPoolExecutor或者FutureTask等。关于task和thread的更多开发实践，可以<a href="http://developer.android.com/guide/components/processes-and-threads.html" target="_blank" rel="external">参考这里</a></p>
-<p>AsyncTask设计的初衷就是提供一个包括从后台运行到执行完毕后更新UI的全套服务，使用起来相当的简单，而且很方便，从后台的worker进程到执行完成后的UI更新，都提供了相应的接口。简单来说提供了3个基本类型，4个步骤。而如果我们想使用AsyncTask的话，需要做的仅仅是实现一个AsyncTask的派生类，然后去实现其提供好的这些接口。例如：</p>
-<pre><code><span class="keyword">private</span> <span class="class"><span class="keyword">class</span> <span class="title">DownloadImageTask</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">AsyncTask&lt;String</span>, <span class="title">Void</span>, <span class="title">Bitmap&gt;</span></span>
-</code></pre><p>而执行AsyncTask也很简单：</p>
-<pre><code>myDowloadTask.<span class="keyword">execute</span>(<span class="string">"www.google.com"</span>);
-</code></pre><p>接下来我们进入一些细节，来看看AsyncTask的定义以及该如何实现这些接口。</p>
-<h2 id="定义">定义</h2><p>首先来看看AsyncTask的定义：</p>
-<pre><code><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">class</span> AsyncTask&lt;<span class="keyword">Params</span>, Progress, <span class="keyword">Result</span>&gt; 
-</code></pre><p>关于其中的三个参数，我会在介绍完AsyncTask的常用接口后再加以介绍。这样就会更加容易理解这些参数是做什么用的了。</p>
-<h2 id="接口">接口</h2><p>所谓接口就是我们在AsyncTask中需要实现的函数。前面提到了AsyncTask执行时经过四个步骤，对应四个方法：</p>
+<h2 id="基本理论">基本理论</h2><p>我们知道队列是遵循先进先出（First-In-First-Out）模式的，但有些时候需要在队列中基于优先级处理对象。<br>PriorityQueue就是一种基于优先级堆的极大优先级队列。优先级队列是不同于先进先出队列的另一种队列。每次从队列中取出的是具有最高优先权的元素。如果不提供Comparator的话，优先队列中元素默认按自然顺序排列，也就是数字默认是小的在队列头，字符串则按字典序排列（参阅 Comparable），也可以根据 Comparator 来指定，这取决于使用哪种构造方法。</p>
+<p>具体来说，PriorityQueue具备以下特性：</p>
 <ul>
-<li><p>onPreExecute()，运行在UI线程，可以设置或修改UI控件，如显示一个进度条</p>
-</li>
-<li><p>doInBackground，运行在后台线程，不可以设置或修改UI控件，该方法的执行时机是：<br>onPreExecute()执行完毕立即调用该方法，在方法中进行耗时操作，可以在该方法中调用publishProgress方法来发布当执行的进度，调用publishProgress方法后就会立即触发onProgressUpdate方法</p>
-</li>
-<li><p>onProgressUpdate，运行在UI线程，可以设置或修改UI控件</p>
-</li>
-<li><p>onPostExecute，运行在UI线程，可以设置或修改UI控件，该方法在doInBackground方法执行完毕<br>   后就会调用，该方法的参数就是doInBackground方法返回的结果。</p>
-</li>
+<li>不允许使用 null 元素， 而且不支持non-comparable（不可比较）的对象</li>
+<li>优先队列的大小是不受限制的，但在创建时可以指定初始大小。当我们向优先队列增加元素的时候，队列大小会自动增加。</li>
+<li>不是线程安全的, 如有此方面需求可以考虑使用线程安全的PriorityBlockingQueue。</li>
+<li>此实现为插入方法（offer、poll、remove() 和 add 方法）提供 O(log(n)) 时间；<br>为 remove(Object) 和 contains(Object) 方法提供线性时间；<br>为检索方法（peek、element 和 size）提供固定时间。</li>
+<li>可以在构造函数中指定如何排序。PriorityQueue(int initialCapacity, Comparator comparator)<br>使用指定的初始容量创建一个 PriorityQueue，并根据指定的比较器comparator来排序其元素。比如我们有一个自定义类MyClass，它没有提供任何类型的排序。当我们用它建立优先队列时，应该为其提供一个比较器对象。</li>
 </ul>
-<h2 id="参数说明">参数说明</h2><ul>
-<li><p>Params：从外界接收到的参数。例如：</p>
-<pre><code><span class="keyword">new</span> <span class="type">DownloadFilesTask</span><span class="literal">()</span>.execute(url1, url2, url3);
-</code></pre><p>  这个值就会通过参数形式传给doInBackground方法， 因此doInBackground方法的形参吆喝该参数类型相同。</p>
-</li>
-<li><p>Progress：更新的进度，一般用来更新UI的进度信息，也就是要传递给onProgressUpdate方法的参数类型。因此onProgressUpdate方法的参数类型与AsyncTask的第二个参数对应。</p>
-</li>
-<li><p>Result：是doInBackground执行后的返回结果，会将该结果传递给onPostExecute方法。因此onPostExecute方法的参数类型要与AsyncTask的第三个参数相同。</p>
-</li>
-</ul>
-<h2 id="一些要点">一些要点</h2><ul>
-<li>doInBackground会自动在一个后台的worker thread中执行，而其他接口onPreExecute(), onPostExecute(), and onProgressUpdate()会在UI线程中被触发。</li>
-<li>doInBackground函数的返回值会传递给onPostExecute</li>
-<li>你可以在doInBackground()中调用publishProgress()用来在UI线程中触发onProgressUpdate</li>
-<li><ul>
-<li>AsyncTask类必须在UI thread加载</li>
-</ul>
-</li>
-<li>Task实例必须在UI thread中创建</li>
-<li>execute方法必须在UI thread中调用</li>
-<li><p>你可以在任何时间，从任何线程中cancel asyncTask。你可以调用</p>
-<pre><code>myTask.cancel(<span class="literal">true</span>);
-</code></pre></li>
-</ul>
-<p>然后在doInBackground()中检查是否该task已经被cancel：</p>
-<pre><code><span class="keyword">if</span> (isCancelled()) 
-    <span class="keyword">break</span>;
-<span class="keyword">else</span> {
-       <span class="regexp">//</span> <span class="keyword">do</span> your work here
-}
-</code></pre><p>当然，你也可以实现AsyncTask的onCancelled方法，在里面更新已经被cancel的flag，然后在doInBackground中检查该flag</p>
-<pre><code><span class="keyword">private</span> <span class="class"><span class="keyword">class</span> <span class="title">UpdateTask</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">AsyncTask&lt;Void</span>, <span class="title">Void</span>, <span class="title">Void&gt;</span> {</span>
-    <span class="keyword">private</span> boolean running = <span class="literal">true</span>;
+<h2 id="一个栗子">一个栗子</h2><p>看个例子吧，对上面所说的也就了然于胸了。</p>
+<p>题目是：假设有k个已经排好序的list，现在需要将其合并成一个排序的list。</p>
+<pre><code><span class="keyword">public</span> ListNode mergeKLists(ListNode[] lists) {
+    <span class="keyword">if</span> (lists.length == <span class="number">0</span>)
+        <span class="keyword">return</span> <span class="keyword">null</span>;
 
-    <span class="annotation">@Override</span>
-    <span class="keyword">protected</span> void onCancelled() {
-        running = <span class="literal">false</span>;
+    <span class="comment">//PriorityQueue is a sorted queue</span>
+    PriorityQueue&lt;ListNode&gt; q = <span class="keyword">new</span> PriorityQueue&lt;ListNode&gt;(lists.length,
+            <span class="keyword">new</span> Comparator&lt;ListNode&gt;() {
+                <span class="keyword">public</span> <span class="keyword">int</span> compare(ListNode a, ListNode b) {
+                    <span class="keyword">if</span> (a.val &gt; b.val)
+                        <span class="keyword">return</span> <span class="number">1</span>;
+                    <span class="keyword">else</span> <span class="keyword">if</span>(a.val == b.val)
+                        <span class="keyword">return</span> <span class="number">0</span>;
+                    <span class="keyword">else</span>
+                        <span class="keyword">return</span> -<span class="number">1</span>;
+                }
+            });
+
+    <span class="comment">//add first node of each list to the queue</span>
+    <span class="keyword">for</span> (ListNode list : lists) {
+        <span class="keyword">if</span> (list != <span class="keyword">null</span>)
+            q.add(list);
     }
 
-    <span class="annotation">@Override</span>
-    <span class="keyword">protected</span> <span class="type">Void</span> doInBackground(<span class="type">Void</span>... params) {
-         <span class="keyword">while</span>(running) {
-             publishProgress();
-         }
-         <span class="keyword">return</span> <span class="literal">null</span>;
-    }
-}
-</code></pre><h2 id="一个例子">一个例子</h2><p>最后还是以一个简明的例子来示例如何使用AsyncTask：</p>
-<pre><code>public <span class="type">void</span> onClick(<span class="type">View</span> v) {
-    new <span class="type">DownloadImageTask</span>().execute(<span class="string">"http://example.com/image.png"</span>);
-}
+    ListNode head = <span class="keyword">new</span> ListNode(<span class="number">0</span>);
+    ListNode p = head; <span class="comment">// serve as a pointer/cursor</span>
 
-private class <span class="type">DownloadImageTask</span> extends <span class="type">AsyncTask</span>&lt;<span class="type">String</span>, <span class="type">Void</span>, <span class="type">Bitmap</span>&gt; {
-    /** <span class="type">The</span> system calls this to perform work <span class="keyword">in</span> a worker thread <span class="keyword">and</span>
-      * delivers it the parameters given to <span class="type">AsyncTask</span>.execute() */
-    protected <span class="type">Bitmap</span> doInBackground(<span class="type">String</span>... urls) {
-        <span class="keyword">return</span> loadImageFromNetwork(urls[<span class="number">0</span>]);
+    <span class="keyword">while</span> (q.<span class="keyword">size</span>() &gt; <span class="number">0</span>) {
+        ListNode temp = q.poll();
+        <span class="comment">//poll() retrieves and removes the head of the queue - q.</span>
+        p.<span class="keyword">next</span> = temp;
+
+        <span class="comment">//keep adding next element of each list</span>
+        <span class="keyword">if</span> (temp.<span class="keyword">next</span> != <span class="keyword">null</span>)
+            q.add(temp.<span class="keyword">next</span>);
+
+        p = p.<span class="keyword">next</span>;
     }
 
-    /** <span class="type">The</span> system calls this to perform work <span class="keyword">in</span> the <span class="type">UI</span> thread <span class="keyword">and</span> delivers
-      * the <span class="literal">result</span> <span class="keyword">from</span> doInBackground() */
-    protected <span class="type">void</span> onPostExecute(<span class="type">Bitmap</span> <span class="literal">result</span>) {
-        mImageView.setImageBitmap(<span class="literal">result</span>);
-    }
+    <span class="keyword">return</span> head.<span class="keyword">next</span>;
+
 }
 </code></pre>
       
@@ -258,7 +225,7 @@ private class <span class="type">DownloadImageTask</span> extends <span class="t
           
             <a href="/tags/Android/"> #Android </a>
           
-            <a href="/tags/AsyncTask/"> #AsyncTask </a>
+            <a href="/tags/PriorityQueue/"> #PriorityQueue </a>
           
         </div>
       
@@ -267,13 +234,13 @@ private class <span class="type">DownloadImageTask</span> extends <span class="t
         <div class="post-nav">
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2015/08/04/2015-08-04-frame-animation/">Andoid Frame animation outOfMemory问题解决</a>
+              <a href="/2016/01/19/2016-01_19_opengl_1/">Android OpenGL 教程1 － 初见</a>
             
           </div>
 
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2015/07/20/2015-07-20-button-and-radiobutton/">Android Button定制</a>
+              <a href="/2016/01/12/2016-01-12-slam-basic/">门外汉学Slam</a>
             
           </div>
         </div>
@@ -289,8 +256,8 @@ private class <span class="type">DownloadImageTask</span> extends <span class="t
     
       <div class="comments" id="comments">
         
-          <div class="ds-thread" data-thread-key="2015/08/03/2015-08-03-asynctask/"
-               data-title="Andoid AsyncTask简明教程" data-url="http://yishuihe.github.io/2015/08/03/2015-08-03-asynctask/">
+          <div class="ds-thread" data-thread-key="2016/01/18/2016-01-18-priority-queue/"
+               data-title="Java PriorityQueue" data-url="http://yishuihe.github.io/2016/01/18/2016-01-18-priority-queue/">
           </div>
         
       </div>
@@ -390,7 +357,7 @@ private class <span class="type">DownloadImageTask</span> extends <span class="t
           <div class="post-toc">
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#定义"><span class="nav-text">定义</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#接口"><span class="nav-text">接口</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参数说明"><span class="nav-text">参数说明</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#一些要点"><span class="nav-text">一些要点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#一个例子"><span class="nav-text">一个例子</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#基本理论"><span class="nav-text">基本理论</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#一个栗子"><span class="nav-text">一个栗子</span></a></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator"></div>

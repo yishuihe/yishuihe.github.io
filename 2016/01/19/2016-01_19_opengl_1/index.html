@@ -255,7 +255,14 @@
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
     }
 }
-</code></pre><p>好了，到现在为止我们就能写一个简单的android openGL程序了，但是该程序有两个明显的缺陷：</p>
+</code></pre><p>关于GLSurfaceView的renderer，下面是应该注意的知识点以及这里用到的API介绍：</p>
+<ul>
+<li>Renderer是被GLSurfaceView掉用的。</li>
+<li>Renderer的方法是运行在一个单独线程中的，而非main thread。</li>
+<li>默认情况下，GLSurfaceView会以display的refresh rate不停的进行render，但是我们也可以将其配置成触发刷新，用到的api是 GLSurfaceView.setRenderMode(RENDERMODE_WHEN_DIRTY)</li>
+<li>onDrawFrame()中的glClear()目的是clear buffer to preset values，也就是在onSurfaceCreated中设置的只。</li>
+</ul>
+<h2 id="总结">总结</h2><p>好了，到现在为止我们就能写一个简单的android openGL程序了，但是该程序有两个明显的缺陷：</p>
 <ol>
 <li>这只是一个简单的2D应用，并没有利用opengl强大的3D功能。</li>
 <li>这还是一个‘传统’的opengl应用，并没有利用‘现代’的opengl概念以及pipeline，比如shader等。</li>
@@ -403,7 +410,7 @@
           <div class="post-toc">
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#版本的选择"><span class="nav-text">版本的选择</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#快速应用"><span class="nav-text">快速应用</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#版本的选择"><span class="nav-text">版本的选择</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#快速应用"><span class="nav-text">快速应用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-text">总结</span></a></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator"></div>

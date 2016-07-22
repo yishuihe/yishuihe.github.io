@@ -166,7 +166,7 @@
 <h2 id="About_Butterknife">About Butterknife</h2><p>ButterKnife是一个Android View注入的库，使用这个库我们可以不用写很多无聊的findViewById()和setOnClickListener()等代码。</p>
 <p>项目的主页在这里：<a href="http://jakewharton.github.io/butterknife/" target="_blank" rel="external">http://jakewharton.github.io/butterknife/</a></p>
 <h2 id="如何使用">如何使用</h2><p>非常简单，看一张图就明白了：</p>
-<p><a href="images/2016-0621-butterknife.png"></a></p>
+<p><img src="images/2016-0621-butterknife.png" alt=""></p>
 <p>首先在项目的build.gradle中disable InvalidPackage以避免lint warning：</p>
 <pre><code><span class="title">lintOptions</span> {
   <span class="title">disable</span> <span class="string">'InvalidPackage'</span>
@@ -214,7 +214,7 @@ protected void <span class="function">onCreate</span>(Bundle savedInstanceState)
 </code></pre><p>非常清晰，记得在onCreate()方法中插入ButterKnife.bind(this)就可以了。</p>
 <p>另外，这里只是最基本的使用案例，还有很多其他的方法，比如bind一个view list，bind fragment等等，就不再一一介绍。</p>
 <h2 id="Android_Studio插件">Android Studio插件</h2><p>如果手动的将butterknife binding view的代码敲进去，貌似还是有些繁琐，还好有android studio的一个plugin可以让我们的生活更轻松，效果如下：</p>
-<p><a href="images/2016-0621-butterknife-plugin.gif"></a></p>
+<p><img src="images/2016-0621-butterknife-plugin.gif" alt=""></p>
 <p>使用方法也很简单：在你需要导入注解的Activity或者Fragment或者ViewHolder的layout资源代码上，右击，选择 Generate 然后 Generate ButterKnife Injections，这时候出现上面的那个选择框。</p>
 <p>具体的安装配置使用方法参考它们的github项目就可以了：<a href="https://github.com/avast/android-butterknife-zelezny" target="_blank" rel="external">https://github.com/avast/android-butterknife-zelezny
 </a></p>

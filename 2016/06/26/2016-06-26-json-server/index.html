@@ -18,7 +18,7 @@
 
 
 
-  <meta name="keywords" content="android,http," />
+  <meta name="keywords" content="REST,json-server," />
 
 
 
@@ -39,7 +39,7 @@
   </script>
 
 
-  <title> HttpClient Vs. HttpURLConnection // Coding Life </title>
+  <title> Json-server的使用 // Coding Life </title>
 </head>
 
 <body>
@@ -118,7 +118,7 @@
           
           
             
-              HttpClient Vs. HttpURLConnection
+              Json-server的使用
             
           
         </h1>
@@ -126,7 +126,7 @@
 
       <div class="post-meta">
         <span class="post-time">
-          Posted on 2015-06-09
+          Posted on 2016-06-26
         </span>
 
         
@@ -146,8 +146,8 @@
           
             <span class="post-comments-count">
             &nbsp; | &nbsp;
-            <a href="/2015/06/09/2015-06-09-httpclient-httpurlconnection/#comments" >
-              <span class="post-comments-count ds-thread-count" data-thread-key="2015/06/09/2015-06-09-httpclient-httpurlconnection/"></span>
+            <a href="/2016/06/26/2016-06-26-json-server/#comments" >
+              <span class="post-comments-count ds-thread-count" data-thread-key="2016/06/26/2016-06-26-json-server/"></span>
             </a>
           </span>
           
@@ -161,39 +161,40 @@
       
 
       
-        <p>Android SDK为我们提供了两个现成的Http客户端类：HttpClient以及HttpURLConnection，二者都提供了丰富的API，都能满足我们开发的需要，那么我们在使用的时候究竟该如何选择呢？</p>
+        <p>在大多数开发流程中，前端开发会极大的依赖于后端的数据，而事实却是开发初期，后台开发人员一般只会输出API文档给前端开发人员。但是有些业务逻辑需要后台API数据的支持，必须等到后台API开发完成后，才能测试这些业务逻辑。</p>
+<p>那么如何解决这个矛盾呢？读了这篇文章就会有答案。</p>
 <a id="more"></a>
-<h2 id="差异">差异</h2><p>HttpClient<br>DefaultHttpClient/AndroidHttpClient都是HttpClient具体的实现类，它们都拥有众多的API，而且实现比较稳定，bug数量也很少。但是，正所谓成也萧何，败也萧何，同样也正是因为HttpClient的API数量过多，使得我们很难在不破坏兼容性的情况下对它进行升级和扩展，所以导致Android团队在提升和优化HttpClient方面的工作并不是很活跃。</p>
-<p>HttpURLConnection<br>HttpURLConnection是一种多用途、轻量极的HTTP客户端，使用它来进行HTTP操作可以适用于大多数的应用程序。虽然HttpURLConnection的API提供的比较简单，但是同时这也使得Android团队可以更加容易地去使用和扩展它。不过在Android 2.2版本之前，HttpURLConnection一直存在着一些令人厌烦的bug。</p>
-<h2 id="选择">选择</h2><p>那么在具体的开发中我们究竟该如何选择呢？基于上述分析，我们不难得出结论：</p>
-<p>－ 在Android 2.2版本之前，HttpClient拥有较少的bug，因此使用它是最好的选择。</p>
-<p>－ 而在Android 2.3版本及以后，HttpURLConnection则是最佳的选择。它的API简单，体积较小，因而非常适用于Android项目。压缩和缓存机制可以有效地减少网络访问的流量，在提升速度和省电方面也起到了较大的作用。对于新的应用程序应该更加偏向于使用HttpURLConnection，因为在以后的工作当中Google Android团队也会将更多的时间放在优化HttpURLConnection上面。</p>
-<h3 id="一个例子：">一个例子：</h3><p>下面这段代码来自于Google的Volley library，实现了在做http连接的时候的选择策略：</p>
-<pre><code><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> RequestQueue <span class="title">newRequestQueue</span><span class="params">(Context context, HttpStack <span class="built_in">stack</span>)</span> </span>{
-    File cacheDir = <span class="keyword">new</span> File(context.getCacheDir(), DEFAULT_CACHE_DIR);
-    String userAgent = <span class="string">"volley/0"</span>;
-    <span class="keyword">try</span> {
-        String packageName = context.getPackageName();
-        PackageInfo info = context.getPackageManager().getPackageInfo(packageName, <span class="number">0</span>);
-        userAgent = packageName + <span class="string">"/"</span> + info.versionCode;
-    } <span class="keyword">catch</span> (NameNotFoundException e) {
-    }
-    <span class="keyword">if</span> (<span class="built_in">stack</span> == null) {
-        <span class="keyword">if</span> (Build.VERSION.SDK_INT &gt;= <span class="number">9</span>) {
-            <span class="built_in">stack</span> = <span class="keyword">new</span> HurlStack();
-        } <span class="keyword">else</span> {
-            <span class="built_in">stack</span> = <span class="keyword">new</span> HttpClientStack(AndroidHttpClient.newInstance(userAgent));
-        }
-    }
-    Network network = <span class="keyword">new</span> BasicNetwork(<span class="built_in">stack</span>);
-    RequestQueue <span class="built_in">queue</span> = <span class="keyword">new</span> RequestQueue(<span class="keyword">new</span> DiskBasedCache(cacheDir), network);
-    <span class="built_in">queue</span>.start();
-    <span class="keyword">return</span> <span class="built_in">queue</span>;
-} 
-</code></pre><p>这里会判断如果手机系统版本号是大于9（Android 2.3）的，则创建一个HurlStack的实例，否则就创建一个HttpClientStack的实例。实际上HurlStack的内部就是使用HttpURLConnection进行网络通讯的，而HttpClientStack的内部则是使用HttpClient进行网络通讯的。</p>
-<h2 id="Reference">Reference</h2><ul>
-<li><a href="http://android-developers.blogspot.com/2011/09/androids-http-clients.html" target="_blank" rel="external">android blog</a></li>
+<h2 id="About_json-server">About json-server</h2><p>json-server号称让你30秒之内，在无需任何代码的情况下，搭建一个fake的REST API server。</p>
+<p>项目的主页在这里：<a href="https://github.com/typicode/json-server" target="_blank" rel="external">https://github.com/typicode/json-server</a></p>
+<h2 id="如何使用">如何使用</h2><p>首先是安装,非常简单：</p>
+<pre><code>$npm <span class="operator"><span class="keyword">install</span> -g json-<span class="keyword">server</span></span>
+</code></pre><p>然后创建你的server想要提供的REST数据，我们直接拷贝官网上的例子：</p>
+<pre><code>{
+      "<span class="attribute">posts</span>": <span class="value">[
+        { "<span class="attribute">id</span>": <span class="value"><span class="number">1</span></span>, "<span class="attribute">title</span>": <span class="value"><span class="string">"json-server"</span></span>, "<span class="attribute">author</span>": <span class="value"><span class="string">"typicode"</span> </span>}
+      ]</span>,
+      "<span class="attribute">comments</span>": <span class="value">[
+        { "<span class="attribute">id</span>": <span class="value"><span class="number">1</span></span>, "<span class="attribute">body</span>": <span class="value"><span class="string">"some comment"</span></span>, "<span class="attribute">postId</span>": <span class="value"><span class="number">1</span> </span>}
+      ]</span>,
+      "<span class="attribute">profile</span>": <span class="value">{ "<span class="attribute">name</span>": <span class="value"><span class="string">"typicode"</span> </span>}
+</span>}
+</code></pre><p>解下来启动json-server：</p>
+<pre><code>$ json-server <span class="comment">--watch db.json</span>
+</code></pre><p>启动后你就会在终端中看到如何访问REST数据的方法，一般来说是访问</p>
+<pre><code><span class="string">http:</span><span class="comment">//localhost:3000</span>
+</code></pre><p>如果想访问posts列表：</p>
+<pre><code><span class="string">http:</span><span class="comment">//localhost:3000/posts</span>
+</code></pre><p>如果想访问具体的某个posts：<br>    <a href="http://localhost:3000/posts/1" target="_blank" rel="external">http://localhost:3000/posts/1</a></p>
+<p>分页查询：</p>
+<p>分页查询是非常常见的需求 json-server提供了如下关键字参数</p>
+<ul>
+<li>_start: 起始位置 从0开始</li>
+<li>_end: 结束位置 从0开始</li>
+<li>_limit: 每页数量</li>
 </ul>
+<p>实际例子如下：</p>
+<pre><code><span class="string">http:</span><span class="comment">//localhost:3000/posts?_start=0&amp;_end=5</span>
+</code></pre><p>json-server还有很多高级的用法，具体使用直接查询其官网即可。</p>
 
       
     </div>
@@ -202,9 +203,9 @@
       
         <div class="post-tags">
           
-            <a href="/tags/android/"> #android </a>
+            <a href="/tags/REST/"> #REST </a>
           
-            <a href="/tags/http/"> #http </a>
+            <a href="/tags/json-server/"> #json-server </a>
           
         </div>
       
@@ -213,13 +214,11 @@
         <div class="post-nav">
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2015/06/16/2015-06-16-english-intonation/">英语语调笔记</a>
-            
           </div>
 
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2015/06/04/2015-06-04-SFO-summer/">最冷的冬天</a>
+              <a href="/2016/06/21/2016-06-21-butter-knife/">Butterknife的使用</a>
             
           </div>
         </div>
@@ -235,8 +234,8 @@
     
       <div class="comments" id="comments">
         
-          <div class="ds-thread" data-thread-key="2015/06/09/2015-06-09-httpclient-httpurlconnection/"
-               data-title="HttpClient Vs. HttpURLConnection" data-url="http://yishuihe.github.io/2015/06/09/2015-06-09-httpclient-httpurlconnection/">
+          <div class="ds-thread" data-thread-key="2016/06/26/2016-06-26-json-server/"
+               data-title="Json-server的使用" data-url="http://yishuihe.github.io/2016/06/26/2016-06-26-json-server/">
           </div>
         
       </div>
@@ -336,7 +335,7 @@
           <div class="post-toc">
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#差异"><span class="nav-text">差异</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#选择"><span class="nav-text">选择</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#一个例子："><span class="nav-text">一个例子：</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference"><span class="nav-text">Reference</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#About_json-server"><span class="nav-text">About json-server</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#如何使用"><span class="nav-text">如何使用</span></a></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator"></div>

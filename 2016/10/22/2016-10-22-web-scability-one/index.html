@@ -18,7 +18,7 @@
 
 
 
-  <meta name="keywords" content="butterknife,注解," />
+  <meta name="keywords" content="Scalability,web," />
 
 
 
@@ -39,7 +39,7 @@
   </script>
 
 
-  <title> Butterknife的使用 // Coding Life </title>
+  <title> 网站可扩展性入门 - Part 1:克隆 // Coding Life </title>
 </head>
 
 <body>
@@ -118,7 +118,7 @@
           
           
             
-              Butterknife的使用
+              网站可扩展性入门 - Part 1:克隆
             
           
         </h1>
@@ -126,14 +126,14 @@
 
       <div class="post-meta">
         <span class="post-time">
-          Posted on 2016-06-21
+          Posted on 2016-10-22
         </span>
 
         
           <span class="post-category">
             &nbsp; | &nbsp; In
             
-              <a href="/categories/Android/">Android</a>
+              <a href="/categories/Web/">Web</a>
 
               
               
@@ -146,8 +146,8 @@
           
             <span class="post-comments-count">
             &nbsp; | &nbsp;
-            <a href="/2016/06/21/2016-06-21-butter-knife/#comments" >
-              <span class="post-comments-count ds-thread-count" data-thread-key="2016/06/21/2016-06-21-butter-knife/"></span>
+            <a href="/2016/10/22/2016-10-22-web-scability-one/#comments" >
+              <span class="post-comments-count ds-thread-count" data-thread-key="2016/10/22/2016-10-22-web-scability-one/"></span>
             </a>
           </span>
           
@@ -161,63 +161,56 @@
       
 
       
-        <p>介绍如何使用Jake大神的butterknife。。。</p>
+        <p>本文是一组关于网站可扩展性(Scalability)系列文章的合体的译文。<a href="http://www.lecloud.net/tagged/scalability" target="_blank" rel="external">原文链接</a></p>
 <a id="more"></a>
-<h2 id="About_Butterknife">About Butterknife</h2><p>ButterKnife是一个Android View注入的库，使用这个库我们可以不用写很多无聊的findViewById()和setOnClickListener()等代码。</p>
-<p>项目的主页在这里：<a href="http://jakewharton.github.io/butterknife/" target="_blank" rel="external">http://jakewharton.github.io/butterknife/</a></p>
-<h2 id="如何使用">如何使用</h2><p>非常简单，看一张图就明白了：</p>
-<p><img src="/images/2016-0621-butterknife.png" alt=" "></p>
-<p>首先在项目的build.gradle中disable InvalidPackage以避免lint warning：</p>
-<pre><code><span class="title">lintOptions</span> {
-  <span class="title">disable</span> <span class="string">'InvalidPackage'</span>
-}
-</code></pre><p>然后在module的build.gradle中引用butterknife：</p>
-<pre><code><span class="keyword">compile</span> <span class="string">'com.jakewharton:butterknife:7.0.1'</span>
-</code></pre><p>最后点击‘sync project with Gradle files’。</p>
-<p>这样就已经做好了在代码中使用butterknife的准备了。</p>
-<p>通常来说我们使用layout xml中定义的view是这样子的：</p>
-<pre><code>Button button = <span class="list">(<span class="keyword">Button</span>)</span>findViewById<span class="list">(<span class="keyword">R</span>.id.button)</span><span class="comment">;</span>
-TextView textView = <span class="list">(<span class="keyword">TextView</span>)</span>findViewById<span class="list">(<span class="keyword">R</span>.id.textView)</span><span class="comment">;</span>
-RadioButton radioButton  = <span class="list">(<span class="keyword">RadioButton</span>)</span>findViewById<span class="list">(<span class="keyword">R</span>.id.radioButton)</span><span class="comment">;</span>
-CheckBox checkBox= <span class="list">(<span class="keyword">CheckBox</span>)</span>findViewById<span class="list">(<span class="keyword">R</span>.id.checkbox)</span><span class="comment">;</span>
-EditText editText = <span class="list">(<span class="keyword">EditText</span>)</span>findViewById<span class="list">(<span class="keyword">R</span>.id.editText)</span><span class="comment">;</span>
-VideoView videoView = <span class="list">(<span class="keyword">VideoView</span>)</span>findViewById<span class="list">(<span class="keyword">R</span>.id.videoView)</span><span class="comment">;</span>
-WebView webView = <span class="list">(<span class="keyword">WebView</span>)</span>findViewById<span class="list">(<span class="keyword">R</span>.id.webView)</span><span class="comment">;</span>
-</code></pre><p>而使用butterknife呢？像这样：</p>
-<pre><code><span class="at_rule">@<span class="keyword">Bind(R.id.button)</span>
-Button button</span>;
-<span class="at_rule">@<span class="keyword">Bind(R.id.textView)</span>
-TextView textView</span>;
-<span class="at_rule">@<span class="keyword">Bind(R.id.radioButton)</span>
-RadioButton radioButton</span>;
-<span class="at_rule">@<span class="keyword">Bind(R.id.checkBox)</span>
-CheckBox checkBox</span>;
-<span class="at_rule">@<span class="keyword">Bind(R.id.editText)</span>
-EditText editText</span>;
-<span class="at_rule">@<span class="keyword">Bind(R.id.videoView)</span>
-VideoView videoView</span>;
-<span class="at_rule">@<span class="keyword">Bind(R.id.webView)</span>
-WebView webView</span>;
-
-<span class="at_rule">@<span class="keyword">OnClick(R.id.button)</span>
-protected void <span class="function">Toast</span>()</span>{
-    <span class="tag">Toast</span><span class="class">.makeText</span>(<span class="tag">getApplicationContext</span>(),"<span class="tag">Hello</span> <span class="tag">Android</span> <span class="tag">Butter</span> <span class="tag">Knife</span>",<span class="tag">Toast</span><span class="class">.LENGTH_LONG</span>)<span class="class">.show</span>();
-}
-
-<span class="at_rule">@<span class="keyword">Override</span>
-protected void <span class="function">onCreate</span>(Bundle savedInstanceState) </span>{
-    <span class="tag">super</span><span class="class">.onCreate</span>(<span class="tag">savedInstanceState</span>);
-    <span class="tag">setContentView</span>(<span class="tag">R</span><span class="class">.layout</span><span class="class">.activity_main</span>);
-    <span class="tag">ButterKnife</span><span class="class">.bind</span>(<span class="tag">this</span>);
-
-}
-</code></pre><p>非常清晰，记得在onCreate()方法中插入ButterKnife.bind(this)就可以了。</p>
-<p>另外，这里只是最基本的使用案例，还有很多其他的方法，比如bind一个view list，bind fragment等等，就不再一一介绍。</p>
-<h2 id="Android_Studio插件">Android Studio插件</h2><p>如果手动的将butterknife binding view的代码敲进去，貌似还是有些繁琐，还好有android studio的一个plugin可以让我们的生活更轻松，效果如下：</p>
-<p><img src="/images/2016-0621-butterknife-plugin.gif" alt=" "></p>
-<p>使用方法也很简单：在你需要导入注解的Activity或者Fragment或者ViewHolder的layout资源代码上，右击，选择 Generate 然后 Generate ButterKnife Injections，这时候出现上面的那个选择框。</p>
-<p>具体的安装配置使用方法参考它们的github项目就可以了：<a href="https://github.com/avast/android-butterknife-zelezny" target="_blank" rel="external">https://github.com/avast/android-butterknife-zelezny
-</a></p>
+<p>这段时间经常有人咨询关于网站高伸缩性的问题，我的回答比较长而且可能会有其他人感兴趣。所以我把它分四次分享到我的博客上面。</p>
+<h2 id="Part_1_-_克隆">Part 1 - 克隆</h2><p>Load balancer是支撑可扩展性网站的关键因素，服务器组隐藏在load balancer后面，然后load balancer会均衡地将用户的请求分配到你的网站的application服务器上。也就是说，例如，史蒂夫要访问你的网站，他的第一次访问可能是由你的网站1号服务器响应的，第二次是9号服务器，而第三次是2号服务器…</p>
+<p>而且，无论是哪个服务器提供响应，史蒂夫都会得到相同的结果。这就会引出网站可扩展性的第一个黄金法则：<strong>每一个服务器都包含完全相同的code base，并且不要在本地磁盘或内存中存储用户相关的数据，例如sessions，profile照片等</strong>。</p>
+<p>Sessions需要存储在一个集中的数据存储设备上，而你的网站服务器可以访问这些数据存储。它们可以是一个外部的数据库，或者是一个外部的persistent cache，例如Redis。persistent cache的性能会高于外部数据库。这里说的‘外部’，是指数据不要直接存储在你的应用服务器上，而是要存储在你的应用服务器的‘数据中心’里面或者周边。</p>
+<p>但是如何部署呢？如何保障你的code change会发送到所有的服务器呢？这是个棘手的问题，但幸运的是已经被伟大的工具‘Capistrano’解决了。你需要花些时间来学习如何使用‘Capistrano’，但是相信我，最终你会发现所有的这些付出是值得的。</p>
+<p>在将你的sessions’外包‘出去并且将相同的代码部署到所有的服务器上之后，现在你可以从其中任意的一个服务器上创建一个’image‘文件(AWS中称为AMI - Amazon Machine Image)作为未来新家服务器的一个‘超级科隆’(super-clone)，以后你可以‘克隆’这个AMI来为新加的服务器创建‘系统’。也就是说，每当新加一个新的服务器的时候，只需要基于你的最新的服务器代码在上面做一次‘初始化部署’(initial deployment)就万事大吉了。</p>
+<h2 id="Part_2_数据库">Part 2 数据库</h2><p>在参照Part 1的做法后，你的网站现在变得‘可横向扩展’(horizontally scale)了，能够同时服务大量的用户了。但是很快就会发现你的应用变得越来越慢直到宕机。原因就是：数据库。你在用MySQL对吗？</p>
+<p>现在，我们需要更激进一些，不仅仅是像part 1中提到的那样加几台新的服务器了。关于数据库优化，我们现在有两条路可走：</p>
+<p><strong>途径 1</strong></p>
+<p>我们继续坚持使用MySQL并且努力让这个怪兽继续工作。雇一个DBA(数据库管理员 database administrator)，然后要他去做master-slave replication：从slave读数据，而写入数据到master，并且不停的升级master服务器：加内存，加内存，加内存…</p>
+<p>几个月后，你的DBA会不时的从嘴中冒出一些新名词，诸如‘sharding’，‘denormalization’或者’SQL tuning‘等等。要命的是，现在每次试图实施一个挽救你的数据库的新举措都会变得愈发艰难，需要比以往更多的时间和金钱。</p>
+<p>事实上，如果在数据库很小的时候，你选择途径2，情况就会好多了。</p>
+<p><strong>途径 2</strong></p>
+<p>这个途径要求我们从一开始就‘非规范化’(denormalize)，在做数据库query的时候不要使用’join‘。你可以继续使用MySQL，但是像使用NoSQL数据库那样去使用它，或者你可以直接切换到更好并且更容易扩展的NoSQL数据库，诸如MongoDB，CouchDB等。‘Joins’就需要拿到你的应用代码中去做了。越早去做这些，以后的工作中就会变得越轻松。</p>
+<p>但是即便你做了这些，不久后，还是会发现数据库又开始变慢了。这个时候，我们需要引入cache了。</p>
+<h2 id="Part_3_cache">Part 3 cache</h2><p>做完Part 2后，我们有了一个可扩展的数据库，终于不再受困于数据存储了，世界又开始变得美好。但是很快你的用户会发现当需要从数据库大量的获取数据时，请求响应又变的慢了起来。解决方法是提供缓存。 </p>
+<p>在这里，缓存是指内存缓存(in-memory caches)，例如Memcached或者Redis，千万别去做基于文件的缓存，因为它会使得你的服务器克隆以及自动扩展变得痛苦。</p>
+<p>让我们回到内存缓存，一个缓存是指一个简单的key-value存储并且其位于application和数据存储之间。当application想要读取数据的时候，首先它会尝试去从缓存中去找，只有在缓存中找不到的情况下才会去主数据源中查找。为什么要这样呢？因为缓存读取速度更快。</p>
+<p>关于数据缓存，有两种模式：称之为旧模式和新模式。</p>
+<p><strong>1 - Cached Database Queries</strong></p>
+<p>这仍然是应用最多的缓存模式。当你查询数据库的时候，将得到的结果缓存起来。你的查询的hashed version会做为这个缓存的key。下一次做同样的查询的时候，系统会首先查找缓存，找不到时再去查找数据库。</p>
+<p>不过这个模式有几个问题：最主要的问题是‘失效’。当你缓存了一个复杂的查询结果后，你很难去删除掉这个缓存。另外一个问题是：当某条数据变化后，你需要删除和这条数据相关的所有缓存。</p>
+<p><strong>2 - Cached Objects</strong></p>
+<p>这是我强烈推荐的缓存模式。像代码中的类／实例一样来看待你的data，让你的代码从数据库中提取并且组装数据，然后将这个实例或者组装的数据缓存起来。我知道，这听起来太理论化了，但是只是把它假想成你的实际的代码那样。例如，你有一个类叫做‘Product’，它有一个属性叫做’data‘，它是一个包含product价格，文本描述，图片以及用户review的数组。这个属性’data’会经过几次数据库查询并且通过几个方法从而来填充上数值，这使得它很难被缓存，因为好多东西都互相依赖。现在，让我们试试这个方法：当你的class完成product数据的组装后，直接将‘data’数组缓存下来，或者更好一些，将整个实例缓存下来。这样，当这个product的某些属性改变时，你可以很容易的将其缓存清理掉，并且使你的代码执行更加快速。</p>
+<p>And the best part: it makes asynchronous processing possible! Just imagine an army of worker servers who assemble your objects for you! The application just consumes the latest cached object and nearly never touches the databases anymore!</p>
+<p>更棒的是，这使得异步处理变得可能。可以想象成很多的服务器在为你组装住距。应用只需要从最新的cache object中获取数据，而几乎不比在和数据库直接打交道。</p>
+<p>Some ideas of objects to cache:</p>
+<p>一些可以应用object cache的场景：</p>
+<ul>
+<li>用户sessions （永远都不要用数据库）</li>
+<li>已经完全加载好的blog文章</li>
+<li>活动流（ctivity streams）</li>
+<li>用户的朋友关系</li>
+</ul>
+<p>想必你已经看出来了，我是一个缓存的忠实粉丝。这很容易理解，缓存很容易实现而且效果显著。通常来说，在Redis和Memcached之间，我更青睐前者，这是因为我非常喜欢Redis的一些特性，例如persistence，以及其built－in的数据结果list，set等。Redis配上一个非常灵巧的key’ing，你甚至可以不再需要数据库。但是如果你只是想做缓存的话，Memcached梗好用一些。</p>
+<p>Happy caching! </p>
+<h2 id="Part_4_Asynchronism">Part 4 Asynchronism</h2><p>让我们从以下的这个场景来开始第四部分：想象一下你去面包店去买面包，但是你想要的面包还没好，店主希望你两小时之后再过来看看。很恼火，不是吗？</p>
+<p>为了避免这种‘稍后再来’的局面，异步模式需要被引入进来。这不仅对你买面包有帮助，同样对你的web服务业大有裨益。</p>
+<p>一般来说有两种异步机制可以选用：</p>
+<p> <strong>Async #1</strong></p>
+<p>让我们继续刚才的场景：第一种处理方式是面包店在前一晚上将所有的面包都烤好，然后早上销售。对顾客来说，根本就不会再有等待。对wed服务来说：所有耗时的工作提前做完，然后在请求到达时再呈现出来。</p>
+<p>这个模式被很频繁的用在了将动态内容转换成静态内容上了。当一个网站的网页(可能时通过一个大的framework生成出来的)有变化时，会被提前服务器上生成好。像这种计算工作一般会定时去做，例如用脚本每小时去做一次。这种‘预先计算’(pre-computing)能够极大的提高网站或者web应用的扩展性以及performance。想象一下，将你已经预先完成计算工作的网页上传到AWS S3或者Cloudfront或者其它的Content Delivery Network，那么当用户访问的时候，将会何等的响应迅速。</p>
+<p><strong>Async #2</strong></p>
+<p>再回到面包的场景：不幸的是，有时候顾客会有一些特殊的要求，例如生日蛋糕上写上‘生日快乐，史蒂夫’。面包店不可能预先判断到这些特殊的需求的，所以只能当顾客下单后才能开始这项工作并且告诉顾客明天再来取。对应于web服务来说，这是异步处理任务。</p>
+<p>一个典型的工作流程如下：</p>
+<p>一个用户访问你的网站并且触发了一个需要大量计算的任务，该任务估计要花费数分钟才能完成。所以你的网站前端将任务发送到后台的任务队列中去，并且立刻给用户发送一条提示：你的任务已经开始执行了，你现在可以继续浏览网页。后台的一些任务执行者会定期的去检查任务队列，看里面是否有了新任务。如果有了，那么就会开始执行并且在执行完毕后发送一条提示给用户。而前台会一直检查是否收到了这种‘任务完成’的提示，如果有的话就显示给用户。</p>
+<p>我知道，这个例子有些简单。如果你想要获取更多的细节以及一些实际的技术设计，我推荐你去阅读RabbitMQ网站上的前三个教程。RabbitMQ是众多辅助实现异步处理的系统之一。你还可以使用ActiveMQ或者一个简单的Redis列表。基本的思想是有一个待处理的任务后台队列，后台的worker可以从里面获取任务并执行。异步看起来有些复杂，但是你觉得值得花时间去了解并实现异步。从而让你的网站后端变得无限可扩展，前端变得迅捷，从而整体上提高用户体检。</p>
+<p>记住，如果你需要做一些耗时的工作，一定要用异步！</p>
 
       
     </div>
@@ -226,9 +219,9 @@ protected void <span class="function">onCreate</span>(Bundle savedInstanceState)
       
         <div class="post-tags">
           
-            <a href="/tags/butterknife/"> #butterknife </a>
+            <a href="/tags/Scalability/"> #Scalability </a>
           
-            <a href="/tags/注解/"> #注解 </a>
+            <a href="/tags/web/"> #web </a>
           
         </div>
       
@@ -237,13 +230,11 @@ protected void <span class="function">onCreate</span>(Bundle savedInstanceState)
         <div class="post-nav">
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2016/06/26/2016-06-26-json-server/">Json-server的使用</a>
-            
           </div>
 
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2016/02/01/2016-02-01-cmake-cross-compile/">CMake交叉编译</a>
+              <a href="/2016/07/29/2016-07-29-retrofit/">Retrofit2的使用</a>
             
           </div>
         </div>
@@ -259,8 +250,8 @@ protected void <span class="function">onCreate</span>(Bundle savedInstanceState)
     
       <div class="comments" id="comments">
         
-          <div class="ds-thread" data-thread-key="2016/06/21/2016-06-21-butter-knife/"
-               data-title="Butterknife的使用" data-url="http://yishuihe.github.io/2016/06/21/2016-06-21-butter-knife/">
+          <div class="ds-thread" data-thread-key="2016/10/22/2016-10-22-web-scability-one/"
+               data-title="网站可扩展性入门 - Part 1:克隆" data-url="http://yishuihe.github.io/2016/10/22/2016-10-22-web-scability-one/">
           </div>
         
       </div>
@@ -304,21 +295,21 @@ protected void <span class="function">onCreate</span>(Bundle savedInstanceState)
         <div class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">39</span>
+              <span class="site-state-item-count">41</span>
               <span class="site-state-item-name">posts</span>
             </a>
           </div>
 
           <div class="site-state-item site-state-categories">
             
-              <span class="site-state-item-count">5</span>
+              <span class="site-state-item-count">6</span>
               <span class="site-state-item-name">categories</span>
               
           </div>
 
           <div class="site-state-item site-state-tags">
             <a href="/tags">
-              <span class="site-state-item-count">63</span>
+              <span class="site-state-item-count">65</span>
               <span class="site-state-item-name">tags</span>
               </a>
           </div>
@@ -360,7 +351,7 @@ protected void <span class="function">onCreate</span>(Bundle savedInstanceState)
           <div class="post-toc">
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#About_Butterknife"><span class="nav-text">About Butterknife</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#如何使用"><span class="nav-text">如何使用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Android_Studio插件"><span class="nav-text">Android Studio插件</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Part_1_-_克隆"><span class="nav-text">Part 1 - 克隆</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Part_2_数据库"><span class="nav-text">Part 2 数据库</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Part_3_cache"><span class="nav-text">Part 3 cache</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Part_4_Asynchronism"><span class="nav-text">Part 4 Asynchronism</span></a></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator"></div>

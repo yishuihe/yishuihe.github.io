@@ -18,7 +18,7 @@
 
 
 
-  <meta name="keywords" content="REST,json-server," />
+  <meta name="keywords" content="butterknife,注解," />
 
 
 
@@ -39,7 +39,7 @@
   </script>
 
 
-  <title> Json-server的使用 // Coding Life </title>
+  <title> Retrofit2的使用 // Coding Life </title>
 </head>
 
 <body>
@@ -118,7 +118,7 @@
           
           
             
-              Json-server的使用
+              Retrofit2的使用
             
           
         </h1>
@@ -126,7 +126,7 @@
 
       <div class="post-meta">
         <span class="post-time">
-          Posted on 2016-06-26
+          Posted on 2016-07-29
         </span>
 
         
@@ -146,8 +146,8 @@
           
             <span class="post-comments-count">
             &nbsp; | &nbsp;
-            <a href="/2016/06/26/2016-06-26-json-server/#comments" >
-              <span class="post-comments-count ds-thread-count" data-thread-key="2016/06/26/2016-06-26-json-server/"></span>
+            <a href="/2016/07/29/2016-07-29-retrofit/#comments" >
+              <span class="post-comments-count ds-thread-count" data-thread-key="2016/07/29/2016-07-29-retrofit/"></span>
             </a>
           </span>
           
@@ -161,40 +161,81 @@
       
 
       
-        <p>在大多数开发流程中，前端开发会极大的依赖于后端的数据，而事实却是开发初期，后台开发人员一般只会输出API文档给前端开发人员。但是有些业务逻辑需要后台API数据的支持，必须等到后台API开发完成后，才能测试这些业务逻辑。</p>
-<p>那么如何解决这个矛盾呢？读了这篇文章就会有答案。</p>
-<a id="more"></a>
-<h2 id="About_json-server">About json-server</h2><p>json-server号称让你30秒之内，在无需任何代码的情况下，搭建一个fake的REST API server。</p>
-<p>项目的主页在这里：<a href="https://github.com/typicode/json-server" target="_blank" rel="external">https://github.com/typicode/json-server</a></p>
-<h2 id="如何使用">如何使用</h2><p>首先是安装,非常简单：</p>
-<pre><code>$npm <span class="operator"><span class="keyword">install</span> -g json-<span class="keyword">server</span></span>
-</code></pre><p>然后创建你的server想要提供的REST数据，我们直接拷贝官网上的例子：</p>
-<pre><code>{
-      "<span class="attribute">posts</span>": <span class="value">[
-        { "<span class="attribute">id</span>": <span class="value"><span class="number">1</span></span>, "<span class="attribute">title</span>": <span class="value"><span class="string">"json-server"</span></span>, "<span class="attribute">author</span>": <span class="value"><span class="string">"typicode"</span> </span>}
-      ]</span>,
-      "<span class="attribute">comments</span>": <span class="value">[
-        { "<span class="attribute">id</span>": <span class="value"><span class="number">1</span></span>, "<span class="attribute">body</span>": <span class="value"><span class="string">"some comment"</span></span>, "<span class="attribute">postId</span>": <span class="value"><span class="number">1</span> </span>}
-      ]</span>,
-      "<span class="attribute">profile</span>": <span class="value">{ "<span class="attribute">name</span>": <span class="value"><span class="string">"typicode"</span> </span>}
-</span>}
-</code></pre><p>解下来启动json-server：</p>
-<pre><code>$ json-server <span class="comment">--watch db.json</span>
-</code></pre><p>启动后你就会在终端中看到如何访问REST数据的方法，一般来说是访问</p>
-<pre><code><span class="string">http:</span><span class="comment">//localhost:3000</span>
-</code></pre><p>如果想访问posts列表：</p>
-<pre><code><span class="string">http:</span><span class="comment">//localhost:3000/posts</span>
-</code></pre><p>如果想访问具体的某个posts：<br>    <a href="http://localhost:3000/posts/1" target="_blank" rel="external">http://localhost:3000/posts/1</a></p>
-<p>分页查询：</p>
-<p>分页查询是非常常见的需求 json-server提供了如下关键字参数</p>
-<ul>
-<li>_start: 起始位置 从0开始</li>
-<li>_end: 结束位置 从0开始</li>
-<li>_limit: 每页数量</li>
+        <a id="more"></a>
+<h2 id="About_Retrofit">About Retrofit</h2><p>项目的主页在这里：<a href="http://square.github.io/retrofit/" target="_blank" rel="external">http://square.github.io/retrofit/</a></p>
+<h2 id="如何使用">如何使用</h2><p>非常简单，分为以下几步：</p>
+<p>i. <strong>添加依赖和权限</strong></p>
+<p>首先需要在 build.gradle 文件中添加依赖，在 Manifest.xml文件中添加所需的网络权限。</p>
+<pre><code><span class="comment">//build.gradle</span>
+<span class="keyword">compile</span> <span class="string">'com.squareup.retrofit2:retrofit:2.1.0'</span>
+<span class="keyword">compile</span> <span class="string">'com.squareup.retrofit2:converter-gson:2.0.0'</span>
+
+<span class="comment">// AndroidManifest.xml</span>
+&lt;uses-permission android:name=<span class="string">"android.permission.INTERNET"</span> <span class="regexp">/&gt;</span>
+</code></pre><p>ii.<strong>创建Retrofit实例</strong></p>
+<p>创建Retrofit实例时需要通过Retrofit.Builder,并调用baseUrl方法设置URL。<br>注： Retrofit2 的baseUlr 必须以 /（斜线） 结束。</p>
+<pre><code><span class="type">Retrofit</span> mRetrofit= <span class="keyword">new</span> <span class="type">Retrofit</span>.<span class="type">Builder</span><span class="literal">()</span>
+        .baseUrl(<span class="string">"https://api.github.com"</span>)
+        .build<span class="literal">()</span>;
+</code></pre><p>iii.<strong>将http接口转换为Java API接口</strong></p>
+<p>比如我们想要从下面的URL中获取数据</p>
+<pre><code><span class="string">https:</span><span class="comment">//api.github.com/users/yishuihe</span>
+</code></pre><p>那么，我们就需要将其转换成Java API：</p>
+<pre><code><span class="tag">public</span> <span class="tag">interface</span> <span class="tag">APIInterface</span> {
+    <span class="variable">@GET</span>(<span class="string">"/users/{user}"</span>) <span class="comment">//这里的{user} 表示是一个变量</span>
+    Call&lt;ResponseBody&gt; <span class="function">getUserInfo</span>(<span class="variable">@Path</span>(<span class="string">"user"</span>) String user); <span class="comment">/*这里的user表示的是上面的{id}
+}</span>
+</code></pre><p>在这里，http路径并不完整，我们只提供了/user/{user}，这是因为在构造 Retrofit 对象时会添加一个 baseUrl（<a href="https://api.github.com）。" target="_blank" rel="external">https://api.github.com）。</a></p>
+<p>在此处 GET 的意思是 发送一个 GET请求，请求的地址为：baseUrl + “/users/{user}”。</p>
+<p>{user} 类似于占位符的作用，具体类型由 getUserInfo(@Path(“user”) String user) 指定，这里表示 {user} 将是一段字符串。</p>
+<p>其中，retrofit提供的与请求方法相关的注解有 @GET、@POST、@HEAD、@PUT、@DELETA、@PATCH，和参数相关的@Path、@Field、@Multipart等。</p>
+<p>iv.<strong>创建API接口对象</strong></p>
+<p>需要注意的是，上一步定义的interface不是class，所以我们是无法直接调用该方法，我们需要用Retrofit创建一个代理对象：</p>
+<pre><code>APIInterface service = mRetrofit.<span class="keyword">create</span>(APIInterface.<span class="keyword">class</span>);
+</code></pre><p>v.<strong>接口调用</strong></p>
+<p>一切就绪后，我们就要通过retrofit对象来进行网络操作了。传入参数，然后回调中获取结果：</p>
+<pre><code><span class="keyword">Call</span>&lt;ResponseBody&gt; model = service.getUserInfo(<span class="string">"yishuihe"</span>);
+model.enqueue(<span class="keyword">new</span> retrofit2.Callback&lt;ResponseBody&gt;() {
+        @Override
+        <span class="keyword">public</span> void onResponse(<span class="keyword">Call</span>&lt;ResponseBody&gt; <span class="keyword">call</span>, <span class="built_in">Response</span>&lt;ResponseBody&gt; <span class="built_in">response</span>) {
+            try {
+                <span class="built_in">Log</span>.d(TAG, <span class="string">"onResponse:"</span> + <span class="built_in">response</span>.body().<span class="built_in">string</span>());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        @Override
+        <span class="keyword">public</span> void onFailure(<span class="keyword">Call</span>&lt;ResponseBody&gt; <span class="keyword">call</span>, Throwable t) {
+
+        }
+
+});
+</code></pre><h2 id="注意事项">注意事项</h2><ul>
+<li>retrofit2相对于1有很大的改变，主要在引入包的时候要确认引入的是2，而且使用2中的方法。关于其演进过程，可以看看<a href="https://realm.io/cn/news/droidcon-jake-wharton-simple-http-retrofit-2/" target="_blank" rel="external">作者自己的解析</a>.</li>
 </ul>
-<p>实际例子如下：</p>
-<pre><code><span class="string">http:</span><span class="comment">//localhost:3000/posts?_start=0&amp;_end=5</span>
-</code></pre><p>json-server还有很多高级的用法，具体使用直接查询其官网即可。</p>
+<h2 id="Gsonformat">Gsonformat</h2><p>作用：Android studio插件，一般接口返回数据后要建立自己的bean，Gsonformat帮助你快速生成，不用一条一条去写。比jsonschema2pojo更加简单。<br>安装步骤：Android studio-Settings-Plugins-搜Gsonformat-Install Plugin<br>效果预览：</p>
+<h2 id="GET详细解析">GET详细解析</h2><p>服务器接口有很多中,本人经验有限,目前接触较多为以下几种:</p>
+<p>直接请求型</p>
+<p>即直接对某一地址或组合某一地址发起请求</p>
+<p>如:对/result和/result/{id}发起GET请求,其中{id}中的id在实际使用时填写实际值即可.</p>
+<p>带参查询型</p>
+<p>对某一地址进行带参查询请求</p>
+<p>如:<a href="https://www.baidu.com/s?wd=123为对接口https://www.baidu.com/s进行参数为wd=123的GET查询请求" target="_blank" rel="external">https://www.baidu.com/s?wd=123为对接口https://www.baidu.com/s进行参数为wd=123的GET查询请求</a>.</p>
+<p>带Header型</p>
+<p>　即请求时要求带上Header</p>
+<p>Retrofit中如何写?</p>
+<p>直接请求型</p>
+<p>1.如果是直接请求某一地址,写法如下:</p>
+<p>@GET(“/record”)<br>Call<phoneresult> getResult();<br>2.如果是组合后直接请求,如/result/{id}写法如下:</phoneresult></p>
+<p>@GET(“/result/{id}”)<br>Call<phoneresult> getResult(@Path(“id”) String id);<br>带参查询型</phoneresult></p>
+<p>如12306的查询接口<br><a href="https://kyfw.12306.cn/otn/lcxxcx/query?purpose_codes=ADULT&amp;queryDate=2016-03-18&amp;from_station=BJP&amp;to_station=CDW,写法如下" target="_blank" rel="external">https://kyfw.12306.cn/otn/lcxxcx/query?purpose_codes=ADULT&amp;queryDate=2016-03-18&amp;from_station=BJP&amp;to_station=CDW,写法如下</a>:</p>
+<p>@GET(“/otn/lcxxcx/query”)<br>Call<result> query(@Query(“purpose_codes”) String codes, @Query(“queryDate”) String date,<br>    @Query(“from_station”) String from, @Query(“to_station”) String to)<br>带Header型</result></p>
+<p>比如要更新某个账户信息,其接口地址为/info,需要带的Header有设备信息device,系统版本version,还要带请求参数要更新账户的id,代码如下:</p>
+<p>@POST(“/info”)<br>Call<object> updateInfo(@Header(“device”) String device, @Header(“version”) int version,<br>                        @Field(“id”) String id);<br>注:本想给每一种请求添加一个请求实例,但是确实不太好找.</object></p>
+<h2 id="Reference">Reference</h2><ul>
+<li><a href="http://www.devwiki.net/2016/03/19/Retrofit-Use-Course-2/" target="_blank" rel="external">Retrofit使用教程(二)</a></li>
+</ul>
 
       
     </div>
@@ -203,9 +244,9 @@
       
         <div class="post-tags">
           
-            <a href="/tags/REST/"> #REST </a>
+            <a href="/tags/butterknife/"> #butterknife </a>
           
-            <a href="/tags/json-server/"> #json-server </a>
+            <a href="/tags/注解/"> #注解 </a>
           
         </div>
       
@@ -214,11 +255,13 @@
         <div class="post-nav">
           <div class="post-nav-prev post-nav-item">
             
+              <a href="/2016/10/22/2016-10-22-web-scability-one/">网站可扩展性入门 - Part 1:克隆</a>
+            
           </div>
 
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2016/06/21/2016-06-21-butter-knife/">Butterknife的使用</a>
+              <a href="/2016/07/26/2016-07-26-json-server/">Json-server的使用</a>
             
           </div>
         </div>
@@ -234,8 +277,8 @@
     
       <div class="comments" id="comments">
         
-          <div class="ds-thread" data-thread-key="2016/06/26/2016-06-26-json-server/"
-               data-title="Json-server的使用" data-url="http://yishuihe.github.io/2016/06/26/2016-06-26-json-server/">
+          <div class="ds-thread" data-thread-key="2016/07/29/2016-07-29-retrofit/"
+               data-title="Retrofit2的使用" data-url="http://yishuihe.github.io/2016/07/29/2016-07-29-retrofit/">
           </div>
         
       </div>
@@ -279,21 +322,21 @@
         <div class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">39</span>
+              <span class="site-state-item-count">41</span>
               <span class="site-state-item-name">posts</span>
             </a>
           </div>
 
           <div class="site-state-item site-state-categories">
             
-              <span class="site-state-item-count">5</span>
+              <span class="site-state-item-count">6</span>
               <span class="site-state-item-name">categories</span>
               
           </div>
 
           <div class="site-state-item site-state-tags">
             <a href="/tags">
-              <span class="site-state-item-count">63</span>
+              <span class="site-state-item-count">65</span>
               <span class="site-state-item-name">tags</span>
               </a>
           </div>
@@ -335,7 +378,7 @@
           <div class="post-toc">
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#About_json-server"><span class="nav-text">About json-server</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#如何使用"><span class="nav-text">如何使用</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#About_Retrofit"><span class="nav-text">About Retrofit</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#如何使用"><span class="nav-text">如何使用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#注意事项"><span class="nav-text">注意事项</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Gsonformat"><span class="nav-text">Gsonformat</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#GET详细解析"><span class="nav-text">GET详细解析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference"><span class="nav-text">Reference</span></a></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator"></div>

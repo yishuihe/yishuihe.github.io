@@ -120,8 +120,8 @@
           
           
             
-              <a class="post-title-link" href="/2016/06/26/2016-06-26-json-server/">
-                Json-server的使用
+              <a class="post-title-link" href="/2016/10/22/2016-10-22-web-scability-one/">
+                网站可扩展性入门 - Part 1:克隆
               </a>
             
           
@@ -130,7 +130,96 @@
 
       <div class="post-meta">
         <span class="post-time">
-          Posted on 2016-06-26
+          Posted on 2016-10-22
+        </span>
+
+        
+          <span class="post-category">
+            &nbsp; | &nbsp; In
+            
+              <a href="/categories/Web/">Web</a>
+
+              
+              
+
+            
+          </span>
+        
+
+        
+          
+            <span class="post-comments-count">
+            &nbsp; | &nbsp;
+            <a href="/2016/10/22/2016-10-22-web-scability-one/#comments" >
+              <span class="post-comments-count ds-thread-count" data-thread-key="2016/10/22/2016-10-22-web-scability-one/"></span>
+            </a>
+          </span>
+          
+        
+      </div>
+    </div>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        
+          <p>本文是一组关于网站可扩展性(Scalability)系列文章的合体的译文。<a href="http://www.lecloud.net/tagged/scalability">原文链接</a></p>
+          <div class="post-more-link text-center">
+            <a class="btn" href="/2016/10/22/2016-10-22-web-scability-one/">
+              Read more &raquo;
+            </a>
+          </div>
+        
+      
+    </div>
+
+    <div class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Scalability/"> #Scalability </a>
+          
+            <a href="/tags/web/"> #web </a>
+          
+        </div>
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </div>
+  </div>
+
+
+    
+      
+
+  <div class="post post-type-normal ">
+    <div class="post-header">
+
+      
+      
+        <h1 class="post-title">
+          
+          
+            
+              <a class="post-title-link" href="/2016/07/29/2016-07-29-retrofit/">
+                Retrofit2的使用
+              </a>
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          Posted on 2016-07-29
         </span>
 
         
@@ -150,8 +239,167 @@
           
             <span class="post-comments-count">
             &nbsp; | &nbsp;
-            <a href="/2016/06/26/2016-06-26-json-server/#comments" >
-              <span class="post-comments-count ds-thread-count" data-thread-key="2016/06/26/2016-06-26-json-server/"></span>
+            <a href="/2016/07/29/2016-07-29-retrofit/#comments" >
+              <span class="post-comments-count ds-thread-count" data-thread-key="2016/07/29/2016-07-29-retrofit/"></span>
+            </a>
+          </span>
+          
+        
+      </div>
+    </div>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        
+          <a id="more"></a>
+<h2 id="About_Retrofit">About Retrofit</h2><p>项目的主页在这里：<a href="http://square.github.io/retrofit/" target="_blank" rel="external">http://square.github.io/retrofit/</a></p>
+<h2 id="如何使用">如何使用</h2><p>非常简单，分为以下几步：</p>
+<p>i. <strong>添加依赖和权限</strong></p>
+<p>首先需要在 build.gradle 文件中添加依赖，在 Manifest.xml文件中添加所需的网络权限。</p>
+<pre><code><span class="comment">//build.gradle</span>
+<span class="keyword">compile</span> <span class="string">'com.squareup.retrofit2:retrofit:2.1.0'</span>
+<span class="keyword">compile</span> <span class="string">'com.squareup.retrofit2:converter-gson:2.0.0'</span>
+
+<span class="comment">// AndroidManifest.xml</span>
+&lt;uses-permission android:name=<span class="string">"android.permission.INTERNET"</span> <span class="regexp">/&gt;</span>
+</code></pre><p>ii.<strong>创建Retrofit实例</strong></p>
+<p>创建Retrofit实例时需要通过Retrofit.Builder,并调用baseUrl方法设置URL。<br>注： Retrofit2 的baseUlr 必须以 /（斜线） 结束。</p>
+<pre><code><span class="type">Retrofit</span> mRetrofit= <span class="keyword">new</span> <span class="type">Retrofit</span>.<span class="type">Builder</span><span class="literal">()</span>
+        .baseUrl(<span class="string">"https://api.github.com"</span>)
+        .build<span class="literal">()</span>;
+</code></pre><p>iii.<strong>将http接口转换为Java API接口</strong></p>
+<p>比如我们想要从下面的URL中获取数据</p>
+<pre><code><span class="string">https:</span><span class="comment">//api.github.com/users/yishuihe</span>
+</code></pre><p>那么，我们就需要将其转换成Java API：</p>
+<pre><code><span class="tag">public</span> <span class="tag">interface</span> <span class="tag">APIInterface</span> {
+    <span class="variable">@GET</span>(<span class="string">"/users/{user}"</span>) <span class="comment">//这里的{user} 表示是一个变量</span>
+    Call&lt;ResponseBody&gt; <span class="function">getUserInfo</span>(<span class="variable">@Path</span>(<span class="string">"user"</span>) String user); <span class="comment">/*这里的user表示的是上面的{id}
+}</span>
+</code></pre><p>在这里，http路径并不完整，我们只提供了/user/{user}，这是因为在构造 Retrofit 对象时会添加一个 baseUrl（<a href="https://api.github.com）。" target="_blank" rel="external">https://api.github.com）。</a></p>
+<p>在此处 GET 的意思是 发送一个 GET请求，请求的地址为：baseUrl + “/users/{user}”。</p>
+<p>{user} 类似于占位符的作用，具体类型由 getUserInfo(@Path(“user”) String user) 指定，这里表示 {user} 将是一段字符串。</p>
+<p>其中，retrofit提供的与请求方法相关的注解有 @GET、@POST、@HEAD、@PUT、@DELETA、@PATCH，和参数相关的@Path、@Field、@Multipart等。</p>
+<p>iv.<strong>创建API接口对象</strong></p>
+<p>需要注意的是，上一步定义的interface不是class，所以我们是无法直接调用该方法，我们需要用Retrofit创建一个代理对象：</p>
+<pre><code>APIInterface service = mRetrofit.<span class="keyword">create</span>(APIInterface.<span class="keyword">class</span>);
+</code></pre><p>v.<strong>接口调用</strong></p>
+<p>一切就绪后，我们就要通过retrofit对象来进行网络操作了。传入参数，然后回调中获取结果：</p>
+<pre><code><span class="keyword">Call</span>&lt;ResponseBody&gt; model = service.getUserInfo(<span class="string">"yishuihe"</span>);
+model.enqueue(<span class="keyword">new</span> retrofit2.Callback&lt;ResponseBody&gt;() {
+        @Override
+        <span class="keyword">public</span> void onResponse(<span class="keyword">Call</span>&lt;ResponseBody&gt; <span class="keyword">call</span>, <span class="built_in">Response</span>&lt;ResponseBody&gt; <span class="built_in">response</span>) {
+            try {
+                <span class="built_in">Log</span>.d(TAG, <span class="string">"onResponse:"</span> + <span class="built_in">response</span>.body().<span class="built_in">string</span>());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        @Override
+        <span class="keyword">public</span> void onFailure(<span class="keyword">Call</span>&lt;ResponseBody&gt; <span class="keyword">call</span>, Throwable t) {
+
+        }
+
+});
+</code></pre><h2 id="注意事项">注意事项</h2><ul>
+<li>retrofit2相对于1有很大的改变，主要在引入包的时候要确认引入的是2，而且使用2中的方法。关于其演进过程，可以看看<a href="https://realm.io/cn/news/droidcon-jake-wharton-simple-http-retrofit-2/" target="_blank" rel="external">作者自己的解析</a>.</li>
+</ul>
+<h2 id="Gsonformat">Gsonformat</h2><p>作用：Android studio插件，一般接口返回数据后要建立自己的bean，Gsonformat帮助你快速生成，不用一条一条去写。比jsonschema2pojo更加简单。<br>安装步骤：Android studio-Settings-Plugins-搜Gsonformat-Install Plugin<br>效果预览：</p>
+<h2 id="GET详细解析">GET详细解析</h2><p>服务器接口有很多中,本人经验有限,目前接触较多为以下几种:</p>
+<p>直接请求型</p>
+<p>即直接对某一地址或组合某一地址发起请求</p>
+<p>如:对/result和/result/{id}发起GET请求,其中{id}中的id在实际使用时填写实际值即可.</p>
+<p>带参查询型</p>
+<p>对某一地址进行带参查询请求</p>
+<p>如:<a href="https://www.baidu.com/s?wd=123为对接口https://www.baidu.com/s进行参数为wd=123的GET查询请求" target="_blank" rel="external">https://www.baidu.com/s?wd=123为对接口https://www.baidu.com/s进行参数为wd=123的GET查询请求</a>.</p>
+<p>带Header型</p>
+<p>　即请求时要求带上Header</p>
+<p>Retrofit中如何写?</p>
+<p>直接请求型</p>
+<p>1.如果是直接请求某一地址,写法如下:</p>
+<p>@GET(“/record”)<br>Call<phoneresult> getResult();<br>2.如果是组合后直接请求,如/result/{id}写法如下:</phoneresult></p>
+<p>@GET(“/result/{id}”)<br>Call<phoneresult> getResult(@Path(“id”) String id);<br>带参查询型</phoneresult></p>
+<p>如12306的查询接口<br><a href="https://kyfw.12306.cn/otn/lcxxcx/query?purpose_codes=ADULT&amp;queryDate=2016-03-18&amp;from_station=BJP&amp;to_station=CDW,写法如下" target="_blank" rel="external">https://kyfw.12306.cn/otn/lcxxcx/query?purpose_codes=ADULT&amp;queryDate=2016-03-18&amp;from_station=BJP&amp;to_station=CDW,写法如下</a>:</p>
+<p>@GET(“/otn/lcxxcx/query”)<br>Call<result> query(@Query(“purpose_codes”) String codes, @Query(“queryDate”) String date,<br>    @Query(“from_station”) String from, @Query(“to_station”) String to)<br>带Header型</result></p>
+<p>比如要更新某个账户信息,其接口地址为/info,需要带的Header有设备信息device,系统版本version,还要带请求参数要更新账户的id,代码如下:</p>
+<p>@POST(“/info”)<br>Call<object> updateInfo(@Header(“device”) String device, @Header(“version”) int version,<br>                        @Field(“id”) String id);<br>注:本想给每一种请求添加一个请求实例,但是确实不太好找.</object></p>
+<h2 id="Reference">Reference</h2><ul>
+<li><a href="http://www.devwiki.net/2016/03/19/Retrofit-Use-Course-2/" target="_blank" rel="external">Retrofit使用教程(二)</a></li>
+</ul>
+
+        
+      
+    </div>
+
+    <div class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/butterknife/"> #butterknife </a>
+          
+            <a href="/tags/注解/"> #注解 </a>
+          
+        </div>
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </div>
+  </div>
+
+
+    
+      
+
+  <div class="post post-type-normal ">
+    <div class="post-header">
+
+      
+      
+        <h1 class="post-title">
+          
+          
+            
+              <a class="post-title-link" href="/2016/07/26/2016-07-26-json-server/">
+                Json-server的使用
+              </a>
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          Posted on 2016-07-26
+        </span>
+
+        
+          <span class="post-category">
+            &nbsp; | &nbsp; In
+            
+              <a href="/categories/Android/">Android</a>
+
+              
+              
+
+            
+          </span>
+        
+
+        
+          
+            <span class="post-comments-count">
+            &nbsp; | &nbsp;
+            <a href="/2016/07/26/2016-07-26-json-server/#comments" >
+              <span class="post-comments-count ds-thread-count" data-thread-key="2016/07/26/2016-07-26-json-server/"></span>
             </a>
           </span>
           
@@ -169,7 +417,7 @@
           <p>在大多数开发流程中，前端开发会极大的依赖于后端的数据，而事实却是开发初期，后台开发人员一般只会输出API文档给前端开发人员。但是有些业务逻辑需要后台API数据的支持，必须等到后台API开发完成后，才能测试这些业务逻辑。</p>
 <p>那么如何解决这个矛盾呢？读了这篇文章就会有答案。</p>
           <div class="post-more-link text-center">
-            <a class="btn" href="/2016/06/26/2016-06-26-json-server/">
+            <a class="btn" href="/2016/07/26/2016-07-26-json-server/">
               Read more &raquo;
             </a>
           </div>
@@ -210,7 +458,7 @@
           
           
             
-              <a class="post-title-link" href="/2016/06/21/2016-06-21-butter-knife/">
+              <a class="post-title-link" href="/2016/07/21/2016-07-21-butter-knife/">
                 Butterknife的使用
               </a>
             
@@ -220,7 +468,7 @@
 
       <div class="post-meta">
         <span class="post-time">
-          Posted on 2016-06-21
+          Posted on 2016-07-21
         </span>
 
         
@@ -240,8 +488,8 @@
           
             <span class="post-comments-count">
             &nbsp; | &nbsp;
-            <a href="/2016/06/21/2016-06-21-butter-knife/#comments" >
-              <span class="post-comments-count ds-thread-count" data-thread-key="2016/06/21/2016-06-21-butter-knife/"></span>
+            <a href="/2016/07/21/2016-07-21-butter-knife/#comments" >
+              <span class="post-comments-count ds-thread-count" data-thread-key="2016/07/21/2016-07-21-butter-knife/"></span>
             </a>
           </span>
           
@@ -258,7 +506,7 @@
         
           <p>介绍如何使用Jake大神的butterknife。。。</p>
           <div class="post-more-link text-center">
-            <a class="btn" href="/2016/06/21/2016-06-21-butter-knife/">
+            <a class="btn" href="/2016/07/21/2016-07-21-butter-knife/">
               Read more &raquo;
             </a>
           </div>
@@ -828,189 +1076,11 @@
 
 
     
-      
-
-  <div class="post post-type-normal ">
-    <div class="post-header">
-
-      
-      
-        <h1 class="post-title">
-          
-          
-            
-              <a class="post-title-link" href="/2015/12/08/2015-12_08_java_blocking_queue/">
-                Android多线程开发 － BlockingQueue
-              </a>
-            
-          
-        </h1>
-      
-
-      <div class="post-meta">
-        <span class="post-time">
-          Posted on 2015-12-08
-        </span>
-
-        
-          <span class="post-category">
-            &nbsp; | &nbsp; In
-            
-              <a href="/categories/Android/">Android</a>
-
-              
-              
-
-            
-          </span>
-        
-
-        
-          
-            <span class="post-comments-count">
-            &nbsp; | &nbsp;
-            <a href="/2015/12/08/2015-12_08_java_blocking_queue/#comments" >
-              <span class="post-comments-count ds-thread-count" data-thread-key="2015/12/08/2015-12_08_java_blocking_queue/"></span>
-            </a>
-          </span>
-          
-        
-      </div>
-    </div>
-
-    <div class="post-body">
-
-      
-      
-
-      
-        
-          <p>在Java的并发开发中，队列是一种常用的数据结构，很多并发数据都会放入到队列中去。幸运的是，java平台提供了现成的并发队列供我们使用，今天我们就来一起看看。</p>
-          <div class="post-more-link text-center">
-            <a class="btn" href="/2015/12/08/2015-12_08_java_blocking_queue/">
-              Read more &raquo;
-            </a>
-          </div>
-        
-      
-    </div>
-
-    <div class="post-footer">
-      
-        <div class="post-tags">
-          
-            <a href="/tags/blockingQueue/"> #blockingQueue </a>
-          
-            <a href="/tags/concurrency/"> #concurrency </a>
-          
-        </div>
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </div>
-  </div>
-
-
-    
-      
-
-  <div class="post post-type-normal ">
-    <div class="post-header">
-
-      
-      
-        <h1 class="post-title">
-          
-          
-            
-              <a class="post-title-link" href="/2015/11/23/2015-11_23_android_permission/">
-                Android permissions最佳实践
-              </a>
-            
-          
-        </h1>
-      
-
-      <div class="post-meta">
-        <span class="post-time">
-          Posted on 2015-11-23
-        </span>
-
-        
-          <span class="post-category">
-            &nbsp; | &nbsp; In
-            
-              <a href="/categories/Android/">Android</a>
-
-              
-              
-
-            
-          </span>
-        
-
-        
-          
-            <span class="post-comments-count">
-            &nbsp; | &nbsp;
-            <a href="/2015/11/23/2015-11_23_android_permission/#comments" >
-              <span class="post-comments-count ds-thread-count" data-thread-key="2015/11/23/2015-11_23_android_permission/"></span>
-            </a>
-          </span>
-          
-        
-      </div>
-    </div>
-
-    <div class="post-body">
-
-      
-      
-
-      
-        
-          <p>Android M中的permission介绍以及最佳实践。<br>
-          <div class="post-more-link text-center">
-            <a class="btn" href="/2015/11/23/2015-11_23_android_permission/">
-              Read more &raquo;
-            </a>
-          </div>
-        
-      
-    </div>
-
-    <div class="post-footer">
-      
-        <div class="post-tags">
-          
-            <a href="/tags/Android/"> #Android </a>
-          
-            <a href="/tags/permission/"> #permission </a>
-          
-        </div>
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </div>
-  </div>
-
-
-    
   </div>
 
   
   <div class="pagination">
-    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" href="/page/2/">&raquo;</a>
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/page/5/">5</a><a class="extend next" rel="next" href="/page/2/">&raquo;</a>
   </div>
 
 
@@ -1041,21 +1111,21 @@
         <div class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">39</span>
+              <span class="site-state-item-count">41</span>
               <span class="site-state-item-name">posts</span>
             </a>
           </div>
 
           <div class="site-state-item site-state-categories">
             
-              <span class="site-state-item-count">5</span>
+              <span class="site-state-item-count">6</span>
               <span class="site-state-item-name">categories</span>
               
           </div>
 
           <div class="site-state-item site-state-tags">
             <a href="/tags">
-              <span class="site-state-item-count">63</span>
+              <span class="site-state-item-count">65</span>
               <span class="site-state-item-name">tags</span>
               </a>
           </div>

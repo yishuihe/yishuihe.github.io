@@ -39,7 +39,7 @@
   </script>
 
 
-  <title> 网站可扩展性入门 - Part 1:克隆 // Coding Life </title>
+  <title> 网站可扩展性入门 // Coding Life </title>
 </head>
 
 <body>
@@ -118,7 +118,7 @@
           
           
             
-              网站可扩展性入门 - Part 1:克隆
+              网站可扩展性入门
             
           
         </h1>
@@ -161,7 +161,7 @@
       
 
       
-        <p>本文是一组关于网站可扩展性(Scalability)系列文章的合体的译文。<a href="http://www.lecloud.net/tagged/scalability" target="_blank" rel="external">原文链接</a></p>
+        <p>本文是一组关于网站可扩展性(Scalability)系列文章的合体的译文。</p>
 <a id="more"></a>
 <p>这段时间经常有人咨询关于网站高伸缩性的问题，我的回答比较长而且可能会有其他人感兴趣。所以我把它分四次分享到我的博客上面。</p>
 <h2 id="Part_1_-_克隆">Part 1 - 克隆</h2><p>Load balancer是支撑可扩展性网站的关键因素，服务器组隐藏在load balancer后面，然后load balancer会均衡地将用户的请求分配到你的网站的application服务器上。也就是说，例如，史蒂夫要访问你的网站，他的第一次访问可能是由你的网站1号服务器响应的，第二次是9号服务器，而第三次是2号服务器…</p>
@@ -187,9 +187,7 @@
 <p>不过这个模式有几个问题：最主要的问题是‘失效’。当你缓存了一个复杂的查询结果后，你很难去删除掉这个缓存。另外一个问题是：当某条数据变化后，你需要删除和这条数据相关的所有缓存。</p>
 <p><strong>2 - Cached Objects</strong></p>
 <p>这是我强烈推荐的缓存模式。像代码中的类／实例一样来看待你的data，让你的代码从数据库中提取并且组装数据，然后将这个实例或者组装的数据缓存起来。我知道，这听起来太理论化了，但是只是把它假想成你的实际的代码那样。例如，你有一个类叫做‘Product’，它有一个属性叫做’data‘，它是一个包含product价格，文本描述，图片以及用户review的数组。这个属性’data’会经过几次数据库查询并且通过几个方法从而来填充上数值，这使得它很难被缓存，因为好多东西都互相依赖。现在，让我们试试这个方法：当你的class完成product数据的组装后，直接将‘data’数组缓存下来，或者更好一些，将整个实例缓存下来。这样，当这个product的某些属性改变时，你可以很容易的将其缓存清理掉，并且使你的代码执行更加快速。</p>
-<p>And the best part: it makes asynchronous processing possible! Just imagine an army of worker servers who assemble your objects for you! The application just consumes the latest cached object and nearly never touches the databases anymore!</p>
 <p>更棒的是，这使得异步处理变得可能。可以想象成很多的服务器在为你组装住距。应用只需要从最新的cache object中获取数据，而几乎不比在和数据库直接打交道。</p>
-<p>Some ideas of objects to cache:</p>
 <p>一些可以应用object cache的场景：</p>
 <ul>
 <li>用户sessions （永远都不要用数据库）</li>
@@ -211,6 +209,7 @@
 <p>一个用户访问你的网站并且触发了一个需要大量计算的任务，该任务估计要花费数分钟才能完成。所以你的网站前端将任务发送到后台的任务队列中去，并且立刻给用户发送一条提示：你的任务已经开始执行了，你现在可以继续浏览网页。后台的一些任务执行者会定期的去检查任务队列，看里面是否有了新任务。如果有了，那么就会开始执行并且在执行完毕后发送一条提示给用户。而前台会一直检查是否收到了这种‘任务完成’的提示，如果有的话就显示给用户。</p>
 <p>我知道，这个例子有些简单。如果你想要获取更多的细节以及一些实际的技术设计，我推荐你去阅读RabbitMQ网站上的前三个教程。RabbitMQ是众多辅助实现异步处理的系统之一。你还可以使用ActiveMQ或者一个简单的Redis列表。基本的思想是有一个待处理的任务后台队列，后台的worker可以从里面获取任务并执行。异步看起来有些复杂，但是你觉得值得花时间去了解并实现异步。从而让你的网站后端变得无限可扩展，前端变得迅捷，从而整体上提高用户体检。</p>
 <p>记住，如果你需要做一些耗时的工作，一定要用异步！</p>
+<h2 id="翻译手记">翻译手记</h2><p>原文简洁明了，读完后收获很多，决定翻译过来。当然，如果你英文没问题的话，还是建议直接看原文。收获肯定会比看我的翻译大很多。<a href="http://www.lecloud.net/tagged/scalability" target="_blank" rel="external">原文链接</a></p>
 
       
     </div>
@@ -251,7 +250,7 @@
       <div class="comments" id="comments">
         
           <div class="ds-thread" data-thread-key="2016/10/22/2016-10-22-web-scability-one/"
-               data-title="网站可扩展性入门 - Part 1:克隆" data-url="http://yishuihe.github.io/2016/10/22/2016-10-22-web-scability-one/">
+               data-title="网站可扩展性入门" data-url="http://yishuihe.github.io/2016/10/22/2016-10-22-web-scability-one/">
           </div>
         
       </div>
@@ -351,7 +350,7 @@
           <div class="post-toc">
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Part_1_-_克隆"><span class="nav-text">Part 1 - 克隆</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Part_2_数据库"><span class="nav-text">Part 2 数据库</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Part_3_cache"><span class="nav-text">Part 3 cache</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Part_4_Asynchronism"><span class="nav-text">Part 4 Asynchronism</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Part_1_-_克隆"><span class="nav-text">Part 1 - 克隆</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Part_2_数据库"><span class="nav-text">Part 2 数据库</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Part_3_cache"><span class="nav-text">Part 3 cache</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Part_4_Asynchronism"><span class="nav-text">Part 4 Asynchronism</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#翻译手记"><span class="nav-text">翻译手记</span></a></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator"></div>

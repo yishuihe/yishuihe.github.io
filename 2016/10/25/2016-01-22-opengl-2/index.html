@@ -175,7 +175,7 @@
 <li>向下90度弯曲你的中指。</li>
 </ul>
 <p>如果你都正确地做了，那么你的大拇指朝着正x轴方向，食指朝着正y轴方向，中指朝着正z轴方向。如果你用左手来做这些动作，你会发现z轴的方向是相反的。这就是有名的左手坐标系，它被DirectX广泛地使用。注意在标准化设备坐标系中OpenGL使用的是左手坐标系(投影矩阵改变了惯用手的习惯)。</p>
-<p>所以我们今天要做的第一件事情就是先定义顶点坐标，让我们以三角形为例, 代码比较简单，看看注释就明白了。打开上一篇教程中我们写的Renderer文件，将下面的代码放进去：</p>
+<p>所以我们今天要做的第一件事情就是先定义顶点坐标，OpenGL不是简单地把所有的3D坐标变换为屏幕上的2D像素；OpenGL仅当3D坐标在3个轴（x、y和z）上都为-1.0到1.0的范围内时才处理它。所有在所谓的标准化设备坐标(Normalized Device Coordinates)范围内的坐标才会最终呈现在屏幕上（在这个范围以外的坐标都不会显示。让我们以三角形为例, 代码比较简单，看看注释就明白了。</p>
 <pre><code><span class="comment">// 逆时针方向的定义三角形的三个顶点</span>
 <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">float</span> triangleCoords[] = {
         <span class="number">0.0f</span>,  <span class="number">0.5f</span>, <span class="number">0.0f</span>, <span class="comment">// top</span>
@@ -218,7 +218,7 @@ mVertexBuffer(triangleCoords).position(<span class="number">0</span>);
 <p>着色器是使用一种叫GLSL的类C语言写成的。GLSL是为图形计算量身定制的，它包含一些针对向量和矩阵操作的有用特性。</p>
 <p>着色器的开头总是要声明版本，接着是输入和输出变量、uniform和main函数。每个着色器的入口点都是main函数，在这个函数中我们处理所有的输入变量，并将结果输出到输出变量中。</p>
 <p>虽然着色器是各自独立的小程序，但是它们都是一个整体的一部分，出于这样的原因，我们希望每个着色器都有输入和输出，这样才能进行数据交流和传递。GLSL定义了in和out关键字专门来实现这个目的。每个着色器使用这两个关键字设定输入和输出，只要一个输出变量与下一个着色器阶段的输入匹配，它就会传递下去。但在顶点和片段着色器中会有点不同。</p>
-<p>Uniform是一种从CPU中的应用向GPU中的着色器发送数据的方式，但uniform和顶点属性有些不同。首先，uniform是全局的(Global)。全局意味着uniform变量必须在每个着色器程序对象中都是独一无二的，而且它可以被着色器程序的任意着色器在任意阶段访问。第二，无论你把uniform值设置成什么，uniform会一直保存它们的数据，直到它们被重置或更新。</p>
+<p>其中Uniform是一种从CPU中的应用向GPU中的着色器发送数据的方式，但uniform和顶点属性有些不同。首先，uniform是全局的(Global)。全局意味着uniform变量必须在每个着色器程序对象中都是独一无二的，而且它可以被着色器程序的任意着色器在任意阶段访问。第二，无论你把uniform值设置成什么，uniform会一直保存它们的数据，直到它们被重置或更新。</p>
 <p>下面是我们今天要用到的两个shader文件：</p>
 <p>Vertex shader(basic_vertex_shader.glsl):</p>
 <figure class="highlight glsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">attribute</span> <span class="keyword">vec4</span> vPosition;</span><br><span class="line"></span><br><span class="line"><span class="keyword">void</span> main() &#123;</span><br><span class="line">    <span class="built_in">gl_Position</span> = vPosition;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>

@@ -1,0 +1,815 @@
+<!doctype html>
+<html class="theme-next  theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.2"/>
+
+
+
+
+  <meta name="keywords" content="Android,opengl,opengl es," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.2" />
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?7c4928b8493b1f6aa6ce268029b94e99";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  <title> Android OpenGL 开发2 － 顶点定义以及shader // Coding Life </title>
+</head>
+
+<body>
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <div id="header" class="header">
+      <div class="header-inner">
+        <h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand">
+      <span class="logo">
+        <i class="icon-logo"></i>
+      </span>
+      <span class="site-title">Coding Life</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+
+  <ul id="menu" class="menu">
+     
+    
+      
+      <li class="menu-item menu-item-home">
+        <a href="/">
+          <i class="menu-item-icon icon-home"></i> <br />
+          Home
+        </a>
+      </li>
+    
+      
+      <li class="menu-item menu-item-archives">
+        <a href="/archives">
+          <i class="menu-item-icon icon-archives"></i> <br />
+          Archives
+        </a>
+      </li>
+    
+      
+      <li class="menu-item menu-item-tags">
+        <a href="/tags">
+          <i class="menu-item-icon icon-tags"></i> <br />
+          Tags
+        </a>
+      </li>
+    
+      
+      <li class="menu-item menu-item-about">
+        <a href="/about">
+          <i class="menu-item-icon icon-about"></i> <br />
+          About
+        </a>
+      </li>
+    
+  </ul>
+
+
+      </div>
+    </div>
+
+    <div id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content">
+          
+
+  <div id="posts" class="posts-expand">
+    
+
+  <div class="post post-type-normal ">
+    <div class="post-header">
+
+      
+      
+        <h1 class="post-title">
+          
+          
+            
+              Android OpenGL 开发2 － 顶点定义以及shader
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          Posted on 2016-10-25
+        </span>
+
+        
+          <span class="post-category">
+            &nbsp; | &nbsp; In
+            
+              <a href="/categories/Android/">Android</a>
+
+              
+              
+
+            
+          </span>
+        
+
+        
+          
+            <span class="post-comments-count">
+            &nbsp; | &nbsp;
+            <a href="/2016/10/25/2016-01-22-opengl-2/#comments" >
+              <span class="post-comments-count ds-thread-count" data-thread-key="2016/10/25/2016-01-22-opengl-2/"></span>
+            </a>
+          </span>
+          
+        
+      </div>
+    </div>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <p>在<a href="http://zhixinliu.com/2016/01/19/2016-01_19_opengl_1/" target="_blank" rel="external">上一篇教程</a>中我们学习了如何开发一个非常简单的Android OpenGL应用，但是也正如在上篇结尾处提到的那样，我们没有画任何有意义的东西出来，在这一篇中，我们将解决该问题。我会基于上一篇教程的例子做相应修改，画一个三角形出来。</p>
+<a id="more"></a>
+<h2 id="顶点定义">顶点定义</h2><p>在我们的Renderer做渲染之前，我们首选需要有东西可以用来显示。在OpenGL(2.0及以后)中，我们需要将要显示的数据从应用中传递给GPU，这些数据就是顶点数据，openGL中顶点称之为Vertex，它可以表示位置信息，颜色信息以及其它任何我们需要的。</p>
+<p>三点确定一个三角形。我们常常用“顶点”（Vertex，复数vertices）来指代3D图形学中的点。一个顶点有三个坐标：X，Y和Z。您可以这样想象这三根坐标轴：</p>
+<p>按照约定，OpenGL是一个右手坐标系。最基本的就是说正x轴在你的右手边，正y轴往上而正z轴是往后的。想象你的屏幕处于三个轴的中心且正z轴穿过你的屏幕朝向你。坐标系画起来如下：</p>
+<p><img src="/images/coordinate_systems_right_handed.png" alt=" "></p>
+<p>为了理解为什么被称为右手坐标系，按如下的步骤做：</p>
+<ul>
+<li>张开你的右手使正y轴沿着你的手往上。</li>
+<li>使你的大拇指往右。</li>
+<li>使你的食指往上。</li>
+<li>向下90度弯曲你的中指。</li>
+</ul>
+<p>如果你都正确地做了，那么你的大拇指朝着正x轴方向，食指朝着正y轴方向，中指朝着正z轴方向。如果你用左手来做这些动作，你会发现z轴的方向是相反的。这就是有名的左手坐标系，它被DirectX广泛地使用。注意在标准化设备坐标系中OpenGL使用的是左手坐标系(投影矩阵改变了惯用手的习惯)。</p>
+<p>所以我们今天要做的第一件事情就是先定义顶点坐标，让我们以三角形为例, 代码比较简单，看看注释就明白了。打开上一篇教程中我们写的Renderer文件，将下面的代码放进去：</p>
+<pre><code><span class="comment">// 逆时针方向的定义三角形的三个顶点</span>
+<span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">float</span> triangleCoords[] = {
+        <span class="number">0.0f</span>,  <span class="number">0.5f</span>, <span class="number">0.0f</span>, <span class="comment">// top</span>
+        -<span class="number">0.5f</span>, -<span class="number">0.0f</span>, <span class="number">0.0f</span>, <span class="comment">// bottom left</span>
+        <span class="number">0.5f</span>, -<span class="number">0.0f</span>, <span class="number">0.0f</span>  <span class="comment">// bottom right</span>
+};
+
+<span class="comment">// 顶点颜色，RGBA</span>
+<span class="keyword">private</span> <span class="keyword">float</span> color[] = { <span class="number">1.0f</span>, <span class="number">0.0f</span>, <span class="number">0.0f</span>, <span class="number">1.0f</span> }; <span class="comment">// Red color</span>
+</code></pre><h2 id="使数据能够被OpenGL访问到">使数据能够被OpenGL访问到</h2><p>顶点的坐标以及颜色定义好之后，下一步就是将这些信息传递给OpenGL做渲染了，但是问题来了 －－ 我们的应用不能和OpenGL直接通信：</p>
+<p>三角形的顶点数据定义在java层，他们运行在Android的虚拟机Davik中，这里面的代码是不能跳出Davik而去访问native层的。另外，这里面的数据有可能会在某个时候被GC回收掉。 这样设计的好处是应用开发者不需要考虑底层的CPU，memory或者其他硬件的具体情况，但是当我们需要开发openGL程序的时候问题就来了，OpenGL是直接跑在硬件上的，不是跑在Davik中的，没有virtual machine，没有GC。</p>
+<p>那么如何使OpenGL能够访问到Java层的数据呢？</p>
+<p>一种方式是通过JNI，事实上，当我们调用GLES的函数的时候，SDK就是通过JNI来调用native层的library的。</p>
+<p>第二种方式，将Java中的memory heap拷贝到native memory heap中，进一步将就是在java中改变我们分配内存的方式。有一些java类就是直接在native层分配memory的，然后我们将数据拷贝到这样的memory中，native层就可以访问了，而且不受GC控制。</p>
+<p>好了我们就采用这一种方式吧，一起来看代码：</p>
+<pre><code><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> BYTES_PER_FLOAT = <span class="number">4</span>;
+
+<span class="keyword">private</span> <span class="keyword">final</span> FloatBuffer mVertexBuffer;
+mVertexBuffer = ByteBuffer.allocateDirect(triangleCoords.length * BYTE_PER_FLOAT)
+             .<span class="keyword">order</span>(ByteOrder.nativeOrder())
+             .asFloatBUffer();
+mVertexBuffer(triangleCoords).position(<span class="number">0</span>);
+</code></pre><p>其中：</p>
+<ul>
+<li>ByteBuffer.allocateDirec就是在native层申请memory的。</li>
+<li>ByteOrder.nativeOrder() 涉及到大端小端模式，我们要求采用和底层一致的模式。</li>
+<li>asFloatBUffer 我们不想按字节操作，而是希望操纵float数据</li>
+<li>vertexData.put(tableVertices); 用来将数据从Dalvik的memory拷贝到native的memory。</li>
+</ul>
+<p>这一步看起来或许有些费解，但是请记住，这是在向openGL传递数据前必须的一步。</p>
+<p>现在，我们已经准备好向openGL传递数据了。</p>
+<h2 id="着色器（Shader）">着色器（Shader）</h2><p>着色器(Shader)是运行在GPU上的小程序。这些小程序为图形渲染管线的某个特定部分而运行。从基本意义上来说，着色器只是一种把输入转化为输出的程序。着色器也是一种非常独立的程序，因为它们之间不能相互通信；它们之间唯一的沟通只有通过输入和输出。</p>
+<p>着色器是使用一种叫GLSL的类C语言写成的。GLSL是为图形计算量身定制的，它包含一些针对向量和矩阵操作的有用特性。</p>
+<p>着色器的开头总是要声明版本，接着是输入和输出变量、uniform和main函数。每个着色器的入口点都是main函数，在这个函数中我们处理所有的输入变量，并将结果输出到输出变量中。</p>
+<p>虽然着色器是各自独立的小程序，但是它们都是一个整体的一部分，出于这样的原因，我们希望每个着色器都有输入和输出，这样才能进行数据交流和传递。GLSL定义了in和out关键字专门来实现这个目的。每个着色器使用这两个关键字设定输入和输出，只要一个输出变量与下一个着色器阶段的输入匹配，它就会传递下去。但在顶点和片段着色器中会有点不同。</p>
+<p>Uniform是一种从CPU中的应用向GPU中的着色器发送数据的方式，但uniform和顶点属性有些不同。首先，uniform是全局的(Global)。全局意味着uniform变量必须在每个着色器程序对象中都是独一无二的，而且它可以被着色器程序的任意着色器在任意阶段访问。第二，无论你把uniform值设置成什么，uniform会一直保存它们的数据，直到它们被重置或更新。</p>
+<p>如果对shader还有问题，建议Google一下OpenGL的pipeline，以及shader的详细介绍。</p>
+<p>下面是我们今天要用到的两个shader文件：</p>
+<p>Vertex shader(basic_vertex_shader.glsl):</p>
+<figure class="highlight glsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">attribute</span> <span class="keyword">vec4</span> vPosition;</span><br><span class="line"></span><br><span class="line"><span class="keyword">void</span> main() &#123;</span><br><span class="line">    <span class="built_in">gl_Position</span> = vPosition;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Fragment shader(basic_fragment_shader.glsl):</p>
+<figure class="highlight glsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">precision</span> <span class="keyword">mediump</span> <span class="keyword">float</span>;</span><br><span class="line"><span class="keyword">uniform</span> <span class="keyword">vec4</span> vColor;</span><br><span class="line"></span><br><span class="line"><span class="keyword">void</span> main() &#123;</span><br><span class="line">    <span class="built_in">gl_FragColor</span> = vColor;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="加载shader">加载shader</h2><p>在写好shader文件之后，我们下一步就是将其加载到内存中来。比较简单，直接上代码吧：</p>
+<figure class="highlight aspectj"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ShaderHelper</span> </span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="function"><span class="keyword">int</span> <span class="title">buildProgram</span><span class="params">(String vertexShaderSource, String fragmentShaderSource)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span> program;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">int</span> vertexShader = compileVertexShader(vertexShaderSource);</span><br><span class="line">        <span class="keyword">int</span> fragmentShader = compileFragmentShader(fragmentShaderSource);</span><br><span class="line"></span><br><span class="line">        program = linkProgram(vertexShader,fragmentShader);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> program;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="function"><span class="keyword">int</span> <span class="title">compileVertexShader</span><span class="params">(String shaderCode)</span> </span>&#123;</span><br><span class="line">        <span class="function"><span class="keyword">return</span> <span class="title">compileShader</span><span class="params">(GLES20.GL_VERTEX_SHADER, shaderCode)</span></span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="function"><span class="keyword">int</span> <span class="title">compileFragmentShader</span><span class="params">(String shaderCode)</span> </span>&#123;<span class="function"><span class="keyword">return</span> <span class="title">compileShader</span><span class="params">(GLES20.GL_FRAGMENT_SHADER, shaderCode)</span></span>;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="function"><span class="keyword">int</span> <span class="title">compileShader</span><span class="params">(<span class="keyword">int</span> type, String shaderCode)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">final</span> <span class="keyword">int</span> shaderObjectId = GLES20.glCreateShader(type);</span><br><span class="line">        <span class="keyword">if</span>(shaderObjectId == <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(<span class="string">" Could not create shader object"</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        GLES20.glShaderSource(shaderObjectId,shaderCode);</span><br><span class="line"></span><br><span class="line">        GLES20.glCompileShader(shaderObjectId);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">final</span> <span class="keyword">int</span>[] compileStatus = <span class="keyword">new</span> <span class="keyword">int</span>[<span class="number">1</span>];</span><br><span class="line"></span><br><span class="line">        GLES20.glGetShaderiv(shaderObjectId, GLES20.GL_COMPILE_STATUS, compileStatus, <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (compileStatus[<span class="number">0</span>] == <span class="number">0</span>)</span><br><span class="line">        &#123;</span><br><span class="line">            GLES20.glDeleteShader(shaderObjectId);</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(<span class="string">" Could not compile shader "</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> shaderObjectId;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="function"><span class="keyword">int</span> <span class="title">linkProgram</span><span class="params">(<span class="keyword">int</span> vertextShaderId, <span class="keyword">int</span> fragmentShaderId)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">final</span> <span class="keyword">int</span> programObjectId = GLES20.glCreateProgram();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span>(programObjectId == <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(<span class="string">"Could not create Program"</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        GLES20.glAttachShader(programObjectId, vertextShaderId);</span><br><span class="line">        GLES20.glAttachShader(programObjectId, fragmentShaderId);</span><br><span class="line"></span><br><span class="line">        GLES20.glLinkProgram(programObjectId);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Get the link status.</span></span><br><span class="line">        <span class="keyword">final</span> <span class="keyword">int</span>[] linkStatus = <span class="keyword">new</span> <span class="keyword">int</span>[<span class="number">1</span>];</span><br><span class="line">        GLES20.glGetProgramiv(programObjectId, GLES20.GL_LINK_STATUS, linkStatus, <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// If the link failed, delete the program.</span></span><br><span class="line">        <span class="keyword">if</span> (linkStatus[<span class="number">0</span>] == <span class="number">0</span>)</span><br><span class="line">        &#123;</span><br><span class="line">            GLES20.glDeleteProgram(programObjectId);</span><br><span class="line">            <span class="keyword">throw</span>  <span class="keyword">new</span> RuntimeException(<span class="string">"could not link program "</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> programObjectId;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="封装OpenGL三角形">封装OpenGL三角形</h2><p>接下来我们需要将定义好的三角形顶点坐标传递给shder，从而将其画出来，为了逻辑清楚，我们将之前的定义三角形顶点坐标，以及调用shader，传递数据到shader都放到一个单独的类里面GLTriangle，当需要画的时候调用这个类就可以了：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> GLTriangle &#123;</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">static</span> final String TAG = GLTriangle.<span class="keyword">class</span>.getSimpleName();</span><br><span class="line">        <span class="keyword">private</span> Context mContext;</span><br><span class="line">        <span class="keyword">private</span> FloatBuffer mVertexBuffer;</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">int</span> mProgram;</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">int</span> mPositionHandle;</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">int</span> mColorHandle;</span><br><span class="line">    </span><br><span class="line">        <span class="keyword">private</span> final <span class="keyword">int</span> vertexCount = triangleCoords.length / COORDS_PER_VERTEX;</span><br><span class="line">        <span class="keyword">private</span> final <span class="keyword">int</span> vertexStride = COORDS_PER_VERTEX * <span class="number">4</span>; <span class="comment">// 4 bytes per vertex</span></span><br><span class="line">    </span><br><span class="line">        <span class="comment">// number of coordinates per vertex in this array</span></span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">static</span> final <span class="keyword">int</span> COORDS_PER_VERTEX = <span class="number">3</span>;</span><br><span class="line">    </span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">static</span> final <span class="keyword">int</span> BYTES_PER_FLOAT = <span class="number">4</span>;</span><br><span class="line">    </span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">float</span> triangleCoords[] = &#123;   <span class="comment">// in counterclockwise order:</span></span><br><span class="line">                <span class="number">0.0f</span>,  <span class="number">0.5f</span>, <span class="number">0.0f</span>, <span class="comment">// top</span></span><br><span class="line">                -<span class="number">0.5f</span>, -<span class="number">0.0f</span>, <span class="number">0.0f</span>, <span class="comment">// bottom left</span></span><br><span class="line">                <span class="number">0.5f</span>, -<span class="number">0.0f</span>, <span class="number">0.0f</span>  <span class="comment">// bottom right</span></span><br><span class="line">        &#125;;</span><br><span class="line">    </span><br><span class="line">        <span class="comment">// Set color with red, green, blue and alpha (opacity) values</span></span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">float</span> color[] = &#123; <span class="number">1.0f</span>, <span class="number">0.0f</span>, <span class="number">0.0f</span>, <span class="number">1.0f</span> &#125;;</span><br><span class="line">    </span><br><span class="line">    </span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="title">GLTriangle</span><span class="params">(Context context)</span> </span>&#123;</span><br><span class="line">            Log.d(TAG, <span class="string">"GLTriangle:  vertexCount = "</span> + vertexCount);</span><br><span class="line">            mContext = context;</span><br><span class="line">            initData();</span><br><span class="line">            initShader(context);</span><br><span class="line">        &#125;</span><br><span class="line">    </span><br><span class="line">        <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">initData</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            mVertexBuffer = ByteBuffer.allocateDirect(triangleCoords.length * BYTES_PER_FLOAT)</span><br><span class="line">                    .order(ByteOrder.nativeOrder()) <span class="comment">// use the device hardware's native byte order</span></span><br><span class="line">                    .asFloatBuffer(); <span class="comment">// create a floating point buffer from the ByteBuffer</span></span><br><span class="line">            mVertexBuffer.put(triangleCoords).position(<span class="number">0</span>); <span class="comment">// add the coordinates to the FloatBuffer and set the buffer to read the first coordinate</span></span><br><span class="line">        &#125;</span><br><span class="line">    </span><br><span class="line">        <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">initShader</span><span class="params">(Context context)</span> </span>&#123;    </span><br><span class="line">            mProgram = ShaderHelper.buildProgram(Utils.readTextFileFromResource(mContext, R.raw.basic_vertex_shader),</span><br><span class="line">                    Utils.readTextFileFromResource(mContext, R.raw.basic_fragment_shader));</span><br><span class="line">            mPositionHandle = GLES20.glGetAttribLocation(mProgram, <span class="string">"vPosition"</span>);</span><br><span class="line">            <span class="comment">// get handle to fragment shader's vColor member</span></span><br><span class="line">            mColorHandle = GLES20.glGetUniformLocation(mProgram, <span class="string">"vColor"</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    </span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">draw</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="comment">// Add program to OpenGL ES environment</span></span><br><span class="line">            GLES20.glUseProgram(mProgram);</span><br><span class="line">    </span><br><span class="line">            <span class="comment">// get handle to vertex shader's vPosition member</span></span><br><span class="line">            mPositionHandle = GLES20.glGetAttribLocation(mProgram, <span class="string">"vPosition"</span>);</span><br><span class="line">    </span><br><span class="line">            <span class="comment">// Enable a handle to the triangle vertices</span></span><br><span class="line">            GLES20.glEnableVertexAttribArray(mPositionHandle);</span><br><span class="line">    </span><br><span class="line">            <span class="comment">// Prepare the triangle coordinate data</span></span><br><span class="line">            GLES20.glVertexAttribPointer(mPositionHandle, COORDS_PER_VERTEX,</span><br><span class="line">                    GLES20.GL_FLOAT, <span class="keyword">false</span>,</span><br><span class="line">                    vertexStride, mVertexBuffer);</span><br><span class="line">    </span><br><span class="line">            <span class="comment">// get handle to fragment shader's vColor member</span></span><br><span class="line">            mColorHandle = GLES20.glGetUniformLocation(mProgram, <span class="string">"vColor"</span>);</span><br><span class="line">    </span><br><span class="line">            <span class="comment">// Set color for drawing the triangle</span></span><br><span class="line">            GLES20.glUniform4fv(mColorHandle, <span class="number">1</span>, color, <span class="number">0</span>);</span><br><span class="line">    </span><br><span class="line">            <span class="comment">// Draw the triangle</span></span><br><span class="line">            GLES20.glDrawArrays(GLES20.GL_TRIANGLES, <span class="number">0</span>, vertexCount);</span><br><span class="line">        &#125;</span><br><span class="line">    </span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<h2 id="画三角形">画三角形</h2><p>最后一步，我们修改在<a href="http://zhixinliu.com/2016/01/19/2016-01_19_opengl_1/" target="_blank" rel="external">上一篇教程</a>中的MyGLRender, 使其调用我们刚刚封装好的GLTriangle来画三角形：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> MyGLRender implements GLSurfaceView.Renderer &#123;</span><br><span class="line">    <span class="keyword">private</span> GLTriangle mTriangle;</span><br><span class="line">    <span class="keyword">private</span> Context mContext;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> BasicShaderProgram mBasicShaderProgram;</span><br><span class="line">    <span class="keyword">private</span> ColorShaderProgram mColorShaderProgram;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">MyGLRender</span><span class="params">(Context context)</span> </span>&#123;</span><br><span class="line">        mContext = context;</span><br><span class="line">    &#125;</span><br><span class="line">    @<span class="function">Override</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onSurfaceCreated</span><span class="params">(GL10 gl, EGLConfig config)</span> </span>&#123;</span><br><span class="line">        GLES20.glClearColor(<span class="number">1.0f</span>, <span class="number">1.0f</span>, <span class="number">1.0f</span>, <span class="number">0.0f</span>);</span><br><span class="line"></span><br><span class="line">        mTriangle = <span class="keyword">new</span> GLTriangle(mContext);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @<span class="function">Override</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onSurfaceChanged</span><span class="params">(GL10 gl, <span class="keyword">int</span> width, <span class="keyword">int</span> height)</span> </span>&#123;</span><br><span class="line">        GLES20.glViewport(<span class="number">0</span>, <span class="number">0</span>, width, height);</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @<span class="function">Override</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onDrawFrame</span><span class="params">(GL10 gl)</span> </span>&#123;</span><br><span class="line">        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);</span><br><span class="line">        GLES20.glClearColor(<span class="number">0.0f</span>, <span class="number">0.0f</span>, <span class="number">0.0f</span>, <span class="number">0.0f</span>);</span><br><span class="line"></span><br><span class="line">        mTriangle.draw();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="总结">总结</h2><p>这一篇文章中包含的概念比较多，如果有问题的话，建议仔细学习一下OpenGL的pipeline，shader等概念，毕竟这是现代OpenGL的基础。</p>
+<h2 id="Reference">Reference</h2><ul>
+<li><a href="https://learnopengl-cn.github.io/01%20Getting%20started/08%20Coordinate%20Systems/" target="_blank" rel="external">坐标系统</a></li>
+<li><a href="https://learnopengl-cn.github.io/01%20Getting%20started/05%20Shaders/" target="_blank" rel="external">着色器</a></li>
+<li><a href="http://www.learnopengles.com/android-lesson-one-getting-started/" target="_blank" rel="external">Android lesson</a></li>
+</ul>
+
+      
+    </div>
+
+    <div class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Android/"> #Android </a>
+          
+            <a href="/tags/opengl/"> #opengl </a>
+          
+            <a href="/tags/opengl-es/"> #opengl es </a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/10/22/2016-10-22-web-scability-one/">网站可扩展性入门</a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </div>
+  </div>
+
+
+
+    
+      <div class="comments" id="comments">
+        
+          <div class="ds-thread" data-thread-key="2016/10/25/2016-01-22-opengl-2/"
+               data-title="Android OpenGL 开发2 － 顶点定义以及shader" data-url="http://yishuihe.github.io/2016/10/25/2016-01-22-opengl-2/">
+          </div>
+        
+      </div>
+    
+  </div>
+
+
+        </div>
+      </div>
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table Of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Overview
+          </li>
+        </ul>
+      
+
+      <div class="site-overview">
+        <div class="site-author motion-element">
+          <img class="site-author-image" src="/images/default_avatar.jpg" alt="Zhixin Liu" />
+          <p class="site-author-name">Zhixin Liu</p>
+        </div>
+        <p class="site-description motion-element"></p>
+        <div class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">42</span>
+              <span class="site-state-item-name">posts</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            
+              <span class="site-state-item-count">6</span>
+              <span class="site-state-item-name">categories</span>
+              
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">65</span>
+              <span class="site-state-item-name">tags</span>
+              </a>
+          </div>
+
+        </div>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+              <a href="https://www.linkedin.com/in/zhixinliu" target="_blank">linkedin</a>
+            </span>
+            
+              <span class="links-of-author-item">
+              <a href="https://github.com/yishuihe" target="_blank">github</a>
+            </span>
+            
+              <span class="links-of-author-item">
+              <a href="https://twitter.com/yishuihe" target="_blank">twitter</a>
+            </span>
+            
+              <span class="links-of-author-item">
+              <a href="http://weibo.com/zhixin" target="_blank">weibo</a>
+            </span>
+            
+          
+        </div>
+
+        
+        
+
+      </div>
+
+      
+        <div class="post-toc-wrap sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#顶点定义"><span class="nav-text">顶点定义</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使数据能够被OpenGL访问到"><span class="nav-text">使数据能够被OpenGL访问到</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#着色器（Shader）"><span class="nav-text">着色器（Shader）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#加载shader"><span class="nav-text">加载shader</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#封装OpenGL三角形"><span class="nav-text">封装OpenGL三角形</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#画三角形"><span class="nav-text">画三角形</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-text">总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference"><span class="nav-text">Reference</span></a></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </div>
+      
+
+    </div>
+  </div>
+
+
+    </div>
+
+    <div id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy; &nbsp;  2015 - 
+  2016
+  <span class="with-love">
+    <i class="icon-heart"></i>
+  </span>
+  <span class="author">Zhixin Liu</span>
+</div>
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="http://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+
+      </div>
+    </div>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript">
+    $(document).ready(function() {
+      $('.content img').each(function () {
+        var $image = $(this);
+        var $imageWrapLink = $image.parent('a');
+
+        if ($imageWrapLink.size() < 1) {
+          $imageWrapLink = $image.wrap('<a href="' + this.getAttribute('src') + '"></a>').parent('a');
+        }
+        $imageWrapLink.addClass('fancybox');
+      });
+    });
+    $('.fancybox').fancybox({
+      helpers: {
+        overlay: {
+          locked: false
+        }
+      }
+    });
+  </script>
+
+
+  <script type="text/javascript">
+  function hasMobileUA () {
+    var nav = window.navigator;
+    var ua = nav.userAgent;
+    var pa = /iPad|iPhone|Android|Opera Mini|BlackBerry|webOS|UCWEB|Blazer|PSP|IEMobile|Symbian/g;
+
+    return pa.test(ua);
+  }
+
+  function isDesktop () {
+    return screen.width > 991 && !hasMobileUA();
+  }
+
+  function isTablet () {
+    return screen.width < 992 && screen.width > 767 && hasMobileUA();
+  }
+
+  function isMobile () {
+    return screen.width < 767 && hasMobileUA();
+  }
+
+  function escapeSelector (selector) {
+    return selector.replace(/[!"$%&'()*+,.\/:;<=>?@[\\\]^`{|}~]/g, "\\$&")
+  }
+</script>
+
+  
+
+  <script type="text/javascript" id="motion.fallback">
+  $(document).ready(function () {
+    var isSidebarVisible;
+    var DURATION = 300;
+    var SIDEBAR_WIDTH = 320;
+
+    sidebar();
+    backToTop();
+
+    function sidebar() {
+      $('.sidebar-toggle').on('click', function () {
+        var sidebarWidth = isSidebarVisible ? 0 : SIDEBAR_WIDTH;
+        $('.sidebar').animate({
+          width: sidebarWidth
+        }, DURATION);
+        isSidebarVisible = !isSidebarVisible;
+      });
+    }
+
+    function backToTop() {
+      $('.back-to-top').on('click', function () {
+        $('html, body').animate({
+          scrollTop: 0
+        }, DURATION);
+      });
+    }
+
+  });
+</script>
+
+
+
+
+
+  
+  
+<script type="text/javascript" id="bootstrap.scrollspy.custom">
+  /* ========================================================================
+  * Bootstrap: scrollspy.js v3.3.2
+  * http://getbootstrap.com/javascript/#scrollspy
+  * ========================================================================
+  * Copyright 2011-2015 Twitter, Inc.
+  * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
+  * ======================================================================== */
+
+  /**
+   * Custom by iissnan
+   *
+   * - Add a `clear.bs.scrollspy` event.
+   * - Esacpe targets selector.
+   */
+
+
+  +function ($) {
+    'use strict';
+
+    // SCROLLSPY CLASS DEFINITION
+    // ==========================
+
+    function ScrollSpy(element, options) {
+      this.$body          = $(document.body)
+      this.$scrollElement = $(element).is(document.body) ? $(window) : $(element)
+      this.options        = $.extend({}, ScrollSpy.DEFAULTS, options)
+      this.selector       = (this.options.target || '') + ' .nav li > a'
+      this.offsets        = []
+      this.targets        = []
+      this.activeTarget   = null
+      this.scrollHeight   = 0
+
+      this.$scrollElement.on('scroll.bs.scrollspy', $.proxy(this.process, this))
+      this.refresh()
+      this.process()
+    }
+
+    ScrollSpy.VERSION  = '3.3.2'
+
+    ScrollSpy.DEFAULTS = {
+      offset: 10
+    }
+
+    ScrollSpy.prototype.getScrollHeight = function () {
+      return this.$scrollElement[0].scrollHeight || Math.max(this.$body[0].scrollHeight, document.documentElement.scrollHeight)
+    }
+
+    ScrollSpy.prototype.refresh = function () {
+      var that          = this
+      var offsetMethod  = 'offset'
+      var offsetBase    = 0
+
+      this.offsets      = []
+      this.targets      = []
+      this.scrollHeight = this.getScrollHeight()
+
+      if (!$.isWindow(this.$scrollElement[0])) {
+        offsetMethod = 'position'
+        offsetBase   = this.$scrollElement.scrollTop()
+      }
+
+      this.$body
+        .find(this.selector)
+        .map(function () {
+          var $el   = $(this)
+          var href  = $el.data('target') || $el.attr('href')
+          var $href = /^#./.test(href) && $(escapeSelector(href)) // Need to escape selector.
+
+          return ($href
+            && $href.length
+            && $href.is(':visible')
+            && [[$href[offsetMethod]().top + offsetBase, href]]) || null
+        })
+        .sort(function (a, b) { return a[0] - b[0] })
+        .each(function () {
+          that.offsets.push(this[0])
+          that.targets.push(this[1])
+        })
+
+
+    }
+
+    ScrollSpy.prototype.process = function () {
+      var scrollTop    = this.$scrollElement.scrollTop() + this.options.offset
+      var scrollHeight = this.getScrollHeight()
+      var maxScroll    = this.options.offset + scrollHeight - this.$scrollElement.height()
+      var offsets      = this.offsets
+      var targets      = this.targets
+      var activeTarget = this.activeTarget
+      var i
+
+      if (this.scrollHeight != scrollHeight) {
+        this.refresh()
+      }
+
+      if (scrollTop >= maxScroll) {
+        return activeTarget != (i = targets[targets.length - 1]) && this.activate(i)
+      }
+
+      if (activeTarget && scrollTop < offsets[0]) {
+        $(this.selector).trigger('clear.bs.scrollspy')  // Add a custom event.
+        this.activeTarget = null
+        return this.clear()
+      }
+
+      for (i = offsets.length; i--;) {
+        activeTarget != targets[i]
+          && scrollTop >= offsets[i]
+          && (!offsets[i + 1] || scrollTop <= offsets[i + 1])
+          && this.activate(targets[i])
+      }
+    }
+
+    ScrollSpy.prototype.activate = function (target) {
+      this.activeTarget = target
+
+      this.clear()
+
+      var selector = this.selector +
+        '[data-target="' + target + '"],' +
+        this.selector + '[href="' + target + '"]'
+
+      var active = $(selector)
+        .parents('li')
+        .addClass('active')
+
+      if (active.parent('.dropdown-menu').length) {
+        active = active
+          .closest('li.dropdown')
+          .addClass('active')
+      }
+
+      active.trigger('activate.bs.scrollspy')
+    }
+
+    ScrollSpy.prototype.clear = function () {
+      $(this.selector)
+        .parentsUntil(this.options.target, '.active')
+        .removeClass('active')
+    }
+
+
+    // SCROLLSPY PLUGIN DEFINITION
+    // ===========================
+
+    function Plugin(option) {
+      return this.each(function () {
+        var $this   = $(this)
+        var data    = $this.data('bs.scrollspy')
+        var options = typeof option == 'object' && option
+
+        if (!data) $this.data('bs.scrollspy', (data = new ScrollSpy(this, options)))
+        if (typeof option == 'string') data[option]()
+      })
+    }
+
+    var old = $.fn.scrollspy
+
+    $.fn.scrollspy             = Plugin
+    $.fn.scrollspy.Constructor = ScrollSpy
+
+
+    // SCROLLSPY NO CONFLICT
+    // =====================
+
+    $.fn.scrollspy.noConflict = function () {
+      $.fn.scrollspy = old
+      return this
+    }
+
+
+    // SCROLLSPY DATA-API
+    // ==================
+
+    $(window).on('load.bs.scrollspy.data-api', function () {
+      $('[data-spy="scroll"]').each(function () {
+        var $spy = $(this)
+        Plugin.call($spy, $spy.data())
+      })
+    })
+
+  }(jQuery);
+</script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var $sidebarInner = $('.sidebar-inner');
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.didShow', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+          var self = this;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      $(indicator).velocity('stop').velocity({
+        opacity: action === 'show' ? 0.4 : 0
+      }, { duration: 100 });
+    }
+
+  });
+</script>
+
+
+
+
+
+  
+
+  
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"yishuihe"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+
+
+  
+</body>
+</html>

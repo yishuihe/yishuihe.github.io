@@ -257,10 +257,10 @@
 }
 </code></pre><p>关于GLSurfaceView的renderer，下面是应该注意的知识点以及这里用到的API介绍：</p>
 <ul>
-<li>Renderer是被GLSurfaceView掉用的。</li>
+<li>Renderer是被GLSurfaceView调用的。</li>
 <li>Renderer的方法是运行在一个单独线程中的，而非main thread。</li>
 <li>默认情况下，GLSurfaceView会以display的refresh rate不停的进行render，但是我们也可以将其配置成触发刷新，用到的api是 GLSurfaceView.setRenderMode(RENDERMODE_WHEN_DIRTY)</li>
-<li>onDrawFrame()中的glClear()目的是clear buffer to preset values，也就是在onSurfaceCreated中设置的只。</li>
+<li>onDrawFrame()中的glClear()目的是clear buffer to preset values，也就是在onSurfaceCreated中设置的值。</li>
 </ul>
 <h2 id="总结">总结</h2><p>怎么样，和opengl的首次接触还很轻松吧？但是和人生一样，若只如初见那就太不真实了:J 到现在为止我们就只写一个了一个最最简单的android openGL程序，而且该程序还有两个明显的缺陷：</p>
 <ol>
@@ -356,7 +356,7 @@
         <div class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">41</span>
+              <span class="site-state-item-count">42</span>
               <span class="site-state-item-name">posts</span>
             </a>
           </div>

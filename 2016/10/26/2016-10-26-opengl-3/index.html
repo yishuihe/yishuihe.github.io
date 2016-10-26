@@ -177,7 +177,7 @@
 <h3 id="why">why</h3><p>将对象的坐标转换到几个过渡坐标系(Intermediate Coordinate System)的优点在于，在这些特定的坐标系统中进行一些操作或运算更加方便和容易。</p>
 <p>我们之所以将顶点转换到各个不同的空间的原因是有些操作在特定的坐标系统中才有意义且更方便。例如，当修改对象时，如果在局部空间中则是有意义的；当对对象做相对于其它对象的位置的操作时，在世界坐标系中则是有意义的；等等这些。如果我们愿意，本可以定义一个直接从局部空间到裁剪空间的转换矩阵，但那样会失去灵活性。</p>
 <h2 id="空间转换">空间转换</h2><p>为了将坐标从一个坐标系转换到另一个坐标系，我们需要用到几个转换矩阵，最重要的几个分别是模型(Model)、视图(View)、投影(Projection)三个矩阵。首先，顶点坐标开始于局部空间(Local Space)，称为局部坐标(Local Coordinate)，然后经过世界坐标(World Coordinate)，观察坐标(View Coordinate)，裁剪坐标(Clip Coordinate)，并最后以屏幕坐标(Screen Coordinate)结束。下面的图示显示了整个流程及各个转换过程做了什么：</p>
-<p><img src="/images/coordinate_systems_transition.png.png" alt=" "></p>
+<p><img src="/images/coordinate_systems_transition.png" alt=" "></p>
 <p>我们为上述的每一个步骤都创建了一个转换矩阵：模型矩阵、观察矩阵和投影矩阵。一个顶点的坐标将会根据以下过程被转换到裁剪坐标：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Vclip=Mprojection⋅Mview⋅Mmodel⋅V<span class="built_in">local</span></span><br></pre></td></tr></table></figure>
 <h3 id="Android中对应的函数">Android中对应的函数</h3><p>Android中为上述的矩阵的构造提供了相应的utility方法，简化了我们的开发。</p>

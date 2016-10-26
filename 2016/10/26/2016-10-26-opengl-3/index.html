@@ -1,0 +1,802 @@
+<!doctype html>
+<html class="theme-next  theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.2"/>
+
+
+
+
+  <meta name="keywords" content="Android,opengl,opengl es," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.2" />
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?7c4928b8493b1f6aa6ce268029b94e99";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  <title> Android OpenGL 开发3 － 坐标系 // Coding Life </title>
+</head>
+
+<body>
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <div id="header" class="header">
+      <div class="header-inner">
+        <h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand">
+      <span class="logo">
+        <i class="icon-logo"></i>
+      </span>
+      <span class="site-title">Coding Life</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+
+  <ul id="menu" class="menu">
+     
+    
+      
+      <li class="menu-item menu-item-home">
+        <a href="/">
+          <i class="menu-item-icon icon-home"></i> <br />
+          Home
+        </a>
+      </li>
+    
+      
+      <li class="menu-item menu-item-archives">
+        <a href="/archives">
+          <i class="menu-item-icon icon-archives"></i> <br />
+          Archives
+        </a>
+      </li>
+    
+      
+      <li class="menu-item menu-item-tags">
+        <a href="/tags">
+          <i class="menu-item-icon icon-tags"></i> <br />
+          Tags
+        </a>
+      </li>
+    
+      
+      <li class="menu-item menu-item-about">
+        <a href="/about">
+          <i class="menu-item-icon icon-about"></i> <br />
+          About
+        </a>
+      </li>
+    
+  </ul>
+
+
+      </div>
+    </div>
+
+    <div id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content">
+          
+
+  <div id="posts" class="posts-expand">
+    
+
+  <div class="post post-type-normal ">
+    <div class="post-header">
+
+      
+      
+        <h1 class="post-title">
+          
+          
+            
+              Android OpenGL 开发3 － 坐标系
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          Posted on 2016-10-26
+        </span>
+
+        
+          <span class="post-category">
+            &nbsp; | &nbsp; In
+            
+              <a href="/categories/Android/">Android</a>
+
+              
+              
+
+            
+          </span>
+        
+
+        
+          
+            <span class="post-comments-count">
+            &nbsp; | &nbsp;
+            <a href="/2016/10/26/2016-10-26-opengl-3/#comments" >
+              <span class="post-comments-count ds-thread-count" data-thread-key="2016/10/26/2016-10-26-opengl-3/"></span>
+            </a>
+          </span>
+          
+        
+      </div>
+    </div>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <p>在<a href="http://zhixinliu.com/2016/10/25/2016-01-22-opengl-2/" target="_blank" rel="external">上一篇教程</a>中我们学习了顶点的定义，Shader以及画一个简单的三角形。</p>
+<p>在这一篇中，我们将介绍一下OpenGL的另外一个重要的概念：坐标系统。</p>
+<a id="more"></a>
+<h2 id="概述">概述</h2><p>OpenGL希望在所有顶点着色器运行后，所有我们可见的顶点都变为标准化设备坐标(Normalized Device Coordinate, NDC)。也就是说，每个顶点的x，y，z坐标都应该在-1.0到1.0之间，超出这个坐标范围的顶点都将不可见。我们通常会自己设定一个坐标的范围，之后再在顶点着色器中将这些坐标转换为标准化设备坐标。然后将这些标准化设备坐标传入光栅器(Rasterizer)，再将他们转换为屏幕上的二维坐标或像素。</p>
+<p>将坐标转换为标准化设备坐标，接着再转化为屏幕坐标的过程通常是分步，也就是类似于流水线那样子。将对象转换到屏幕空间之前会先将其依次转换到多个坐标系统(Coordinate System)。</p>
+<p>对我们来说比较重要的总共有5个不同的坐标系统：</p>
+<ul>
+<li>局部空间(Local Space，或者称为物体空间(Object Space))。 是指对象所在的坐标空间，例如，对象最开始所在的地方。例如我们定义一个物体给的初始坐标，该坐标<strong>位置无关</strong>，只是表示自己的大小形状等。它最后被放置的位置有可能位于(0，0，0)，也有可能位于完全不同的另外一个位置。</li>
+<li>世界空间(World Space) : 我们想为每一个对象定义一个位置，从而使对象位于更大的世界当中。世界空间(World Space)中的坐标就如它们听起来那样：是指顶点相对于(游戏)世界的坐标。对象的坐标会从局部坐标转换到世界坐标的转换是由模型矩阵(Model Matrix)实现的。</li>
+<li>观察空间(View Space，或者称为视觉空间(Eye Space)): 观察空间(View Space)经常被人们称之OpenGL的摄像机(Camera)(所以有时也称为摄像机空间(Camera Space)或视觉空间(Eye Space))。观察空间就是将对象的世界空间的坐标转换为观察者视野前面的坐标。因此观察空间就是从摄像机的角度观察到的空间。通常需要一个观察矩阵(View Matrix)，用来将世界坐标转换到观察空间</li>
+<li>裁剪空间(Clip Space): 在一个顶点着色器运行的最后，OpenGL期望所有的坐标都能落在一个给定的范围内，且任何在这个范围之外的点都应该被裁剪掉(Clipped)。被裁剪掉的坐标就被忽略了，所以剩下的坐标就将变为屏幕上可见的片段。这也就是裁剪空间(Clip Space)名字的由来。为了将顶点坐标从观察空间转换到裁剪空间，我们需要定义一个投影矩阵(Projection Matrix)。</li>
+<li>屏幕空间(Screen Space): </li>
+</ul>
+<h3 id="why">why</h3><p>将对象的坐标转换到几个过渡坐标系(Intermediate Coordinate System)的优点在于，在这些特定的坐标系统中进行一些操作或运算更加方便和容易。</p>
+<p>我们之所以将顶点转换到各个不同的空间的原因是有些操作在特定的坐标系统中才有意义且更方便。例如，当修改对象时，如果在局部空间中则是有意义的；当对对象做相对于其它对象的位置的操作时，在世界坐标系中则是有意义的；等等这些。如果我们愿意，本可以定义一个直接从局部空间到裁剪空间的转换矩阵，但那样会失去灵活性。</p>
+<h2 id="空间转换">空间转换</h2><p>为了将坐标从一个坐标系转换到另一个坐标系，我们需要用到几个转换矩阵，最重要的几个分别是模型(Model)、视图(View)、投影(Projection)三个矩阵。首先，顶点坐标开始于局部空间(Local Space)，称为局部坐标(Local Coordinate)，然后经过世界坐标(World Coordinate)，观察坐标(View Coordinate)，裁剪坐标(Clip Coordinate)，并最后以屏幕坐标(Screen Coordinate)结束。下面的图示显示了整个流程及各个转换过程做了什么：</p>
+<p><img src="/images/coordinate_systems_transition.png.png" alt=" "></p>
+<p>我们为上述的每一个步骤都创建了一个转换矩阵：模型矩阵、观察矩阵和投影矩阵。一个顶点的坐标将会根据以下过程被转换到裁剪坐标：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Vclip=Mprojection⋅Mview⋅Mmodel⋅V<span class="built_in">local</span></span><br></pre></td></tr></table></figure>
+<h3 id="Android中对应的函数">Android中对应的函数</h3><p>Android中为上述的矩阵的构造提供了相应的utility方法，简化了我们的开发。</p>
+<ul>
+<li>模型矩阵</li>
+</ul>
+<p>模型矩阵不必说了，直接定义顶点构造即可，就像上一篇中三角形的顶点坐标的构造。</p>
+<ul>
+<li>观察矩阵</li>
+</ul>
+<p>Android提供了Matrix.setLookAtM()方法来构造观察矩阵</p>
+<figure class="highlight nimrod"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> setLookAtM (<span class="type">float</span>[] rm, //returns the <span class="literal">result</span></span><br><span class="line">               <span class="type">int</span> rmOffset, // index into rm where the <span class="literal">result</span> matrix starts</span><br><span class="line">               <span class="type">float</span> eyeX, //eye point X</span><br><span class="line">               <span class="type">float</span> eyeY, //eye point Y</span><br><span class="line">               <span class="type">float</span> eyeZ, //eye point Z</span><br><span class="line">               <span class="type">float</span> centerX, //center <span class="keyword">of</span> view X</span><br><span class="line">               <span class="type">float</span> centerY, //center <span class="keyword">of</span> view Y</span><br><span class="line">               <span class="type">float</span> centerZ, //center <span class="keyword">of</span> view Z</span><br><span class="line">               <span class="type">float</span> upX, //up vector X</span><br><span class="line">               <span class="type">float</span> upY, //up vector Y</span><br><span class="line">               <span class="type">float</span> upZ) //up vector Z</span><br></pre></td></tr></table></figure>
+<ul>
+<li>投影矩阵</li>
+</ul>
+<p>Android提供了Matrix.frustumM() &amp; Matrix.perspectiveM()方法来构造投影矩阵。<br>这里只列一下常用perspective投影：</p>
+<figure class="highlight d"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> perspectiveM (<span class="built_in">float</span>[] m, <span class="comment">//the float array that holds the perspective matrix</span></span><br><span class="line">                <span class="keyword">int</span> offset, <span class="comment">//the offset into float array m where the perspective matrix data is written</span></span><br><span class="line">                <span class="built_in">float</span> fovy, <span class="comment">//field of view in y direction, in degrees</span></span><br><span class="line">                <span class="built_in">float</span> aspect, <span class="comment">//width to height aspect ratio of the viewport</span></span><br><span class="line">                <span class="built_in">float</span> zNear, </span><br><span class="line">                <span class="built_in">float</span> zFar)</span><br></pre></td></tr></table></figure>
+<h2 id="实际例子">实际例子</h2><p>接下来为我们上一篇中画的三角形加上矩阵变换：</p>
+<ul>
+<li>Projection</li>
+</ul>
+<p>Projectin矩阵的计算需要放到你的Render的 onSurfaceChanged()函数中。</p>
+<figure class="highlight processing"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// mMVPMatrix is an abbreviation for "Model View Projection Matrix" </span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> <span class="built_in">float</span>[] mMVPMatrix = <span class="keyword">new</span> <span class="built_in">float</span>[<span class="number">16</span>];</span><br><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> <span class="built_in">float</span>[] mProjectionMatrix = <span class="keyword">new</span> <span class="built_in">float</span>[<span class="number">16</span>];</span><br><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> <span class="built_in">float</span>[] mViewMatrix = <span class="keyword">new</span> <span class="built_in">float</span>[<span class="number">16</span>];</span><br><span class="line"> </span><br><span class="line">@Override </span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> onSurfaceChanged(GL10 unused, <span class="built_in">int</span> <span class="variable">width</span>, <span class="built_in">int</span> <span class="variable">height</span>) &#123;</span><br><span class="line">    GLES20.glViewport(<span class="number">0</span>, <span class="number">0</span>, <span class="variable">width</span>, <span class="variable">height</span>);</span><br><span class="line"> </span><br><span class="line">    <span class="built_in">float</span> ratio = (<span class="built_in">float</span>) <span class="variable">width</span> / <span class="variable">height</span>;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">// this projection matrix is applied to object coordinates </span></span><br><span class="line">    <span class="comment">// in the onDrawFrame() method </span></span><br><span class="line">    Matrix.frustumM(mProjectionMatrix, <span class="number">0</span>, -ratio, ratio, -<span class="number">1</span>, <span class="number">1</span>, <span class="number">3</span>, <span class="number">7</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>Camera view</li>
+</ul>
+<p>通常在每次render之前，就要计算实时的camera view, 所以我们把camera view的计算放到onDrawFrame中：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">@<span class="function">Override </span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onDrawFrame</span><span class="params">(GL10 unused)</span> </span>&#123;</span><br><span class="line">    ... </span><br><span class="line">    <span class="comment">// Set the camera position (View matrix) </span></span><br><span class="line">    Matrix.setLookAtM(mViewMatrix, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, -<span class="number">3</span>, <span class="number">0f</span>, <span class="number">0f</span>, <span class="number">0f</span>, <span class="number">0f</span>, <span class="number">1.0f</span>, <span class="number">0.0f</span>); </span><br><span class="line"> </span><br><span class="line">    <span class="comment">// Calculate the projection and view transformation </span></span><br><span class="line">    Matrix.multiplyMM(mMVPMatrix, <span class="number">0</span>, mProjectionMatrix, <span class="number">0</span>, mViewMatrix, <span class="number">0</span>); </span><br><span class="line"> </span><br><span class="line">    <span class="comment">// Draw shape </span></span><br><span class="line">    mTriangle.draw(mMVPMatrix); </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>应用Projection and Camera Transformations</li>
+</ul>
+<p>首先在vertex shader中加上一个matrix，并应用：</p>
+<figure class="highlight 1c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//This matrix member variable provides a hook to manipulate </span></span><br><span class="line"><span class="comment">// the coordinates of the objects that use this vertex shader </span></span><br><span class="line"><span class="string">"uniform mat4 uMVPMatrix;"</span> + </span><br><span class="line"><span class="string">"attribute vec4 vPosition;"</span> + </span><br><span class="line"><span class="string">"void main() &#123;"</span> + </span><br><span class="line"><span class="comment">// the matrix must be included as a modifier of gl_Position </span></span><br><span class="line"><span class="comment">// Note that the uMVPMatrix factor *must be first* in order </span></span><br><span class="line"><span class="comment">// for the matrix multiplication product to be correct. </span></span><br><span class="line"><span class="string">"  gl_Position = uMVPMatrix * vPosition;"</span> + </span><br><span class="line"><span class="string">"&#125;"</span>;</span><br></pre></td></tr></table></figure>
+<p>最后在GLTriangle中计算mvp matrix，然后传递给shader</p>
+<figure class="highlight cs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">GLTriangle</span> &#123;</span><br><span class="line">	<span class="keyword">private</span> <span class="keyword">int</span> mMVPMatrixHandle;</span><br><span class="line">	</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">draw</span><span class="params">(<span class="keyword">float</span>[] mvpMatrix)</span> </span>&#123; <span class="comment">// pass in the calculated transformation matrix</span></span><br><span class="line">    ... </span><br><span class="line"> </span><br><span class="line">    	<span class="comment">// get handle to shape's transformation matrix </span></span><br><span class="line">    	mMVPMatrixHandle = GLES20.glGetUniformLocation(mProgram, <span class="string">"uMVPMatrix"</span>);</span><br><span class="line"> </span><br><span class="line">    	<span class="comment">// Pass the projection and view transformation to the shader </span></span><br><span class="line">    	GLES20.glUniformMatrix4fv(mMVPMatrixHandle, <span class="number">1</span>, <span class="keyword">false</span>, mvpMatrix, <span class="number">0</span>);</span><br><span class="line"> </span><br><span class="line">    	<span class="comment">// Draw the triangle </span></span><br><span class="line">    	GLES20.glDrawArrays(GLES20.GL_TRIANGLES, <span class="number">0</span>, vertexCount);</span><br><span class="line"> </span><br><span class="line">    	<span class="comment">// Disable vertex array </span></span><br><span class="line">    	GLES20.glDisableVertexAttribArray(mPositionHandle);</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="Reference">Reference</h2><ul>
+<li><a href="https://developer.android.com/training/graphics/opengl/projection.html" target="_blank" rel="external">Applying Projection and Camera Views</a></li>
+<li><a href="https://learnopengl-cn.github.io/01%20Getting%20started/08%20Coordinate%20Systems/" target="_blank" rel="external">坐标系统</a></li>
+</ul>
+
+      
+    </div>
+
+    <div class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Android/"> #Android </a>
+          
+            <a href="/tags/opengl/"> #opengl </a>
+          
+            <a href="/tags/opengl-es/"> #opengl es </a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/10/25/2016-01-22-opengl-2/">Android OpenGL 开发2 － 顶点定义以及shader</a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </div>
+  </div>
+
+
+
+    
+      <div class="comments" id="comments">
+        
+          <div class="ds-thread" data-thread-key="2016/10/26/2016-10-26-opengl-3/"
+               data-title="Android OpenGL 开发3 － 坐标系" data-url="http://yishuihe.github.io/2016/10/26/2016-10-26-opengl-3/">
+          </div>
+        
+      </div>
+    
+  </div>
+
+
+        </div>
+      </div>
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table Of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Overview
+          </li>
+        </ul>
+      
+
+      <div class="site-overview">
+        <div class="site-author motion-element">
+          <img class="site-author-image" src="/images/default_avatar.jpg" alt="Zhixin Liu" />
+          <p class="site-author-name">Zhixin Liu</p>
+        </div>
+        <p class="site-description motion-element"></p>
+        <div class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">43</span>
+              <span class="site-state-item-name">posts</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            
+              <span class="site-state-item-count">6</span>
+              <span class="site-state-item-name">categories</span>
+              
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">65</span>
+              <span class="site-state-item-name">tags</span>
+              </a>
+          </div>
+
+        </div>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+              <a href="https://www.linkedin.com/in/zhixinliu" target="_blank">linkedin</a>
+            </span>
+            
+              <span class="links-of-author-item">
+              <a href="https://github.com/yishuihe" target="_blank">github</a>
+            </span>
+            
+              <span class="links-of-author-item">
+              <a href="https://twitter.com/yishuihe" target="_blank">twitter</a>
+            </span>
+            
+              <span class="links-of-author-item">
+              <a href="http://weibo.com/zhixin" target="_blank">weibo</a>
+            </span>
+            
+          
+        </div>
+
+        
+        
+
+      </div>
+
+      
+        <div class="post-toc-wrap sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#概述"><span class="nav-text">概述</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#why"><span class="nav-text">why</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#空间转换"><span class="nav-text">空间转换</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Android中对应的函数"><span class="nav-text">Android中对应的函数</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#实际例子"><span class="nav-text">实际例子</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference"><span class="nav-text">Reference</span></a></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </div>
+      
+
+    </div>
+  </div>
+
+
+    </div>
+
+    <div id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy; &nbsp;  2015 - 
+  2016
+  <span class="with-love">
+    <i class="icon-heart"></i>
+  </span>
+  <span class="author">Zhixin Liu</span>
+</div>
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="http://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+
+      </div>
+    </div>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript">
+    $(document).ready(function() {
+      $('.content img').each(function () {
+        var $image = $(this);
+        var $imageWrapLink = $image.parent('a');
+
+        if ($imageWrapLink.size() < 1) {
+          $imageWrapLink = $image.wrap('<a href="' + this.getAttribute('src') + '"></a>').parent('a');
+        }
+        $imageWrapLink.addClass('fancybox');
+      });
+    });
+    $('.fancybox').fancybox({
+      helpers: {
+        overlay: {
+          locked: false
+        }
+      }
+    });
+  </script>
+
+
+  <script type="text/javascript">
+  function hasMobileUA () {
+    var nav = window.navigator;
+    var ua = nav.userAgent;
+    var pa = /iPad|iPhone|Android|Opera Mini|BlackBerry|webOS|UCWEB|Blazer|PSP|IEMobile|Symbian/g;
+
+    return pa.test(ua);
+  }
+
+  function isDesktop () {
+    return screen.width > 991 && !hasMobileUA();
+  }
+
+  function isTablet () {
+    return screen.width < 992 && screen.width > 767 && hasMobileUA();
+  }
+
+  function isMobile () {
+    return screen.width < 767 && hasMobileUA();
+  }
+
+  function escapeSelector (selector) {
+    return selector.replace(/[!"$%&'()*+,.\/:;<=>?@[\\\]^`{|}~]/g, "\\$&")
+  }
+</script>
+
+  
+
+  <script type="text/javascript" id="motion.fallback">
+  $(document).ready(function () {
+    var isSidebarVisible;
+    var DURATION = 300;
+    var SIDEBAR_WIDTH = 320;
+
+    sidebar();
+    backToTop();
+
+    function sidebar() {
+      $('.sidebar-toggle').on('click', function () {
+        var sidebarWidth = isSidebarVisible ? 0 : SIDEBAR_WIDTH;
+        $('.sidebar').animate({
+          width: sidebarWidth
+        }, DURATION);
+        isSidebarVisible = !isSidebarVisible;
+      });
+    }
+
+    function backToTop() {
+      $('.back-to-top').on('click', function () {
+        $('html, body').animate({
+          scrollTop: 0
+        }, DURATION);
+      });
+    }
+
+  });
+</script>
+
+
+
+
+
+  
+  
+<script type="text/javascript" id="bootstrap.scrollspy.custom">
+  /* ========================================================================
+  * Bootstrap: scrollspy.js v3.3.2
+  * http://getbootstrap.com/javascript/#scrollspy
+  * ========================================================================
+  * Copyright 2011-2015 Twitter, Inc.
+  * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
+  * ======================================================================== */
+
+  /**
+   * Custom by iissnan
+   *
+   * - Add a `clear.bs.scrollspy` event.
+   * - Esacpe targets selector.
+   */
+
+
+  +function ($) {
+    'use strict';
+
+    // SCROLLSPY CLASS DEFINITION
+    // ==========================
+
+    function ScrollSpy(element, options) {
+      this.$body          = $(document.body)
+      this.$scrollElement = $(element).is(document.body) ? $(window) : $(element)
+      this.options        = $.extend({}, ScrollSpy.DEFAULTS, options)
+      this.selector       = (this.options.target || '') + ' .nav li > a'
+      this.offsets        = []
+      this.targets        = []
+      this.activeTarget   = null
+      this.scrollHeight   = 0
+
+      this.$scrollElement.on('scroll.bs.scrollspy', $.proxy(this.process, this))
+      this.refresh()
+      this.process()
+    }
+
+    ScrollSpy.VERSION  = '3.3.2'
+
+    ScrollSpy.DEFAULTS = {
+      offset: 10
+    }
+
+    ScrollSpy.prototype.getScrollHeight = function () {
+      return this.$scrollElement[0].scrollHeight || Math.max(this.$body[0].scrollHeight, document.documentElement.scrollHeight)
+    }
+
+    ScrollSpy.prototype.refresh = function () {
+      var that          = this
+      var offsetMethod  = 'offset'
+      var offsetBase    = 0
+
+      this.offsets      = []
+      this.targets      = []
+      this.scrollHeight = this.getScrollHeight()
+
+      if (!$.isWindow(this.$scrollElement[0])) {
+        offsetMethod = 'position'
+        offsetBase   = this.$scrollElement.scrollTop()
+      }
+
+      this.$body
+        .find(this.selector)
+        .map(function () {
+          var $el   = $(this)
+          var href  = $el.data('target') || $el.attr('href')
+          var $href = /^#./.test(href) && $(escapeSelector(href)) // Need to escape selector.
+
+          return ($href
+            && $href.length
+            && $href.is(':visible')
+            && [[$href[offsetMethod]().top + offsetBase, href]]) || null
+        })
+        .sort(function (a, b) { return a[0] - b[0] })
+        .each(function () {
+          that.offsets.push(this[0])
+          that.targets.push(this[1])
+        })
+
+
+    }
+
+    ScrollSpy.prototype.process = function () {
+      var scrollTop    = this.$scrollElement.scrollTop() + this.options.offset
+      var scrollHeight = this.getScrollHeight()
+      var maxScroll    = this.options.offset + scrollHeight - this.$scrollElement.height()
+      var offsets      = this.offsets
+      var targets      = this.targets
+      var activeTarget = this.activeTarget
+      var i
+
+      if (this.scrollHeight != scrollHeight) {
+        this.refresh()
+      }
+
+      if (scrollTop >= maxScroll) {
+        return activeTarget != (i = targets[targets.length - 1]) && this.activate(i)
+      }
+
+      if (activeTarget && scrollTop < offsets[0]) {
+        $(this.selector).trigger('clear.bs.scrollspy')  // Add a custom event.
+        this.activeTarget = null
+        return this.clear()
+      }
+
+      for (i = offsets.length; i--;) {
+        activeTarget != targets[i]
+          && scrollTop >= offsets[i]
+          && (!offsets[i + 1] || scrollTop <= offsets[i + 1])
+          && this.activate(targets[i])
+      }
+    }
+
+    ScrollSpy.prototype.activate = function (target) {
+      this.activeTarget = target
+
+      this.clear()
+
+      var selector = this.selector +
+        '[data-target="' + target + '"],' +
+        this.selector + '[href="' + target + '"]'
+
+      var active = $(selector)
+        .parents('li')
+        .addClass('active')
+
+      if (active.parent('.dropdown-menu').length) {
+        active = active
+          .closest('li.dropdown')
+          .addClass('active')
+      }
+
+      active.trigger('activate.bs.scrollspy')
+    }
+
+    ScrollSpy.prototype.clear = function () {
+      $(this.selector)
+        .parentsUntil(this.options.target, '.active')
+        .removeClass('active')
+    }
+
+
+    // SCROLLSPY PLUGIN DEFINITION
+    // ===========================
+
+    function Plugin(option) {
+      return this.each(function () {
+        var $this   = $(this)
+        var data    = $this.data('bs.scrollspy')
+        var options = typeof option == 'object' && option
+
+        if (!data) $this.data('bs.scrollspy', (data = new ScrollSpy(this, options)))
+        if (typeof option == 'string') data[option]()
+      })
+    }
+
+    var old = $.fn.scrollspy
+
+    $.fn.scrollspy             = Plugin
+    $.fn.scrollspy.Constructor = ScrollSpy
+
+
+    // SCROLLSPY NO CONFLICT
+    // =====================
+
+    $.fn.scrollspy.noConflict = function () {
+      $.fn.scrollspy = old
+      return this
+    }
+
+
+    // SCROLLSPY DATA-API
+    // ==================
+
+    $(window).on('load.bs.scrollspy.data-api', function () {
+      $('[data-spy="scroll"]').each(function () {
+        var $spy = $(this)
+        Plugin.call($spy, $spy.data())
+      })
+    })
+
+  }(jQuery);
+</script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var $sidebarInner = $('.sidebar-inner');
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.didShow', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+          var self = this;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      $(indicator).velocity('stop').velocity({
+        opacity: action === 'show' ? 0.4 : 0
+      }, { duration: 100 });
+    }
+
+  });
+</script>
+
+
+
+
+
+  
+
+  
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"yishuihe"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+
+
+  
+</body>
+</html>

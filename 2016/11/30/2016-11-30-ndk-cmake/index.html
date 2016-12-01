@@ -18,7 +18,7 @@
 
 
 
-  <meta name="keywords" content="Android,Frame,animation," />
+  <meta name="keywords" content="Android,jni,ndk," />
 
 
 
@@ -39,7 +39,7 @@
   </script>
 
 
-  <title> Andoid Frame animation outOfMemory问题解决 // Coding Life </title>
+  <title> Andoid NDK编程 4 － Android Studio for NDK // Coding Life </title>
 </head>
 
 <body>
@@ -118,7 +118,7 @@
           
           
             
-              Andoid Frame animation outOfMemory问题解决
+              Andoid NDK编程 4 － Android Studio for NDK
             
           
         </h1>
@@ -126,7 +126,7 @@
 
       <div class="post-meta">
         <span class="post-time">
-          Posted on 2015-08-04
+          Posted on 2016-11-30
         </span>
 
         
@@ -146,8 +146,8 @@
           
             <span class="post-comments-count">
             &nbsp; | &nbsp;
-            <a href="/2015/08/04/2015-08-04-frame-animation/#comments" >
-              <span class="post-comments-count ds-thread-count" data-thread-key="2015/08/04/2015-08-04-frame-animation/"></span>
+            <a href="/2016/11/30/2016-11-30-ndk-cmake/#comments" >
+              <span class="post-comments-count ds-thread-count" data-thread-key="2016/11/30/2016-11-30-ndk-cmake/"></span>
             </a>
           </span>
           
@@ -161,11 +161,45 @@
       
 
       
-        <p>Android Frame动画有时候会遇到恼人的outOfMemory问题，今天来记录下如何解决。</p>
+        <p>Google一直在大力推进着Android Studio的开发，之前就已经开始支持native code的开发了(采用gradle-experimental)。但是直到Android Studio 2.2 release后，利用Android Studio开发Native程序才变得好玩起来了。</p>
 <a id="more"></a>
-<p>Android的Frame动画应该可以说是android中最最简单的animation了，就是将一系列图片在一定的时间间隔内一一呈现出来。但是由于Android Framework在处理Frame动画的时候是一次性的将所有帧的资源图片加载到内存中去的，所以一旦有稍微多的帧的时候就很容易导致outOfMemory发生。</p>
-<p>那么该如何解决该问题呢？一个可行的思路是：既然frame动画原理如此简单，我们大可不必一定通过android的framework来实现该动画。完全可以自力更生，自己通过代码来实现图片的一张一张的加载与替换，然后在代码中借助于诸如SoftReference等来避免OOM的发生。</p>
-<p>如果连这个都懒得写的话怎么办？没关系，推荐一个github上的开源库，做的就是类似事情。<a href="https://github.com/tigerjj/FasterAnimationsContainer" target="_blank" rel="external">点击这里获取吧</a>。</p>
+<h2 id="最新变化">最新变化</h2><p>Android Studio 2.2 以及 Android Plugin for Gradle version 2.2.0是目前为止最新的release。二者同时使用，能够让你很轻松地在Android Studio中开发Native代码了，其中的显著变化有：</p>
+<ol>
+<li>CMake成为了native代码默认的build tool。Google终于开始放弃传统的ndk-build了(当然，目前这种方式依然还是支持的)。考虑到目前大多数的C/C++项目都采用了CMake，此举无疑为已有native库的移植提供极大的便利。其实以前也可以用CMake为Android做交叉编译, 可以参考我的<a href="http://zhixinliu.com/2016/02/01/2016-02-01-cmake-cross-compile/" target="_blank" rel="external">这篇文章</a>。但是现在更方便了，变成默认就支持了。</li>
+<li>Gradle已经支持将native代码build成library并且将其打包到APK中了。</li>
+<li>创建一个Android应用的project的时候，可以在创建向导中直接指定创建native部分了：包括native代码，CMakeLists.txt，以及在build.gradle中将native lib引入到Java部分中去。整个框架会自动为你生成浩，我们只需基于此框架继续开发就好了。</li>
+</ol>
+<h2 id="如何开始">如何开始</h2><p>首先如果你还没有升级Android Studio的话，赶紧升级到2.2吧。</p>
+<p>接下来打开SDK Manager，下载 LLDB, CMake,以及 NDK等：</p>
+<p><img src="/images/2016-11-30-download-ndk.png" alt=" "></p>
+<p>BTW，LLDB是Android Studio调试native代码的debugger。</p>
+<p>接下来用Android Studio中创建一个包含Native代码的项目试试吧，记住在第一步中勾选include C++ support。</p>
+<p>![ ] (/images/2016-11-31-create-native-proect.png)</p>
+<p>项目创建完成后，项目的Android View如下：</p>
+<p>![ ] (/images/2016-11-30-as-native-structure.png)</p>
+<p>其中1是用来放C/C++代码的地方， 2是CMakeLists.txt，用来描述如何build native代码。</p>
+<p>此外，还可以看看build.gradle，弄清楚gradle是如何将native集成到project中去的。</p>
+<h3 id="已有的native项目">已有的native项目</h3><p>问题来了，如果我们已经有了native的代码，如何通过android studio／gradle应用到android app中呢？</p>
+<p>首先如果你的C++项目还没有CMakeList.txt，先把它加上，然后确保能够在你的电脑(Mac/Ubuntu… whatever)上能够build通过。然后将其拷贝到你的项目模块的src/main/cpp下面。</p>
+<p>那么有了C++代码以及CMakeList.txt，如何将其link到java部分呢？<br>如果前面弄明白了build.gradle是如何描述native build的，那么这个问题也就变得很容易了。</p>
+<p>我在这贴个例子吧，看看externalNativeBuild出现的两个地方相信你就明了了。</p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="title">apply</span> plugin: <span class="string">'com.android.application'</span></span><br><span class="line"></span><br><span class="line">android &#123;</span><br><span class="line">    <span class="title">compileSdkVersion</span> <span class="number">23</span></span><br><span class="line">    buildToolsVersion <span class="string">'23.0.2'</span></span><br><span class="line"></span><br><span class="line">    defaultConfig &#123;</span><br><span class="line">        <span class="title">applicationId</span> <span class="string">'com.example.nativecodec'</span></span><br><span class="line">        minSdkVersion <span class="number">21</span></span><br><span class="line">        targetSdkVersion <span class="number">22</span></span><br><span class="line">        ndk &#123;</span><br><span class="line">            <span class="title">abiFilters</span> <span class="string">'x86'</span>, <span class="string">'x86_64'</span>, <span class="string">'armeabi'</span>, <span class="string">'armeabi-v7a'</span>, <span class="string">'arm64-v8a'</span></span><br><span class="line">        &#125;</span><br><span class="line">        externalNativeBuild &#123;</span><br><span class="line">            <span class="title">cmake</span> &#123;</span><br><span class="line">                <span class="title">arguments</span> <span class="string">'-DANDROID_PLATFORM=android-21'</span>,</span><br><span class="line">                          <span class="string">'-DANDROID_TOOLCHAIN=clang'</span>, <span class="string">'-DANDROID_STL=gnustl_static'</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    buildTypes &#123;</span><br><span class="line">        <span class="title">release</span> &#123;</span><br><span class="line">            <span class="title">minifyEnabled</span> = <span class="built_in">false</span></span><br><span class="line">            proguardFiles getDefaultProguardFile(<span class="string">'proguard-android.txt'</span>),</span><br><span class="line">                          <span class="string">'proguard-rules.pro'</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    externalNativeBuild &#123;</span><br><span class="line">        <span class="title">cmake</span> &#123;</span><br><span class="line">            <span class="title">path</span> <span class="string">'src/main/cpp/CMakeLists.txt'</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="CMake">CMake</h2><p>如果你对CMake还不是太熟悉，那么抓紧时间学习一下通用的CMakeList.txt是如何书写的，很简单的，对照例子很快就能上手了。具体的用法就不啰嗦了，在这里只是想说一下如何将一个已经build好的library引入进来，也就是说在你的c++代码中如何使用一个已经提前准备好的library。具体来说在native代码的CMakeLists.txt中加入三个部分：</p>
+<ul>
+<li>首先声明要使用的库：</li>
+</ul>
+<p>假设我们想给这个引入的库起个‘别名’叫做imported-lib</p>
+<figure class="highlight lisp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">add_library<span class="list">( <span class="keyword">imported-lib</span></span><br><span class="line">             SHARED</span><br><span class="line">             IMPORTED )</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>然后指明这个库在什么地方：</li>
+</ul>
+<p>假设你有一个库libimported-lib.so放在了imported-lib/src/${ANDROID_ABI}/目录下面：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">set</span>_target_properties( <span class="comment"># Specifies the target library.</span></span><br><span class="line">                       imported-lib</span><br><span class="line"></span><br><span class="line">                       <span class="comment"># Specifies the parameter you want to define.</span></span><br><span class="line">                       PROPERTIES IMPORTED_LOCATION</span><br><span class="line"></span><br><span class="line">                       <span class="comment"># Provides the path to the library you want to import.</span></span><br><span class="line">                       imported-lib/src/<span class="variable">$&#123;ANDROID_ABI&#125;</span>/libimported-lib.so )</span><br></pre></td></tr></table></figure>
+<ul>
+<li>最后</li>
+</ul>
+<p>在build你自己native代码库的时候，去链接这个prebuilt库：<br><figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="title">target_link_libraries</span><span class="params">( native-lib imported-lib $&#123;other-libs&#125; )</span></span></span><br></pre></td></tr></table></figure></p>
+<h2 id="Reference">Reference</h2><p><a href="https://developer.android.com/studio/projects/add-native-code.html" target="_blank" rel="external">Add C and C++ Code to Your Project</a></p>
 
       
     </div>
@@ -176,9 +210,9 @@
           
             <a href="/tags/Android/"> #Android </a>
           
-            <a href="/tags/Frame/"> #Frame </a>
+            <a href="/tags/jni/"> #jni </a>
           
-            <a href="/tags/animation/"> #animation </a>
+            <a href="/tags/ndk/"> #ndk </a>
           
         </div>
       
@@ -187,13 +221,11 @@
         <div class="post-nav">
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2015/08/05/2015-08-05-viewpager-animation/">Andoid ViewPager animation</a>
-            
           </div>
 
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2015/08/03/2015-08-03-asynctask/">Andoid AsyncTask简明教程</a>
+              <a href="/2016/11/15/2016-11-15-camera-intrinsic/">Camera Intrinsic & Extrinsic矩阵</a>
             
           </div>
         </div>
@@ -209,8 +241,8 @@
     
       <div class="comments" id="comments">
         
-          <div class="ds-thread" data-thread-key="2015/08/04/2015-08-04-frame-animation/"
-               data-title="Andoid Frame animation outOfMemory问题解决" data-url="http://yishuihe.github.io/2015/08/04/2015-08-04-frame-animation/">
+          <div class="ds-thread" data-thread-key="2016/11/30/2016-11-30-ndk-cmake/"
+               data-title="Andoid NDK编程 4 － Android Studio for NDK" data-url="http://yishuihe.github.io/2016/11/30/2016-11-30-ndk-cmake/">
           </div>
         
       </div>
@@ -310,7 +342,7 @@
           <div class="post-toc">
             
             
-              <p class="post-toc-empty">This post does not have a Table Of Contents</p>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#最新变化"><span class="nav-text">最新变化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#如何开始"><span class="nav-text">如何开始</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#已有的native项目"><span class="nav-text">已有的native项目</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CMake"><span class="nav-text">CMake</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference"><span class="nav-text">Reference</span></a></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator"></div>

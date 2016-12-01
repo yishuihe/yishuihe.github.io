@@ -174,9 +174,9 @@
 <p><img src="/images/2016-11-30-download-ndk.png" alt=" "></p>
 <p>BTW，LLDB是Android Studio调试native代码的debugger。</p>
 <p>接下来用Android Studio中创建一个包含Native代码的项目试试吧，记住在第一步中勾选include C++ support。</p>
-<p><img src="/images/2016-11-30-create-native-proect.png" alt=" "></p>
+<p><img src="/images/2016-11-30-native-project.png" alt=" "></p>
 <p>项目创建完成后，项目的Android View如下：</p>
-<p><img src="/images/2016-11-30-as-native-structure.png" alt=" "></p>
+<p><img src="/images/2016-11-30-native-struc.png" alt=" "></p>
 <p>其中1是用来放C/C++代码的地方， 2是CMakeLists.txt，用来描述如何build native代码。</p>
 <p>此外，还可以看看build.gradle，弄清楚gradle是如何将native集成到project中去的。</p>
 <h3 id="已有的native项目">已有的native项目</h3><p>问题来了，如果我们已经有了native的代码，如何通过android studio／gradle应用到android app中呢？</p>
